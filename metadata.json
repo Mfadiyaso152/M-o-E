@@ -1,0 +1,6 @@
+{
+  "name": "نماذج التميز للمقاولات",
+  "description": "منصة وتطبيق إدارة مشاريع المقاولات لعملاء نماذج التميز لمتابعة البناء والدفعات وعروض الأسعار.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

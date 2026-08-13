@@ -1,0 +1,46 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Tajawal", system-ui, -apple-system, sans-serif;
+  --color-green-brand: #1C3022;
+  --color-green-dark: #122116;
+  --color-green-light: #2A4532;
+  --color-sand-brand: #C5B198;
+  --color-sand-dark: #A99379;
+  --color-sand-light: #EFE7DC;
+  --color-sand-muted: #F8F5F0;
+  --color-cream-bg: #F5F3EF;
+}
+
+@layer base {
+  body {
+    background-color: #F5F3EF;
+    color: #192A1D;
+    font-family: var(--font-sans);
+  }
+}
+
+.card-construction {
+  @apply bg-white rounded-3xl border border-[#E8E3DA] shadow-sm overflow-hidden transition-all hover:shadow-md;
+}
+
+.status-badge {
+  @apply px-3 py-1 rounded-full text-xs font-bold;
+}
+
+.btn-brand-primary {
+  @apply bg-[#1C3022] text-[#F8F5F0] px-6 py-3.5 rounded-2xl font-bold hover:bg-[#122116] transition-all shadow-sm active:scale-[0.98];
+}
+
+.btn-brand-sand {
+  @apply bg-[#C5B198] text-[#1C3022] px-6 py-3.5 rounded-2xl font-bold hover:bg-[#B9A387] transition-all shadow-sm active:scale-[0.98];
+}
+
+/* Hide scrollbar for clean mobile tabs */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
