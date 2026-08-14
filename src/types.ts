@@ -1,5 +1,5 @@
 export type ProjectStatus = 'قيد الانتظار' | 'بانتظار العقد' | 'قيد التنفيذ' | 'مكتمل';
-export type QuoteStatus = 'طلب جديد' | 'تم إرسال العرض' | 'مقبول' | 'مرفوض' | 'تم توقيع العقد';
+export type QuoteStatus = 'طلب جديد' | 'تم إرسال العرض' | 'مقبول' | 'مرفوض' | 'بانتظار مراجعة التعديل' | 'تم اعتماد المشروع' | 'تم توقيع العقد';
 
 export interface Installment {
   id: string;
@@ -7,12 +7,22 @@ export interface Installment {
   amount: string;
   amountNumber: number;
   dueDate: string;
-  status: 'paid' | 'pending';
+  status: 'paid' | 'pending' | 'under_review';
+  clientApprovalStatus?: 'approved' | 'rejected' | 'pending';
+  clientApprovalDate?: string;
   paymentDate?: string;
   transactionRef?: string;
-  paymentMethod?: 'Apple Pay' | 'بطاقة مدى' | 'بطاقة ائتمانية';
+  paymentMethod?: 'Apple Pay' | 'بطاقة مدى' | 'بطاقة ائتمانية' | 'تحويل بنكي';
   lastReminderSentDate?: string;
   reminderCount?: number;
+  transferReceiptUrl?: string;
+  transferSenderName?: string;
+  transferBankName?: string;
+  transferDate?: string;
+  transferRef?: string;
+  transferNote?: string;
+  supervisorPaymentConfirmed?: boolean;
+  supervisorRejectionReason?: string;
 }
 
 export function getInstallmentOverdueStatus(installment: Installment): {
@@ -92,8 +102,8 @@ export interface Project {
   progress: number;
   status: ProjectStatus;
   licenseNumber: string;
-  landArea: string;
-  builtUpArea: string;
+  landArea?: string;
+  builtUpArea?: string;
   supervisingEngineer: {
     name: string;
     phone: string;
@@ -132,11 +142,19 @@ export interface QuoteRequest {
   fileName?: string;
   fileSize?: string;
   validUntil?: string;
-  clientDecision?: 'accepted' | 'rejected' | 'pending';
+  clientDecision?: 'accepted' | 'rejected' | 'accepted_with_modifications' | 'pending';
+  clientModificationNote?: string;
   clientRejectionReason?: string;
   clientDecisionDate?: string;
   date: string;
   adminNote?: string;
+  installments?: Installment[];
+  contractUrl?: string;
+  contractSigned?: boolean;
+  contractSignDate?: string;
+  contractSignerName?: string;
+  contractSignature?: string;
+  projectId?: string;
 }
 
 export interface User {
@@ -150,4 +168,8 @@ export interface User {
   role: 'admin' | 'client';
   company?: string;
   createdAt?: string;
+  isDeleted?: boolean;
+  deletedReason?: string;
+  deletedAt?: string;
+  deletedBy?: string;
 }

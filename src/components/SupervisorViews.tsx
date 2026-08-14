@@ -33,10 +33,14 @@ import {
   Download,
   X,
   FileCheck,
-  Loader2
+  Loader2,
+  Trash2,
+  Eye,
+  UserX
 } from 'lucide-react';
 import { User, Project, QuoteRequest, ProjectStatus, Installment, getInstallmentOverdueStatus } from '../types';
 import { ProjectService } from '../services/dbService';
+import { DeleteClientByAdminModal } from './DeleteClientByAdminModal';
 
 // -------------------------------------------------------------
 // 1. SUPERVISOR HOME VIEW: "العملاء" (Clients & Overview)
@@ -49,6 +53,7 @@ interface SupervisorClientsViewProps {
   onSelectClientForProjects: (clientId: string) => void;
   onCreateProjectForClient: (clientId: string) => void;
   onRefreshQuotes: () => void;
+  onDeleteClient?: (clientId: string, reason: string) => Promise<void>;
   onRequestToast: (msg: string) => void;
 }
 
@@ -60,14 +65,17 @@ export function SupervisorClientsView({
   onSelectClientForProjects,
   onCreateProjectForClient,
   onRefreshQuotes,
+  onDeleteClient,
   onRequestToast
 }: SupervisorClientsViewProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<'clients' | 'quotes'>('clients');
   const [selectedQuoteForProposal, setSelectedQuoteForProposal] = useState<QuoteRequest | null>(null);
+  const [clientToDelete, setClientToDelete] = useState<User | null>(null);
 
-  // Filter clients
+  // Filter clients (exclude deleted)
   const filteredClients = clients.filter(c => {
+    if (c.isDeleted) return false;
     const q = searchQuery.toLowerCase();
     return (
       (c.name && c.name.toLowerCase().includes(q)) ||
@@ -200,15 +208,27 @@ export function SupervisorClientsView({
                     </div>
 
                     {/* Action buttons for this client */}
-                    <div className="pt-2 border-t border-[#F0EBE1]">
+                    <div className="flex gap-2 pt-2 border-t border-[#F0EBE1]">
                       <button
                         type="button"
                         onClick={() => onSelectClientForProjects(client.id)}
-                        className="w-full bg-[#FAF7F2] hover:bg-[#EFE7DC] text-[#1C3022] py-2 px-3 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 border border-[#E8E2D8] transition-all"
+                        className="flex-1 bg-[#FAF7F2] hover:bg-[#EFE7DC] text-[#1C3022] py-2 px-3 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 border border-[#E8E2D8] transition-all"
                       >
                         <HardHat className="w-3.5 h-3.5 text-[#A99379]" />
                         <span>استعراض مشاريع العميل ({clientProjects.length})</span>
                       </button>
+
+                      {client.email?.toLowerCase() !== 'mfb.15.f@gmail.com' && (
+                        <button
+                          type="button"
+                          onClick={() => setClientToDelete(client)}
+                          className="bg-red-50 hover:bg-red-100 text-red-700 py-2 px-3 rounded-xl text-xs font-black flex items-center justify-center gap-1 border border-red-200 transition-all active:scale-95"
+                          title="حذف حساب العميل مع تسجيل السبب"
+                        >
+                          <Trash2 className="w-3.5 h-3.5 text-red-600" />
+                          <span>حذف العميل</span>
+                        </button>
+                      )}
                     </div>
                   </div>
                 );
@@ -218,6 +238,24 @@ export function SupervisorClientsView({
         </div>
       )}
 
+      {/* DELETE CLIENT MODAL WITH REASON & PROJECT RESTRICTION */}
+      <AnimatePresence>
+        {clientToDelete && (
+          <DeleteClientByAdminModal
+            client={clientToDelete}
+            projects={projects}
+            onClose={() => setClientToDelete(null)}
+            onConfirmDelete={async (clientId, reason) => {
+              if (onDeleteClient) {
+                await onDeleteClient(clientId, reason);
+              }
+              setClientToDelete(null);
+            }}
+            onRequestToast={onRequestToast}
+          />
+        )}
+      </AnimatePresence>
+
       {/* QUOTE REQUESTS MANAGEMENT */}
       {activeTab === 'quotes' && (
         <div className="space-y-3">
@@ -225,110 +263,244 @@ export function SupervisorClientsView({
             <div className="bg-white rounded-3xl p-8 text-center border border-[#E8E2D8] space-y-2">
               <FileText className="w-10 h-10 text-slate-300 mx-auto" />
               <h4 className="text-xs font-black text-[#1C3022]">لا توجد طلبات عروض أسعار جديدة</h4>
-              <p className="text-[11px] text-slate-400">أي طلب يقدمه العميل لدراسة مشروع جديد سيظهر هنا للمشرف لإرسال عرض السعر والملف المرفق</p>
+              <p className="text-[11px] text-slate-400">أي طلب يقدمه العميل لدراسة مشروع جديد سيظهر هنا للمشرف لإرسال عرض السعر ونظام الدفعات والملف المرفق</p>
             </div>
           ) : (
-            quotes.map(quote => (
-              <div key={quote.id} className="bg-white rounded-3xl p-4 border border-[#E8E2D8] shadow-sm space-y-3">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <span className="text-[10px] font-bold text-[#A99379]">طلب رقم: {quote.id}</span>
-                    <h4 className="text-xs font-black text-[#1C3022] mt-0.5">{quote.projectName}</h4>
-                    <p className="text-[11px] text-slate-600 mt-1 leading-relaxed">{quote.description}</p>
-                    <span className="text-[10px] text-slate-400 font-bold block mt-1">العميل: {quote.clientName} | تاريخ الطلب: {quote.date}</span>
-                  </div>
-                  <div className="text-left">
-                    <span className={`text-[10px] font-black px-2.5 py-1 rounded-xl block ${
-                      quote.status === 'طلب جديد' ? 'bg-amber-100 text-amber-900 border border-amber-200' :
-                      quote.status === 'تم إرسال العرض' ? 'bg-blue-100 text-blue-900 border border-blue-200' :
-                      quote.status === 'مقبول' ? 'bg-emerald-100 text-emerald-900 border border-emerald-200' : 
-                      quote.status === 'مرفوض' ? 'bg-red-100 text-red-900 border border-red-200' : 'bg-slate-100 text-slate-700'
-                    }`}>
-                      {quote.status}
-                    </span>
-                    {quote.quoteAmount && (
-                      <span className="text-[11px] font-black text-[#1C3022] block mt-1">
-                        {quote.quoteAmount}
-                      </span>
-                    )}
-                  </div>
-                </div>
+            quotes.map(quote => {
+              const hasProposal = Boolean(quote.quoteAmount || quote.fileUrl || quote.installments?.length);
+              const isCounterOffer = quote.clientDecision === 'accepted_with_modifications' || quote.status === 'بانتظار مراجعة التعديل';
 
-                {/* Sent proposal details if available */}
-                {quote.fileUrl && (
-                  <div className="p-3 bg-[#FAF7F2] rounded-2xl border border-[#E8E2D8] text-xs space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-black text-slate-500">ملف عرض السعر المرسل:</span>
-                      <a
-                        href={quote.fileUrl}
-                        download={quote.fileName || `عرض_سعر_${quote.projectName}.pdf`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-[11px] text-[#1C3022] font-black hover:underline flex items-center gap-1 bg-white px-2 py-1 rounded-lg border border-[#E8E2D8]"
-                      >
-                        <Download className="w-3 h-3 text-[#A99379]" />
-                        <span>تحميل ({quote.fileName || 'ملف العرض'})</span>
-                      </a>
+              return (
+                <div key={quote.id} className="bg-white rounded-3xl p-4 border border-[#E8E2D8] shadow-sm space-y-3">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <span className="text-[10px] font-bold text-[#A99379]">طلب رقم: #{quote.id}</span>
+                      <h4 className="text-xs font-black text-[#1C3022] mt-0.5">{quote.projectName}</h4>
+                      <p className="text-[11px] text-slate-600 mt-1 leading-relaxed">{quote.description}</p>
+                      <span className="text-[10px] text-slate-400 font-bold block mt-1">العميل: {quote.clientName} | تاريخ الطلب: {quote.date}</span>
                     </div>
-                    {quote.adminNote && (
-                      <p className="text-[11px] text-slate-600 font-medium">
-                        <strong>ملاحظات المشرف:</strong> {quote.adminNote}
-                      </p>
-                    )}
-                    {quote.clientDecision && (
-                      <div className="pt-1.5 border-t border-[#E8E2D8] flex items-center gap-1.5">
-                        <span className="text-[10px] font-bold text-slate-500">قرار العميل:</span>
-                        {quote.clientDecision === 'accepted' ? (
-                          <span className="text-[10px] font-black text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-md flex items-center gap-1">
-                            <Check className="w-3 h-3 text-emerald-700" />
-                            <span>وافق العميل على عرض السعر ({quote.clientDecisionDate || 'مؤخراً'})</span>
-                          </span>
-                        ) : (
-                          <span className="text-[10px] font-black text-red-800 bg-red-100 px-2 py-0.5 rounded-md flex items-center gap-1">
-                            <X className="w-3 h-3 text-red-700" />
-                            <span>رفض العميل عرض السعر ({quote.clientDecisionDate || 'مؤخراً'})</span>
-                          </span>
+                    <div className="text-left shrink-0">
+                      <span className={`text-[10px] font-black px-2.5 py-1 rounded-xl block ${
+                        quote.status === 'طلب جديد' ? 'bg-amber-100 text-amber-900 border border-amber-200' :
+                        quote.status === 'تم إرسال العرض' ? 'bg-blue-100 text-blue-900 border border-blue-200' :
+                        quote.status === 'بانتظار مراجعة التعديل' ? 'bg-orange-100 text-orange-900 border border-orange-200' :
+                        quote.status === 'مقبول' || quote.status === 'تم اعتماد المشروع' ? 'bg-emerald-100 text-emerald-900 border border-emerald-200' : 
+                        quote.status === 'تم توقيع العقد' ? 'bg-emerald-900 text-[#C5B198]' :
+                        quote.status === 'مرفوض' ? 'bg-red-100 text-red-900 border border-red-200' : 'bg-slate-100 text-slate-700'
+                      }`}>
+                        {quote.status}
+                      </span>
+                      {quote.quoteAmount && (
+                        <span className="text-[11px] font-black text-[#1C3022] block mt-1">
+                          {quote.quoteAmount}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Proposal Details Banner if sent */}
+                  {hasProposal && (
+                    <div className="p-3.5 bg-[#FAF7F2] rounded-2xl border border-[#E8E2D8] text-xs space-y-2.5">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <span className="text-[10px] font-bold text-slate-400 block">إجمالي العرض المقترح:</span>
+                          <span className="font-black text-[#1C3022]">{quote.quoteAmount || 'حسب المواصفات'}</span>
+                        </div>
+                        {quote.fileUrl && (
+                          <a
+                            href={quote.fileUrl}
+                            download={quote.fileName || `عرض_سعر_${quote.projectName}.pdf`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-[11px] text-[#1C3022] font-black hover:underline flex items-center gap-1 bg-white px-2.5 py-1.5 rounded-xl border border-[#E8E2D8] shadow-sm"
+                          >
+                            <Download className="w-3.5 h-3.5 text-[#A99379]" />
+                            <span>تحميل ({quote.fileName || 'ملف العرض'})</span>
+                          </a>
                         )}
                       </div>
-                    )}
-                  </div>
-                )}
 
-                <div className="pt-2 border-t border-[#F0EBE1] flex flex-wrap items-center justify-between gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setSelectedQuoteForProposal(quote)}
-                    className="bg-[#C5B198] text-[#1C3022] hover:bg-[#b8a287] px-3.5 py-2 rounded-xl text-xs font-black flex items-center gap-1.5 shadow-sm transition-all"
-                  >
-                    <FileUp className="w-3.5 h-3.5" />
-                    <span>{quote.fileUrl ? 'تعديل/إعادة إرسال عرض السعر' : 'إرسال عرض سعر وملف'}</span>
-                  </button>
+                      {/* Installments preview if configured */}
+                      {quote.installments && quote.installments.length > 0 && (
+                        <div className="pt-2 border-t border-[#E8E2D8] space-y-1">
+                          <span className="text-[10px] font-black text-[#1C3022] flex items-center gap-1">
+                            <Wallet className="w-3 h-3 text-[#A99379]" />
+                            <span>نظام الدفعات المقترح ({quote.installments.length} دفعات):</span>
+                          </span>
+                          <div className="grid grid-cols-2 gap-1.5 pt-1">
+                            {quote.installments.slice(0, 4).map((inst, i) => (
+                              <div key={i} className="bg-white p-2 rounded-xl border border-[#E8E2D8] text-[10px]">
+                                <span className="font-black text-[#1C3022] block truncate">{inst.title}</span>
+                                <span className="text-emerald-800 font-bold">{inst.amount}</span>
+                              </div>
+                            ))}
+                            {quote.installments.length > 4 && (
+                              <div className="bg-white p-2 rounded-xl border border-[#E8E2D8] text-[10px] flex items-center justify-center font-bold text-slate-500">
+                                + {quote.installments.length - 4} دفعات أخرى
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
 
-                  <div className="flex items-center gap-2">
-                    <select
-                      value={quote.status}
-                      onChange={e => handleUpdateQuoteStatus(quote, e.target.value)}
-                      className="bg-[#FAF7F2] border border-[#E8E2D8] rounded-xl px-2 py-1.5 text-[11px] font-bold text-[#1C3022] outline-none"
+                      {quote.adminNote && (
+                        <p className="text-[11px] text-slate-600 font-medium pt-1 border-t border-[#E8E2D8]">
+                          <strong>ملاحظات المشرف:</strong> {quote.adminNote}
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  {/* CLIENT COUNTER-OFFER BANNER (قبول مع تعديل بالتسعير) */}
+                  {isCounterOffer && (
+                    <div className="p-3.5 bg-amber-50 border-2 border-amber-200 rounded-2xl space-y-2.5">
+                      <div className="flex items-center gap-2 text-amber-900 font-black text-xs">
+                        <AlertCircle className="w-4 h-4 text-amber-700 shrink-0" />
+                        <span>طلب العميل: قبول مع تعديل بالتسعير</span>
+                      </div>
+                      {quote.clientModificationNote && (
+                        <div className="p-2.5 bg-white rounded-xl border border-amber-200 text-xs text-slate-700 font-medium">
+                          <strong>ملاحظات واقتراح العميل للتسعير:</strong>
+                          <p className="mt-1 text-[#1C3022] font-bold">{quote.clientModificationNote}</p>
+                        </div>
+                      )}
+                      <div className="flex flex-wrap gap-2 pt-1">
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            try {
+                              // Accept and Launch Project into Firestore
+                              const totalNum = parseFloat((quote.quoteAmount || quote.amount || '0').replace(/[^0-9.]/g, '')) || 0;
+                              const newProj: Project = {
+                                id: `PROJ-${Date.now().toString().slice(-6)}`,
+                                clientId: quote.clientId,
+                                title: quote.projectName,
+                                status: 'بانتظار العقد',
+                                progress: 0,
+                                location: 'الرياض - الموقع يحدد بالعقد',
+                                licenseNumber: `BLD-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`,
+                                startDate: new Date().toISOString().split('T')[0],
+                                estimatedEndDate: new Date(Date.now() + 180 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                                installments: quote.installments && quote.installments.length > 0 ? quote.installments : [
+                                  {
+                                    id: `INST-${Date.now().toString().slice(-4)}`,
+                                    title: 'الدفعة الأولى (مقدم التعاقد)',
+                                    amount: `${(totalNum * 0.2).toLocaleString('ar-SA')} ر.س`,
+                                    amountNumber: totalNum * 0.2,
+                                    dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                                    status: 'pending'
+                                  }
+                                ],
+                                contracts: [
+                                  {
+                                    id: `CNT-${Date.now().toString().slice(-4)}`,
+                                    contractNumber: `CNT-${new Date().getFullYear()}-${Math.floor(10000 + Math.random() * 90000)}`,
+                                    title: `عقد تنفيذ وإنشاء ${quote.projectName}`,
+                                    signDate: 'بانتظار التوقيع الإلكتروني',
+                                    totalValue: quote.quoteAmount || quote.amount || 'حسب الاتفاق',
+                                    status: 'ساري وموثق',
+                                    termsSummary: [
+                                      'الالتزام بالمخططات الهندسية المعتمدة وكود البناء السعودي',
+                                      'جدول دفعات مرتبط بنسب الإنجاز الفعلي',
+                                      'ضمان 10 سنوات على الهيكل الإنشائي وعامين على التشطيبات'
+                                    ]
+                                  }
+                                ],
+                                phases: [
+                                  { id: '1', title: 'الحفر وأعمال الأساسات والقواعد', status: 'قيد الانتظار', progress: 0 },
+                                  { id: '2', title: 'الهيكل الإنشائي العظم والأسقف', status: 'قيد الانتظار', progress: 0 },
+                                  { id: '3', title: 'التمديدات الكهروميكانيكية والسباكة', status: 'قيد الانتظار', progress: 0 },
+                                  { id: '4', title: 'اللياسة والدهانات والتشطيبات', status: 'قيد الانتظار', progress: 0 },
+                                  { id: '5', title: 'التسليم النهائي والفحص الهندسي', status: 'قيد الانتظار', progress: 0 }
+                                ],
+                                images: { before: [], progress50: [], after: [], plans: [] },
+                                engineerRequests: [],
+                                supervisingEngineer: {
+                                  name: 'م. فهد بن عبدالله المقرن',
+                                  title: 'كبير مهندسي التنفيذ والإشراف',
+                                  phone: '0555123456'
+                                }
+                              };
+
+                              await ProjectService.saveProject(newProj);
+                              await ProjectService.saveQuoteRequest({
+                                ...quote,
+                                status: 'تم اعتماد المشروع',
+                                clientDecision: 'accepted',
+                                projectId: newProj.id
+                              });
+
+                              onRefreshQuotes();
+                              onRequestToast('تم قبول المشروع واعتماده بنجاح وإدراجه في مشاريع العميل!');
+                            } catch (err) {
+                              console.error(err);
+                              onRequestToast('حدث خطأ أثناء اعتماد المشروع');
+                            }
+                          }}
+                          className="bg-emerald-800 hover:bg-emerald-900 text-white px-3 py-1.5 rounded-xl text-xs font-black flex items-center gap-1 shadow-sm"
+                        >
+                          <Check className="w-3.5 h-3.5" />
+                          <span>قبول المشروع واعتماده</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setSelectedQuoteForProposal(quote)}
+                          className="bg-white hover:bg-amber-100 text-amber-900 border border-amber-300 px-3 py-1.5 rounded-xl text-xs font-black flex items-center gap-1"
+                        >
+                          <FileUp className="w-3.5 h-3.5 text-amber-700" />
+                          <span>تعديل عرض السعر والدفعات</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleUpdateQuoteStatus(quote, 'مرفوض')}
+                          className="bg-white hover:bg-red-50 text-red-700 border border-red-200 px-2.5 py-1.5 rounded-xl text-xs font-bold"
+                        >
+                          رفض التعديل
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Standard Client Decision Status */}
+                  {!isCounterOffer && quote.clientDecision && (
+                    <div className="p-2.5 bg-[#FAF7F2] rounded-xl border border-[#E8E2D8] flex items-center gap-2 text-xs">
+                      <span className="font-bold text-slate-500">قرار العميل:</span>
+                      {quote.clientDecision === 'accepted' ? (
+                        <span className="font-black text-emerald-800 flex items-center gap-1">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700" />
+                          <span>تمت موافقة العميل على العرض ({quote.clientDecisionDate || 'معتمد'})</span>
+                        </span>
+                      ) : quote.clientDecision === 'rejected' ? (
+                        <span className="font-black text-red-800 flex items-center gap-1">
+                          <X className="w-3.5 h-3.5 text-red-700" />
+                          <span>تم رفض العرض من العميل ({quote.clientDecisionDate || 'مؤخراً'})</span>
+                        </span>
+                      ) : null}
+                    </div>
+                  )}
+
+                  {/* Action Button: إرسال عرض سعر وملف */}
+                  <div className="pt-2 border-t border-[#F0EBE1] flex items-center justify-between">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedQuoteForProposal(quote)}
+                      className="bg-[#C5B198] text-[#1C3022] hover:bg-[#b8a287] px-4 py-2.5 rounded-xl text-xs font-black flex items-center gap-2 shadow-sm transition-all active:scale-[0.98]"
                     >
-                      <option value="طلب جديد">طلب جديد</option>
-                      <option value="تم إرسال العرض">تم إرسال العرض</option>
-                      <option value="مقبول">مقبول</option>
-                      <option value="تم توقيع العقد">تم توقيع العقد</option>
-                      <option value="مرفوض">مرفوض</option>
-                    </select>
+                      <FileUp className="w-4 h-4" />
+                      <span>{hasProposal ? 'تعديل/إعادة إرسال عرض السعر والدفعات' : 'إرسال عرض سعر وملف'}</span>
+                    </button>
 
                     <button
                       type="button"
-                      onClick={() => onCreateProjectForClient(quote.clientId)}
-                      className="bg-[#1C3022] text-[#F8F5F0] px-3 py-1.5 rounded-xl text-xs font-black hover:bg-[#122116] flex items-center gap-1"
+                      onClick={() => handleUpdateQuoteStatus(quote, 'مرفوض')}
+                      className="text-xs text-red-600 hover:text-red-800 font-bold px-2 py-1"
                     >
-                      <Plus className="w-3 h-3 text-[#C5B198]" />
-                      <span>تدشين المشروع</span>
+                      رفض الطلب
                     </button>
                   </div>
                 </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
       )}
@@ -342,7 +514,7 @@ export function SupervisorClientsView({
             onSent={() => {
               setSelectedQuoteForProposal(null);
               onRefreshQuotes();
-              onRequestToast('تم إرسال عرض السعر والملف المرفق للعميل بنجاح!');
+              onRequestToast('تم إرسال عرض السعر ونظام الدفعات والملف المرفق للعميل بنجاح!');
             }}
           />
         )}
@@ -352,7 +524,7 @@ export function SupervisorClientsView({
 }
 
 // -------------------------------------------------------------
-// SEND QUOTE PROPOSAL MODAL (FILE ATTACHMENT FROM COMPUTER & PRICING)
+// SEND QUOTE PROPOSAL MODAL WITH INSTALLMENT SYSTEM & FILE ATTACHMENT
 // -------------------------------------------------------------
 function SupervisorSendQuoteModal({
   quote,
@@ -363,21 +535,114 @@ function SupervisorSendQuoteModal({
   onClose: () => void;
   onSent: () => void;
 }) {
-  const [status, setStatus] = useState<string>(quote.status || 'تم إرسال العرض');
-  const [quoteAmount, setQuoteAmount] = useState(quote.quoteAmount || quote.amount || '');
-  const [adminNote, setAdminNote] = useState(quote.adminNote || 'يسرنا تقديم هذا العرض الهندسي المعتمد من شركة نماذج التميز.');
+  const [quoteAmount, setQuoteAmount] = useState(quote.quoteAmount || quote.amount || '450,000 ر.س');
+  const [adminNote, setAdminNote] = useState(quote.adminNote || 'يسرنا تقديم هذا العرض الهندسي ونظام الدفعات المعتمد من شركة نماذج التميز.');
   const [fileUrl, setFileUrl] = useState<string | null>(quote.fileUrl || null);
   const [fileName, setFileName] = useState<string>(quote.fileName || '');
   const [fileSize, setFileSize] = useState<string>(quote.fileSize || '');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Installments System State
+  const [installments, setInstallments] = useState<Installment[]>(() => {
+    if (quote.installments && quote.installments.length > 0) {
+      return quote.installments;
+    }
+    // Default standard construction installments
+    return [
+      {
+        id: `INST-1`,
+        title: 'الدفعة الأولى (مقدم التعاقد وإصدار التراخيص)',
+        amount: '50,000 ر.س',
+        amountNumber: 50000,
+        dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        status: 'pending'
+      },
+      {
+        id: `INST-2`,
+        title: 'الدفعة الثانية (أعمال الحفر والأساسات والقواعد)',
+        amount: '100,000 ر.س',
+        amountNumber: 100000,
+        dueDate: new Date(Date.now() + 45 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        status: 'pending'
+      },
+      {
+        id: `INST-3`,
+        title: 'الدفعة الثالثة (الهيكل الإنشائي العظم والأسقف)',
+        amount: '150,000 ر.س',
+        amountNumber: 150000,
+        dueDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        status: 'pending'
+      },
+      {
+        id: `INST-4`,
+        title: 'الدفعة الرابعة (التمديدات والتشطيبات والتسليم)',
+        amount: '150,000 ر.س',
+        amountNumber: 150000,
+        dueDate: new Date(Date.now() + 150 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        status: 'pending'
+      }
+    ];
+  });
+
+  const [newInstTitle, setNewInstTitle] = useState('');
+  const [newInstAmount, setNewInstAmount] = useState('');
+  const [newInstDueDate, setNewInstDueDate] = useState('');
+
+  // Calculate sum of installments
+  const totalInstallmentsSum = installments.reduce((sum, i) => sum + (i.amountNumber || 0), 0);
+  const parsedQuoteAmount = parseFloat(quoteAmount.replace(/[^0-9.]/g, '')) || 0;
+
+  // Distribute total evenly
+  const handleDistributeEvenly = () => {
+    if (installments.length === 0 || parsedQuoteAmount === 0) return;
+    const share = Math.round(parsedQuoteAmount / installments.length);
+    const updated = installments.map(inst => ({
+      ...inst,
+      amountNumber: share,
+      amount: `${share.toLocaleString('ar-SA')} ر.س`
+    }));
+    setInstallments(updated);
+  };
+
+  const handleAddInstallmentRow = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newInstTitle.trim() || !newInstAmount.trim()) return;
+    const num = parseFloat(newInstAmount.replace(/[^0-9.]/g, '')) || 0;
+    const newInst: Installment = {
+      id: `INST-${Date.now().toString().slice(-4)}`,
+      title: newInstTitle.trim(),
+      amount: `${num.toLocaleString('ar-SA')} ر.س`,
+      amountNumber: num,
+      dueDate: newInstDueDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      status: 'pending'
+    };
+    setInstallments([...installments, newInst]);
+    setNewInstTitle('');
+    setNewInstAmount('');
+    setNewInstDueDate('');
+  };
+
+  const handleRemoveInstallment = (index: number) => {
+    setInstallments(installments.filter((_, i) => i !== index));
+  };
+
+  const handleUpdateInstallmentAmount = (index: number, val: string) => {
+    const num = parseFloat(val.replace(/[^0-9.]/g, '')) || 0;
+    const updated = [...installments];
+    updated[index] = {
+      ...updated[index],
+      amountNumber: num,
+      amount: `${num.toLocaleString('ar-SA')} ر.س`
+    };
+    setInstallments(updated);
+  };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Check size limit (max 10MB)
-    if (file.size > 10 * 1024 * 1024) {
-      alert('حجم الملف كبير جداً. يرجى اختيار ملف بحجم أقل من 10 ميجابايت.');
+    if (file.size > 15 * 1024 * 1024) {
+      alert('حجم الملف كبير جداً. يرجى اختيار ملف بحجم أقل من 15 ميجابايت.');
       return;
     }
 
@@ -400,19 +665,24 @@ function SupervisorSendQuoteModal({
       alert('يرجى إدخال مبلغ عرض السعر.');
       return;
     }
+    if (installments.length === 0) {
+      alert('يرجى إضافة دفعة مالية واحدة على الأقل في نظام الدفعات.');
+      return;
+    }
 
     setIsSubmitting(true);
     try {
       const updatedQuote: QuoteRequest = {
         ...quote,
-        status: status as any,
+        status: 'تم إرسال العرض',
         quoteAmount: quoteAmount.trim(),
         amount: quoteAmount.trim(),
         adminNote: adminNote.trim(),
         fileUrl: fileUrl || undefined,
         fileName: fileName || undefined,
         fileSize: fileSize || undefined,
-        clientDecision: status === 'مقبول' ? 'accepted' : status === 'مرفوض' ? 'rejected' : 'pending',
+        installments: installments,
+        clientDecision: 'pending',
         date: new Date().toISOString().split('T')[0]
       };
 
@@ -427,21 +697,21 @@ function SupervisorSendQuoteModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4" dir="rtl">
+    <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4" dir="rtl">
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
-        className="bg-white w-full max-w-lg rounded-3xl shadow-2xl border border-[#E8E2D8] overflow-hidden flex flex-col max-h-[90vh]"
+        className="bg-white w-full max-w-xl rounded-[2.5rem] shadow-2xl border border-[#E8E2D8] overflow-hidden flex flex-col max-h-[92vh] text-[#192A1D]"
       >
         {/* Modal Header */}
-        <div className="bg-[#1C3022] text-[#F8F5F0] p-5 flex items-center justify-between">
+        <div className="bg-[#1C3022] text-[#F8F5F0] p-5 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-[#C5B198] text-[#1C3022] flex items-center justify-center font-black">
+            <div className="w-10 h-10 rounded-2xl bg-[#C5B198] text-[#1C3022] flex items-center justify-center font-black">
               <FileUp className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-sm font-black">إرسال عرض سعر ومستند المشروع</h3>
+              <h3 className="text-sm sm:text-base font-black">إرسال عرض سعر ونظام الدفعات وملف المشروع</h3>
               <p className="text-[10px] text-[#C5B198]">للعميل: {quote.clientName} - {quote.projectName}</p>
             </div>
           </div>
@@ -454,10 +724,10 @@ function SupervisorSendQuoteModal({
         </div>
 
         {/* Modal Body */}
-        <form onSubmit={handleSend} className="p-6 space-y-4 overflow-y-auto flex-1">
+        <form onSubmit={handleSend} className="p-5 sm:p-6 space-y-5 overflow-y-auto flex-1">
           {/* Project Summary Box */}
           <div className="bg-[#FAF7F2] p-4 rounded-2xl border border-[#E8E2D8] space-y-1.5">
-            <span className="text-[10px] font-black text-[#A99379]">تفاصيل طلب العميل:</span>
+            <span className="text-[10px] font-black text-[#A99379]">طلب العميل:</span>
             <h4 className="text-xs font-black text-[#1C3022]">{quote.projectName}</h4>
             <p className="text-[11px] text-slate-600 leading-relaxed">{quote.description}</p>
           </div>
@@ -465,7 +735,7 @@ function SupervisorSendQuoteModal({
           {/* Amount input */}
           <div className="space-y-1">
             <label className="text-xs font-black text-[#1C3022] block">
-              إجمالي مبلغ عرض السعر (شامل الضريبة أو حسب الاتفاق) *
+              إجمالي قيمة العقد وعرض السعر *
             </label>
             <input
               type="text"
@@ -477,68 +747,146 @@ function SupervisorSendQuoteModal({
             />
           </div>
 
-          {/* Proposal Status & Approval Mode */}
-          <div className="space-y-1.5">
-            <label className="text-xs font-black text-[#1C3022] block">
-              حالة الطلب وقرار العرض:
-            </label>
-            <div className="grid grid-cols-3 gap-2">
+          {/* INSTALLMENT SYSTEM BUILDER (نظام الدفعات) */}
+          <div className="space-y-3 p-4 bg-[#FAF7F2] rounded-2xl border border-[#E8E2D8]">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <Wallet className="w-4 h-4 text-[#A99379]" />
+                <h4 className="text-xs font-black text-[#1C3022]">نظام وجدول الدفعات المقترح ({installments.length} دفعات)</h4>
+              </div>
               <button
                 type="button"
-                onClick={() => setStatus('تم إرسال العرض')}
-                className={`py-2 px-2.5 rounded-xl text-xs font-black border transition-all ${
-                  status === 'تم إرسال العرض'
-                    ? 'bg-blue-900 text-white border-blue-950 shadow-sm'
-                    : 'bg-[#FAF7F2] text-slate-700 border-[#E8E2D8] hover:bg-[#EFE7DC]'
-                }`}
+                onClick={handleDistributeEvenly}
+                className="text-[10px] font-black text-[#1C3022] bg-[#EFE7DC] hover:bg-[#e4dacb] px-2.5 py-1 rounded-lg transition-all"
               >
-                إرسال العرض
+                توزيع بالتساوي على الدفعات
               </button>
-              <button
-                type="button"
-                onClick={() => setStatus('مقبول')}
-                className={`py-2 px-2.5 rounded-xl text-xs font-black border transition-all ${
-                  status === 'مقبول'
-                    ? 'bg-emerald-800 text-white border-emerald-900 shadow-sm'
-                    : 'bg-[#FAF7F2] text-slate-700 border-[#E8E2D8] hover:bg-emerald-50'
-                }`}
-              >
-                موافقة واعتماد
-              </button>
-              <button
-                type="button"
-                onClick={() => setStatus('مرفوض')}
-                className={`py-2 px-2.5 rounded-xl text-xs font-black border transition-all ${
-                  status === 'مرفوض'
-                    ? 'bg-red-800 text-white border-red-900 shadow-sm'
-                    : 'bg-[#FAF7F2] text-slate-700 border-[#E8E2D8] hover:bg-red-50'
-                }`}
-              >
-                رفض الطلب
-              </button>
+            </div>
+
+            {/* Total check bar */}
+            <div className="p-2.5 bg-white rounded-xl border border-[#E8E2D8] flex items-center justify-between text-[11px]">
+              <span className="text-slate-500 font-bold">مجموع مبالغ الدفعات:</span>
+              <span className={`font-black ${
+                Math.abs(totalInstallmentsSum - parsedQuoteAmount) < 100 ? 'text-emerald-800' : 'text-amber-800'
+              }`}>
+                {totalInstallmentsSum.toLocaleString('ar-SA')} ر.س
+              </span>
+            </div>
+
+            {/* Installments Rows */}
+            <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+              {installments.map((inst, idx) => (
+                <div
+                  key={inst.id || idx}
+                  className="p-3 bg-white rounded-xl border border-[#E8E2D8] space-y-2 shadow-xs"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 flex-1">
+                      <span className="w-5 h-5 rounded-full bg-[#1C3022] text-[#C5B198] text-[10px] font-black flex items-center justify-center shrink-0">
+                        {idx + 1}
+                      </span>
+                      <input
+                        type="text"
+                        value={inst.title}
+                        onChange={e => {
+                          const updated = [...installments];
+                          updated[idx] = { ...updated[idx], title: e.target.value };
+                          setInstallments(updated);
+                        }}
+                        className="w-full bg-transparent text-xs font-bold text-[#1C3022] outline-none border-b border-transparent focus:border-[#C5B198]"
+                        placeholder="عنوان الدفعة..."
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveInstallment(idx)}
+                      className="text-red-500 hover:text-red-700 p-1 shrink-0"
+                      title="حذف الدفعة"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 pt-1 border-t border-[#F0EBE1]">
+                    <div>
+                      <span className="text-[9px] text-slate-400 font-bold block mb-0.5">المبلغ (ر.س):</span>
+                      <input
+                        type="text"
+                        value={inst.amountNumber || ''}
+                        onChange={e => handleUpdateInstallmentAmount(idx, e.target.value)}
+                        className="w-full bg-[#FAF7F2] border border-[#E8E2D8] rounded-lg px-2 py-1 text-xs font-bold text-[#1C3022] outline-none"
+                        dir="ltr"
+                      />
+                    </div>
+                    <div>
+                      <span className="text-[9px] text-slate-400 font-bold block mb-0.5">تاريخ الاستحقاق التقريبي:</span>
+                      <input
+                        type="date"
+                        value={inst.dueDate}
+                        onChange={e => {
+                          const updated = [...installments];
+                          updated[idx] = { ...updated[idx], dueDate: e.target.value };
+                          setInstallments(updated);
+                        }}
+                        className="w-full bg-[#FAF7F2] border border-[#E8E2D8] rounded-lg px-2 py-1 text-xs font-bold text-[#1C3022] outline-none"
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Add New Installment Row */}
+            <div className="pt-2 border-t border-[#E8E2D8] space-y-2">
+              <span className="text-[10px] font-black text-[#1C3022] block">+ إضافة دفعة جديدة للجدول:</span>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-1.5">
+                <input
+                  type="text"
+                  placeholder="مسمى الدفعة (مثل: دفعة الميدة)..."
+                  value={newInstTitle}
+                  onChange={e => setNewInstTitle(e.target.value)}
+                  className="sm:col-span-1 bg-white border border-[#E8E2D8] rounded-xl px-2.5 py-1.5 text-xs font-bold text-[#1C3022] outline-none"
+                />
+                <input
+                  type="text"
+                  placeholder="المبلغ (مثل: 50000)..."
+                  value={newInstAmount}
+                  onChange={e => setNewInstAmount(e.target.value)}
+                  className="bg-white border border-[#E8E2D8] rounded-xl px-2.5 py-1.5 text-xs font-bold text-[#1C3022] outline-none"
+                  dir="ltr"
+                />
+                <button
+                  type="button"
+                  onClick={handleAddInstallmentRow}
+                  className="bg-[#1C3022] text-[#F8F5F0] py-1.5 px-3 rounded-xl text-xs font-black hover:bg-[#122116] flex items-center justify-center gap-1"
+                >
+                  <Plus className="w-3.5 h-3.5 text-[#C5B198]" />
+                  <span>إضافة الدفعة</span>
+                </button>
+              </div>
             </div>
           </div>
 
           {/* File Picker from Computer */}
           <div className="space-y-1.5">
             <label className="text-xs font-black text-[#1C3022] block">
-              تحديد ملف عرض السعر من الكمبيوتر (PDF / Word / صور) *
+              إرفاق ملف ومستند عرض السعر من الجهاز (PDF / Word / صور) *
             </label>
             
-            <div className="border-2 border-dashed border-[#C5B198] bg-[#FAF7F2]/60 hover:bg-[#FAF7F2] rounded-2xl p-5 text-center transition-all relative">
+            <div className="border-2 border-dashed border-[#C5B198] bg-[#FAF7F2]/60 hover:bg-[#FAF7F2] rounded-2xl p-4 text-center transition-all relative">
               <input
                 type="file"
                 accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
                 onChange={handleFileChange}
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
               />
-              <div className="space-y-2 flex flex-col items-center justify-center pointer-events-none">
-                <div className="w-12 h-12 rounded-2xl bg-[#EFE7DC] text-[#1C3022] flex items-center justify-center">
-                  <Upload className="w-6 h-6 text-[#A99379]" />
+              <div className="space-y-1.5 flex flex-col items-center justify-center pointer-events-none">
+                <div className="w-10 h-10 rounded-2xl bg-[#EFE7DC] text-[#1C3022] flex items-center justify-center">
+                  <Upload className="w-5 h-5 text-[#A99379]" />
                 </div>
                 <div>
                   <p className="text-xs font-black text-[#1C3022]">انقر لاختيار ملف من جهازك أو اسحب الملف هنا</p>
-                  <p className="text-[10px] text-slate-400 mt-0.5">يدعم ملفات PDF، جداول الكميات، المستندات الرسمية (حتى 10MB)</p>
+                  <p className="text-[10px] text-slate-400">يدعم ملفات PDF، جداول الكميات، المستندات الرسمية (حتى 15MB)</p>
                 </div>
               </div>
             </div>
@@ -571,7 +919,7 @@ function SupervisorSendQuoteModal({
               ملاحظات للمشروع وشروط العرض
             </label>
             <textarea
-              rows={3}
+              rows={2}
               value={adminNote}
               onChange={e => setAdminNote(e.target.value)}
               placeholder="اكتب أي توضيحات هندسية، مدة صلاحية العرض، أو شروط الدفع..."
@@ -588,13 +936,13 @@ function SupervisorSendQuoteModal({
             >
               {isSubmitting ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <Loader2 className="w-4 h-4 animate-spin text-[#C5B198]" />
                   <span>جاري الإرسال للعميل...</span>
                 </>
               ) : (
                 <>
                   <Send className="w-4 h-4 text-[#C5B198]" />
-                  <span>إرسال العرض للعميل مع الملف</span>
+                  <span>إرسال عرض السعر ونظام الدفعات والملف</span>
                 </>
               )}
             </button>
@@ -817,12 +1165,13 @@ export function SupervisorProjectsView({
 }
 
 // -------------------------------------------------------------
-// 3. SUPERVISOR PAYMENTS VIEW: "الدفعات" (Financial Overview & 7-Day Overdue Reminders)
+// 3. SUPERVISOR PAYMENTS VIEW: "الدفعات" (Financial Overview, Bank Verification & 7-Day Overdue Reminders)
 // -------------------------------------------------------------
 interface SupervisorPaymentsViewProps {
   projects: Project[];
   clients: User[];
   onManageProject: (project: Project) => void;
+  onUpdateProject?: (project: Project) => Promise<void>;
   onRequestToast: (msg: string) => void;
 }
 
@@ -830,6 +1179,7 @@ export function SupervisorPaymentsView({
   projects,
   clients,
   onManageProject,
+  onUpdateProject,
   onRequestToast
 }: SupervisorPaymentsViewProps) {
   const [selectedReminderTarget, setSelectedReminderTarget] = useState<{
@@ -837,6 +1187,8 @@ export function SupervisorPaymentsView({
     installment: Installment;
     client?: User;
   } | null>(null);
+
+  const [previewReceiptUrl, setPreviewReceiptUrl] = useState<string | null>(null);
 
   const allInstallments = projects.flatMap(p => 
     (p.installments || []).map(inst => ({
@@ -850,6 +1202,54 @@ export function SupervisorPaymentsView({
   const paidFinancial = allInstallments.filter(item => item.installment.status === 'paid').reduce((sum, item) => sum + (item.installment.amountNumber || 0), 0);
   const pendingFinancial = totalFinancial - paidFinancial;
   const overdue7DaysList = allInstallments.filter(item => getInstallmentOverdueStatus(item.installment).isOverdue7Days);
+  const underReviewList = allInstallments.filter(item => item.installment.status === 'under_review' || (item.installment.paymentMethod === 'تحويل بنكي' && item.installment.status !== 'paid'));
+
+  const handleConfirmPayment = async (project: Project, installment: Installment) => {
+    if (!onUpdateProject) return;
+    const updatedInstallments = (project.installments || []).map(i => {
+      if (i.id === installment.id) {
+        return {
+          ...i,
+          status: 'paid' as const,
+          paymentDate: new Date().toISOString().split('T')[0],
+          supervisorPaymentConfirmed: true,
+          transactionRef: i.transactionRef || i.transferRef || `TXN-IBAN-${Date.now().toString().slice(-6)}`
+        };
+      }
+      return i;
+    });
+
+    try {
+      await onUpdateProject({ ...project, installments: updatedInstallments });
+      onRequestToast(`تم اعتماد سداد دفعة (${installment.title}) وتوثيقها كمسددة بنجاح!`);
+    } catch (err) {
+      console.error(err);
+      onRequestToast('حدث خطأ أثناء اعتماد السداد');
+    }
+  };
+
+  const handleRejectOrUnmarkPayment = async (project: Project, installment: Installment) => {
+    if (!onUpdateProject) return;
+    const updatedInstallments = (project.installments || []).map(i => {
+      if (i.id === installment.id) {
+        return {
+          ...i,
+          status: 'pending' as const,
+          paymentDate: undefined,
+          supervisorPaymentConfirmed: false
+        };
+      }
+      return i;
+    });
+
+    try {
+      await onUpdateProject({ ...project, installments: updatedInstallments });
+      onRequestToast(`تم تعيين حالة دفعة (${installment.title}) كـ «لم يتم السداد».`);
+    } catch (err) {
+      console.error(err);
+      onRequestToast('حدث خطأ أثناء تعديل حالة الدفعة');
+    }
+  };
 
   const handleSendReminder = (item: { project: Project; installment: Installment; client?: User }) => {
     const overdue = getInstallmentOverdueStatus(item.installment);
@@ -880,6 +1280,19 @@ export function SupervisorPaymentsView({
         </div>
       </div>
 
+      {/* Under Review Notice Banner if any exist */}
+      {underReviewList.length > 0 && (
+        <div className="bg-blue-50 border-2 border-blue-200 rounded-3xl p-4 space-y-2">
+          <div className="flex items-center gap-2 text-blue-900 font-black text-xs">
+            <Building2 className="w-4 h-4 text-blue-700 shrink-0" />
+            <span>يوجد {underReviewList.length} إشعار تحويل بنكي بانتظار التحقق واعتماد المشرف</span>
+          </div>
+          <p className="text-[11px] text-blue-800 leading-relaxed font-medium">
+            قام العملاء بإرسال إشعارات تحويل بنكي على حساب المؤسسة. يرجى مطابقة كشف الحساب وتحديد حالة الدفعة أدناه (تم الدفع / لم يتم الدفع).
+          </p>
+        </div>
+      )}
+
       {/* 7-Day Overdue Warning Banner if any exist */}
       {overdue7DaysList.length > 0 && (
         <div className="bg-red-50 border-2 border-red-200 rounded-3xl p-4 space-y-2">
@@ -904,13 +1317,13 @@ export function SupervisorPaymentsView({
         <div className="bg-white p-4 rounded-3xl border border-[#E8E2D8] space-y-1 shadow-sm">
           <span className="text-[10px] font-black text-amber-700">المبالغ المتبقية</span>
           <h4 className="text-lg font-black text-[#1C3022]">{pendingFinancial.toLocaleString('ar-SA')} ر.س</h4>
-          <span className="text-[9px] text-slate-400 font-bold block">{allInstallments.filter(i => i.installment.status === 'pending').length} دفعات بانتظار السداد</span>
+          <span className="text-[9px] text-slate-400 font-bold block">{allInstallments.filter(i => i.installment.status !== 'paid').length} دفعات غير مسددة</span>
         </div>
       </div>
 
       {/* Installments Table/List */}
       <div className="space-y-3">
-        <h4 className="text-xs font-black text-[#1C3022]">كافة الدفعات حسب المشاريع ({allInstallments.length})</h4>
+        <h4 className="text-xs font-black text-[#1C3022]">كافة الدفعات وإشعارات التحويل ({allInstallments.length})</h4>
 
         {allInstallments.length === 0 ? (
           <div className="bg-white rounded-3xl p-8 text-center border border-[#E8E2D8] text-xs text-slate-400 font-bold">
@@ -950,15 +1363,19 @@ export function SupervisorPaymentsView({
                   </div>
                   <div className="text-left">
                     <span className="text-xs font-black text-[#1C3022] block">{item.installment.amount}</span>
-                    <span className={`text-[10px] font-black px-2 py-0.5 rounded-full inline-block mt-1 ${
+                    <span className={`text-[10px] font-black px-2.5 py-0.5 rounded-full inline-block mt-1 ${
                       item.installment.status === 'paid'
                         ? 'bg-emerald-100 text-emerald-800'
+                        : item.installment.status === 'under_review' || (hasBankTransferNotice && item.installment.status !== 'paid')
+                        ? 'bg-blue-100 text-blue-900 border border-blue-200'
                         : overdueInfo.isOverdue7Days
                         ? 'bg-red-100 text-red-900 border border-red-200'
                         : 'bg-amber-100 text-amber-900'
                     }`}>
                       {item.installment.status === 'paid'
-                        ? 'مسددة'
+                        ? 'مسددة بنجاح ✓'
+                        : item.installment.status === 'under_review' || (hasBankTransferNotice && item.installment.status !== 'paid')
+                        ? 'إشعار تحويل بانتظار الاعتماد'
                         : overdueInfo.isOverdue7Days
                         ? `متأخرة (${overdueInfo.daysOverdue} يوم)`
                         : 'مستحقة'}
@@ -966,12 +1383,84 @@ export function SupervisorPaymentsView({
                   </div>
                 </div>
 
-                <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between gap-2">
+                {hasBankTransferNotice && (
+                  <div className="p-3 bg-white rounded-2xl border border-blue-200 space-y-1.5 text-xs">
+                    <div className="flex items-center justify-between border-b border-blue-100 pb-1 text-blue-950 font-black">
+                      <span className="flex items-center gap-1">
+                        <Building2 className="w-3.5 h-3.5 text-blue-700" />
+                        <span>بيانات التحويل البنكي:</span>
+                      </span>
+                      {item.installment.transferDate && (
+                        <span className="text-[10px] text-slate-400 font-bold">تاريخ التحويل: {item.installment.transferDate}</span>
+                      )}
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 text-[11px]">
+                      <div>
+                        <span className="text-slate-400 block font-bold text-[10px]">اسم المحول:</span>
+                        <span className="font-black text-[#1C3022]">{item.installment.transferSenderName || item.client?.name || 'غير محدد'}</span>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 block font-bold text-[10px]">البنك المحول منه:</span>
+                        <span className="font-black text-[#1C3022]">{item.installment.transferBankName || 'تحويل بنكي'}</span>
+                      </div>
+                      {item.installment.transferRef && (
+                        <div>
+                          <span className="text-slate-400 block font-bold text-[10px]">الرقم المرجعي:</span>
+                          <span className="font-mono font-bold text-[#1C3022]">{item.installment.transferRef}</span>
+                        </div>
+                      )}
+                      {item.installment.transferReceiptUrl && (
+                        <div>
+                          <span className="text-slate-400 block font-bold text-[10px]">صورة الإشعار:</span>
+                          <button
+                            type="button"
+                            onClick={() => setPreviewReceiptUrl(item.installment.transferReceiptUrl || null)}
+                            className="text-blue-700 hover:text-blue-900 font-black flex items-center gap-1 underline text-[11px]"
+                          >
+                            <Eye className="w-3 h-3" />
+                            <span>معاينة الإشعار</span>
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                <div className="pt-2 border-t border-slate-200/60 flex flex-wrap items-center justify-between gap-2">
                   <span className="text-[10px] text-slate-500 font-bold">
                     {item.installment.paymentDate ? `تاريخ السداد: ${item.installment.paymentDate}` : 'لم يتم السداد بعد'}
                   </span>
 
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    {item.installment.status !== 'paid' ? (
+                      <button
+                        type="button"
+                        onClick={() => handleConfirmPayment(item.project, item.installment)}
+                        className="text-xs font-black text-white bg-emerald-700 hover:bg-emerald-800 px-3 py-1.5 rounded-xl flex items-center gap-1 shadow-sm transition-all active:scale-95"
+                      >
+                        <Check className="w-3.5 h-3.5 stroke-[3]" />
+                        <span>تم سداد الدفعة</span>
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => handleRejectOrUnmarkPayment(item.project, item.installment)}
+                        className="text-[11px] font-bold text-red-700 hover:bg-red-50 border border-red-200 px-2.5 py-1.5 rounded-xl transition-all"
+                      >
+                        تعديل إلى (لم يتم الدفع)
+                      </button>
+                    )}
+
+                    {item.installment.status === 'under_review' && (
+                      <button
+                        type="button"
+                        onClick={() => handleRejectOrUnmarkPayment(item.project, item.installment)}
+                        className="text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 px-2.5 py-1.5 rounded-xl transition-all"
+                      >
+                        لم يتم الدفع (رفض)
+                      </button>
+                    )}
+
                     {/* 7-Day Overdue Reminder Trigger Button */}
                     {item.installment.status === 'pending' && (
                       <button
@@ -1003,6 +1492,28 @@ export function SupervisorPaymentsView({
           })
         )}
       </div>
+
+      {previewReceiptUrl && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm" dir="rtl">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-5 space-y-4 shadow-2xl">
+            <div className="flex justify-between items-center pb-2 border-b border-slate-100">
+              <h4 className="text-xs font-black text-[#1C3022]">صورة إشعار التحويل البنكي المرفق</h4>
+              <button onClick={() => setPreviewReceiptUrl(null)} className="p-1 text-slate-400 hover:text-slate-600">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="max-h-[65vh] overflow-auto rounded-2xl border border-slate-200 flex items-center justify-center bg-slate-50">
+              <img src={previewReceiptUrl} alt="إشعار التحويل" className="max-w-full h-auto object-contain rounded-xl" />
+            </div>
+            <button
+              onClick={() => setPreviewReceiptUrl(null)}
+              className="w-full bg-[#1C3022] text-[#F8F5F0] py-3 rounded-xl text-xs font-black"
+            >
+              إغلاق المعاينة
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

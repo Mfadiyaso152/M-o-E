@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { motion } from 'motion/react';
-import { X, Building2, Plus, User, MapPin, HardHat, Loader2 } from 'lucide-react';
-import { User as UserType, Project } from '../types';
+import { motion, AnimatePresence } from 'motion/react';
+import { X, Building2, Plus, Trash2, Loader2, DollarSign, Calendar, ShieldCheck, CheckCircle2, AlertCircle } from 'lucide-react';
+import { User as UserType, Project, Installment } from '../types';
 import { ProjectService } from '../services/dbService';
 
 interface Props {
@@ -10,6 +10,13 @@ interface Props {
   onClose: () => void;
   onProjectCreated: (project: Project) => void;
   onRequestToast: (msg: string) => void;
+}
+
+interface CustomInstallmentInput {
+  id: string;
+  title: string;
+  amount: string;
+  dueDate: string;
 }
 
 export function CreateProjectModal({
@@ -22,12 +29,87 @@ export function CreateProjectModal({
   const [clientId, setClientId] = useState(selectedClientId || (clients[0]?.id || ''));
   const [title, setTitle] = useState('');
   const [location, setLocation] = useState('');
-  const [landArea, setLandArea] = useState('450 م²');
-  const [builtUpArea, setBuiltUpArea] = useState('650 م²');
   const [licenseNumber, setLicenseNumber] = useState(`BL-${new Date().getFullYear()}-${Math.floor(10000 + Math.random() * 90000)}`);
   const [initialProgress, setInitialProgress] = useState(0);
-  const [totalCost, setTotalCost] = useState('480000');
+  const [totalCost, setTotalCost] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Dynamic installments list configured by the supervisor
+  const [installments, setInstallments] = useState<CustomInstallmentInput[]>([
+    {
+      id: `INST-1`,
+      title: 'الدفعة الأولى: توقيع العقد وأعمال الحفر والأساسات',
+      amount: '',
+      dueDate: new Date().toISOString().split('T')[0]
+    },
+    {
+      id: `INST-2`,
+      title: 'الدفعة الثانية: صب الأعمدة والأسقف والميد',
+      amount: '',
+      dueDate: new Date(Date.now() + 45 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+    },
+    {
+      id: `INST-3`,
+      title: 'الدفعة الثالثة: أعمال المباني والعوازل والتأسيسات',
+      amount: '',
+      dueDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+    },
+    {
+      id: `INST-4`,
+      title: 'الدفعة الرابعة: التشطيبات النهائية والاستلام الابتدائي',
+      amount: '',
+      dueDate: new Date(Date.now() + 150 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+    }
+  ]);
+
+  // Helper to add a new installment row
+  const handleAddInstallmentRow = () => {
+    const nextIdx = installments.length + 1;
+    setInstallments([
+      ...installments,
+      {
+        id: `INST-${Date.now().toString().slice(-4)}`,
+        title: `الدفعة ${nextIdx}: مرحلة جديدة`,
+        amount: '',
+        dueDate: new Date(Date.now() + (installments.length * 30 + 30) * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+      }
+    ]);
+  };
+
+  // Helper to delete an installment row
+  const handleDeleteInstallmentRow = (index: number) => {
+    if (installments.length <= 1) {
+      onRequestToast('يجب إبقاء دفعة واحدة على الأقل في المشروع');
+      return;
+    }
+    setInstallments(installments.filter((_, i) => i !== index));
+  };
+
+  // Update specific installment row
+  const handleUpdateInstallmentRow = (index: number, field: keyof CustomInstallmentInput, value: string) => {
+    const updated = [...installments];
+    updated[index] = { ...updated[index], [field]: value };
+    setInstallments(updated);
+  };
+
+  // Sum of installments
+  const totalInstallmentsSum = installments.reduce((sum, inst) => {
+    const num = parseFloat(inst.amount.replace(/[^0-9.]/g, '')) || 0;
+    return sum + num;
+  }, 0);
+
+  // Auto distribute total cost evenly among installments if supervisor wants
+  const handleDistributeEvenly = () => {
+    const totalNum = parseFloat(totalCost.replace(/[^0-9.]/g, '')) || 0;
+    if (totalNum <= 0 || installments.length === 0) return;
+    const splitAmount = Math.round(totalNum / installments.length);
+    const updated = installments.map(inst => ({
+      ...inst,
+      amount: splitAmount.toString()
+    }));
+    setInstallments(updated);
+    onRequestToast('تم توزيع إجمالي قيمة العقد بالتساوي على الدفعات');
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,19 +118,41 @@ export function CreateProjectModal({
       return;
     }
 
+    if (!totalCost.trim()) {
+      onRequestToast('يرجى إدخال إجمالي قيمة العقد');
+      return;
+    }
+
+    // Verify installments are entered
+    const hasEmptyInstallment = installments.some(i => !i.title.trim() || !i.amount.toString().trim());
+    if (hasEmptyInstallment) {
+      onRequestToast('يرجى كتابة عنوان وسعر كل دفعة من الدفعات المحددة');
+      return;
+    }
+
     setIsSubmitting(true);
-    const costNum = parseFloat(totalCost) || 480000;
-    const inst1 = costNum * 0.25;
-    const inst2 = costNum * 0.35;
-    const inst3 = costNum * 0.25;
-    const inst4 = costNum * 0.15;
+    const costNum = parseFloat(totalCost.replace(/[^0-9.]/g, '')) || 0;
+
+    // Convert custom inputs into structured installments with mandatory client approval requirement
+    const finalInstallments: Installment[] = installments.map((inst, index) => {
+      const num = parseFloat(inst.amount.replace(/[^0-9.]/g, '')) || 0;
+      return {
+        id: inst.id || `INST-${index + 1}`,
+        title: inst.title.trim(),
+        amount: `${num.toLocaleString('ar-SA')} ر.س`,
+        amountNumber: num,
+        dueDate: inst.dueDate || new Date(Date.now() + (index * 30 + 30) * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        status: 'pending',
+        clientApprovalStatus: 'pending' // Requires client approval before or during payment
+      };
+    });
 
     const newProjectData: any = {
       clientId,
       title: title.trim(),
       location: location.trim(),
-      landArea: landArea.trim(),
-      builtUpArea: builtUpArea.trim(),
+      landArea: '',
+      builtUpArea: '',
       licenseNumber: licenseNumber.trim(),
       progress: initialProgress,
       status: initialProgress === 0 ? 'بانتظار العقد' : 'قيد التنفيذ',
@@ -78,7 +182,8 @@ export function CreateProjectModal({
           termsSummary: [
             'الالتزام التام بكود البناء السعودي الصادر عن وزارة الشؤون البلدية والقروية والإسكان.',
             'ضمان هيكل إنشائي لمدة 10 سنوات وضمان عوازل مائية وحرارية لمدة 10 سنوات.',
-            'إشراف هندسي مستمر وتوثيق مراحل الصب واختبارات الخرسانة المعتمدة.'
+            'إشراف هندسي مستمر وتوثيق مراحل الصب واختبارات الخرسانة المعتمدة.',
+            'تخضع كافة الدفعات المالية لموافقة واعتماد العميل المسبقة في حسابه.'
           ]
         }
       ],
@@ -89,49 +194,13 @@ export function CreateProjectModal({
         after: ['https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=1200&auto=format&fit=crop'],
         plans: ['https://images.unsplash.com/photo-1503387762-592deb58ef4e?q=80&w=1200&auto=format&fit=crop']
       },
-      installments: [
-        {
-          id: `INST-1`,
-          title: 'الدفعة الأولى: توقيع العقد وأعمال الحفر والأساسات',
-          amount: `${inst1.toLocaleString('ar-SA')} ر.س`,
-          amountNumber: inst1,
-          dueDate: new Date().toISOString().split('T')[0],
-          status: initialProgress > 0 ? 'paid' : 'pending',
-          paymentDate: initialProgress > 0 ? new Date().toISOString().split('T')[0] : undefined,
-          transactionRef: initialProgress > 0 ? `TXN-ADM-${Math.floor(100000 + Math.random() * 900000)}` : undefined,
-          paymentMethod: 'بطاقة مدى'
-        },
-        {
-          id: `INST-2`,
-          title: 'الدفعة الثانية: صب الأعمدة والأسقف والميد',
-          amount: `${inst2.toLocaleString('ar-SA')} ر.س`,
-          amountNumber: inst2,
-          dueDate: new Date(Date.now() + 45 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-          status: 'pending'
-        },
-        {
-          id: `INST-3`,
-          title: 'الدفعة الثالثة: أعمال المباني والعوازل والتأسيسات',
-          amount: `${inst3.toLocaleString('ar-SA')} ر.س`,
-          amountNumber: inst3,
-          dueDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-          status: 'pending'
-        },
-        {
-          id: `INST-4`,
-          title: 'الدفعة الرابعة: التشطيبات النهائية والاستلام الابتدائي',
-          amount: `${inst4.toLocaleString('ar-SA')} ر.س`,
-          amountNumber: inst4,
-          dueDate: new Date(Date.now() + 150 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-          status: 'pending'
-        }
-      ]
+      installments: finalInstallments
     };
 
     try {
       const created = await ProjectService.createNewProject(newProjectData);
       onProjectCreated(created);
-      onRequestToast('تم إنشاء المشروع وإضافته للعميل في السحابة بنجاح!');
+      onRequestToast('تم إنشاء المشروع وتحديد جدول الدفعات مع طلب موافقة العميل بنجاح!');
       onClose();
     } catch (err) {
       console.error(err);
@@ -147,23 +216,27 @@ export function CreateProjectModal({
         initial={{ scale: 0.94, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.94, opacity: 0 }}
-        className="bg-white w-full max-w-md rounded-[2rem] p-6 shadow-2xl border border-[#E8E2D8] text-[#192A1D] space-y-4 max-h-[90vh] overflow-y-auto"
+        className="bg-white w-full max-w-lg rounded-[2rem] p-6 shadow-2xl border border-[#E8E2D8] text-[#192A1D] space-y-4 max-h-[92vh] overflow-y-auto"
       >
         <div className="flex justify-between items-center pb-3 border-b border-[#F0EBE1]">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-xl bg-[#1C3022] text-[#C5B198] flex items-center justify-center font-black">
               <Building2 className="w-4 h-4" />
             </div>
-            <h3 className="text-base font-black text-[#1C3022]">إضافة مشروع جديد لعميل</h3>
+            <div>
+              <h3 className="text-base font-black text-[#1C3022]">إضافة مشروع جديد لعميل</h3>
+              <p className="text-[10px] text-slate-500 font-bold">تحديد بنود المشروع وجدول الدفعات المخصصة</p>
+            </div>
           </div>
           <button onClick={onClose} className="p-1 text-slate-400 hover:text-slate-600">
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-3.5">
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* 1. Client Select */}
           <div>
-            <label className="block text-xs font-black text-[#1C3022] mb-1">تعيين المشروع للعميل</label>
+            <label className="block text-xs font-black text-[#1C3022] mb-1">تعيين المشروع للعميل *</label>
             <select
               value={clientId}
               onChange={e => setClientId(e.target.value)}
@@ -178,90 +251,184 @@ export function CreateProjectModal({
             </select>
           </div>
 
-          <div>
-            <label className="block text-xs font-black text-[#1C3022] mb-1">اسم المشروع / الفيلا</label>
-            <input
-              type="text"
-              required
-              placeholder="مثال: فيلا الياسمين الحديثة"
-              value={title}
-              onChange={e => setTitle(e.target.value)}
-              className="w-full bg-[#FAF7F2] border border-[#E8E2D8] rounded-xl px-3 py-2.5 text-xs font-bold text-[#1C3022] outline-none"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-black text-[#1C3022] mb-1">الموقع والحي</label>
-            <input
-              type="text"
-              required
-              placeholder="مثال: الرياض - حي النرجس"
-              value={location}
-              onChange={e => setLocation(e.target.value)}
-              className="w-full bg-[#FAF7F2] border border-[#E8E2D8] rounded-xl px-3 py-2.5 text-xs font-bold text-[#1C3022] outline-none"
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-2">
+          {/* 2. Project Title & Location */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-[11px] font-black text-slate-700 mb-1">مساحة الأرض</label>
+              <label className="block text-xs font-black text-[#1C3022] mb-1">اسم المشروع *</label>
               <input
                 type="text"
-                value={landArea}
-                onChange={e => setLandArea(e.target.value)}
-                className="w-full bg-[#FAF7F2] border border-[#E8E2D8] rounded-xl px-3 py-2 text-xs font-bold text-[#1C3022] outline-none"
+                required
+                value={title}
+                onChange={e => setTitle(e.target.value)}
+                placeholder="اسم المشروع"
+                className="w-full bg-[#FAF7F2] border border-[#E8E2D8] rounded-xl px-3 py-2.5 text-xs font-bold text-[#1C3022] outline-none focus:ring-2 focus:ring-[#C5B198]"
               />
             </div>
             <div>
-              <label className="block text-[11px] font-black text-slate-700 mb-1">المساحة المبنية</label>
+              <label className="block text-xs font-black text-[#1C3022] mb-1">الموقع والحي *</label>
               <input
                 type="text"
-                value={builtUpArea}
-                onChange={e => setBuiltUpArea(e.target.value)}
-                className="w-full bg-[#FAF7F2] border border-[#E8E2D8] rounded-xl px-3 py-2 text-xs font-bold text-[#1C3022] outline-none"
+                required
+                value={location}
+                onChange={e => setLocation(e.target.value)}
+                placeholder="الموقع والمدينة"
+                className="w-full bg-[#FAF7F2] border border-[#E8E2D8] rounded-xl px-3 py-2.5 text-xs font-bold text-[#1C3022] outline-none focus:ring-2 focus:ring-[#C5B198]"
               />
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-2">
+          {/* 3. Total Cost & Initial Progress */}
+          <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-[11px] font-black text-slate-700 mb-1">إجمالي قيمة العقد (ر.س)</label>
+              <label className="block text-xs font-black text-[#1C3022] mb-1">إجمالي قيمة العقد (ر.س) *</label>
               <input
                 type="number"
+                required
+                placeholder="0"
                 value={totalCost}
                 onChange={e => setTotalCost(e.target.value)}
-                className="w-full bg-[#FAF7F2] border border-[#E8E2D8] rounded-xl px-3 py-2 text-xs font-bold text-[#1C3022] outline-none"
+                className="w-full bg-[#FAF7F2] border border-[#E8E2D8] rounded-xl px-3 py-2.5 text-xs font-bold text-[#1C3022] outline-none focus:ring-2 focus:ring-[#C5B198]"
                 dir="ltr"
               />
             </div>
             <div>
-              <label className="block text-[11px] font-black text-slate-700 mb-1">نسبة الإنجاز المبدئية (%)</label>
+              <label className="block text-xs font-black text-[#1C3022] mb-1">نسبة الإنجاز المبدئية (%)</label>
               <input
                 type="number"
                 min="0"
                 max="100"
                 value={initialProgress}
                 onChange={e => setInitialProgress(parseInt(e.target.value) || 0)}
-                className="w-full bg-[#FAF7F2] border border-[#E8E2D8] rounded-xl px-3 py-2 text-xs font-bold text-[#1C3022] outline-none"
+                className="w-full bg-[#FAF7F2] border border-[#E8E2D8] rounded-xl px-3 py-2.5 text-xs font-bold text-[#1C3022] outline-none focus:ring-2 focus:ring-[#C5B198]"
                 dir="ltr"
               />
+            </div>
+          </div>
+
+          {/* 4. CUSTOM INSTALLMENTS CONFIGURATION SECTION */}
+          <div className="p-4 bg-[#FAF7F2] rounded-2xl border border-[#E8E2D8] space-y-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <span className="text-xs font-black text-[#1C3022] flex items-center gap-1.5">
+                  <span>جدول الدفعات وموافقة العميل</span>
+                  <span className="text-[10px] bg-[#EFE7DC] text-[#1C3022] px-2 py-0.5 rounded-md font-bold">
+                    {installments.length} دفعات
+                  </span>
+                </span>
+                <p className="text-[10px] text-slate-500 font-bold mt-0.5">
+                  حدد عدد الدفعات وسعر وتاريخ كل دفعة (تتطلب موافقة العميل)
+                </p>
+              </div>
+
+              <div className="flex items-center gap-1.5">
+                {totalCost && parseFloat(totalCost) > 0 && (
+                  <button
+                    type="button"
+                    onClick={handleDistributeEvenly}
+                    className="text-[10px] bg-white hover:bg-[#EFE7DC] text-[#1C3022] font-black py-1.5 px-2.5 rounded-lg border border-[#E8E2D8] transition-all"
+                  >
+                    توزيع بالتساوي
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={handleAddInstallmentRow}
+                  className="text-[10px] bg-[#1C3022] text-[#F8F5F0] font-black py-1.5 px-2.5 rounded-lg flex items-center gap-1 hover:bg-[#122116] transition-all"
+                >
+                  <Plus className="w-3 h-3 text-[#C5B198]" />
+                  <span>إضافة دفعة</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Installments Table / List */}
+            <div className="space-y-2.5 max-h-60 overflow-y-auto pr-1">
+              {installments.map((inst, index) => (
+                <div 
+                  key={inst.id || index}
+                  className="bg-white p-3 rounded-xl border border-[#E8E2D8] shadow-sm space-y-2 relative"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-[10px] font-black bg-[#FAF7F2] text-[#1C3022] px-2 py-0.5 rounded-md shrink-0">
+                      الدفعة {index + 1}
+                    </span>
+                    <input
+                      type="text"
+                      required
+                      placeholder="عنوان ووصف الدفعة"
+                      value={inst.title}
+                      onChange={e => handleUpdateInstallmentRow(index, 'title', e.target.value)}
+                      className="flex-1 bg-[#FAF7F2] border border-[#E8E2D8] rounded-lg px-2 py-1 text-xs font-bold text-[#1C3022] outline-none"
+                    />
+                    {installments.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteInstallmentRow(index)}
+                        className="text-red-500 hover:text-red-700 p-1"
+                        title="حذف هذه الدفعة"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-500 mb-0.5">مبلغ الدفعة (ر.س) *</label>
+                      <input
+                        type="number"
+                        required
+                        placeholder="0"
+                        value={inst.amount}
+                        onChange={e => handleUpdateInstallmentRow(index, 'amount', e.target.value)}
+                        className="w-full bg-[#FAF7F2] border border-[#E8E2D8] rounded-lg px-2.5 py-1.5 text-xs font-black text-[#1C3022] outline-none"
+                        dir="ltr"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-500 mb-0.5">تاريخ الاستحقاق</label>
+                      <input
+                        type="date"
+                        required
+                        value={inst.dueDate}
+                        onChange={e => handleUpdateInstallmentRow(index, 'dueDate', e.target.value)}
+                        className="w-full bg-[#FAF7F2] border border-[#E8E2D8] rounded-lg px-2.5 py-1.5 text-xs font-bold text-[#1C3022] outline-none"
+                        dir="ltr"
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Sum comparison & Client Approval Note */}
+            <div className="pt-2 border-t border-[#E8E2D8] flex items-center justify-between text-xs font-bold">
+              <span className="text-slate-500">مجموع مبالغ الدفعات:</span>
+              <span className="text-[#1C3022] font-black">
+                {totalInstallmentsSum.toLocaleString('ar-SA')} ر.س
+              </span>
+            </div>
+
+            <div className="p-2.5 bg-[#EFE7DC]/60 rounded-xl border border-[#C5B198]/40 flex items-center gap-2 text-[11px] text-[#1C3022] font-bold">
+              <ShieldCheck className="w-4 h-4 text-emerald-800 shrink-0" />
+              <span>يتم إرسال هذا الجدول لحساب العميل ليقوم بمراجعة واعتماد كل دفعة رسمياً.</span>
             </div>
           </div>
 
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full bg-[#1C3022] text-[#F8F5F0] py-3 rounded-xl font-black text-xs hover:bg-[#122116] flex items-center justify-center gap-2 shadow-md transition-all active:scale-[0.98]"
+            className="w-full bg-[#1C3022] text-[#F8F5F0] py-3.5 rounded-2xl font-black text-xs hover:bg-[#122116] flex items-center justify-center gap-2 shadow-lg transition-all active:scale-[0.98] disabled:opacity-50"
           >
             {isSubmitting ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin text-[#C5B198]" />
-                <span>جاري إنشاء المشروع...</span>
+                <span>جاري إنشاء المشروع وتثبيت الدفعات...</span>
               </>
             ) : (
               <>
                 <Plus className="w-4 h-4 text-[#C5B198]" />
-                <span>تأكيد إنشاء المشروع وإدراجه للعميل</span>
+                <span>تأكيد إنشاء المشروع وإرسال جدول الدفعات للعميل</span>
               </>
             )}
           </button>

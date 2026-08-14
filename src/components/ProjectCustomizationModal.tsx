@@ -498,14 +498,18 @@ export function ProjectCustomizationModal({ project, onClose, onUpdateProject, o
                     <span className="text-[10px] text-slate-400 block font-bold">الموقع والحي</span>
                     <span className="font-black text-[#1C3022]">{project.location}</span>
                   </div>
-                  <div>
-                    <span className="text-[10px] text-slate-400 block font-bold">مساحة الأرض</span>
-                    <span className="font-black text-[#1C3022]">{project.landArea}</span>
-                  </div>
-                  <div>
-                    <span className="text-[10px] text-slate-400 block font-bold">إجمالي مسطحات البناء</span>
-                    <span className="font-black text-[#1C3022]">{project.builtUpArea}</span>
-                  </div>
+                  {project.landArea && (
+                    <div>
+                      <span className="text-[10px] text-slate-400 block font-bold">مساحة الأرض</span>
+                      <span className="font-black text-[#1C3022]">{project.landArea}</span>
+                    </div>
+                  )}
+                  {project.builtUpArea && (
+                    <div>
+                      <span className="text-[10px] text-slate-400 block font-bold">إجمالي مسطحات البناء</span>
+                      <span className="font-black text-[#1C3022]">{project.builtUpArea}</span>
+                    </div>
+                  )}
                   <div>
                     <span className="text-[10px] text-slate-400 block font-bold">تاريخ البدء الفعلي</span>
                     <span className="font-black text-[#1C3022]">{project.startDate}</span>
