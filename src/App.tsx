@@ -720,6 +720,8 @@ function AuthFlow({
         setErrorMessage('تم إلغاء طلب تسجيل الدخول.');
       } else if (code === 'auth/popup-blocked') {
         setErrorMessage('تم حظر النافذة المنبثقة من قبل المتصفح. يرجى السماح بالنوافذ المنبثقة.');
+      } else if (code === 'auth/unauthorized-domain') {
+        setErrorMessage('النطاق الحالي غير مصرح به في مشروع Firebase (models-app-fbbfe). يرجى التأكد من إضافة m-o-e.vercel.app في Authorized Domains بلوحة تحكم Firebase والانتظار بضع دقائق.');
       } else if (code === 'auth/network-request-failed') {
         setErrorMessage('تعذر الاتصال بالشبكة، يرجى التأكد من اتصال الإنترنت والمحاولة مجدداً.');
       } else {
