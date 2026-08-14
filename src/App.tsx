@@ -91,25 +91,43 @@ export default function App() {
     setTimeout(() => setShowSuccessToast(null), 4000);
   };
 
-  // Listen to Firebase Auth state on app startup
+  // Listen to Firebase Auth state on app startup with safety timeout to prevent hanging
   useEffect(() => {
+    let isMounted = true;
+
+    // Safety timeout: If Firebase auth takes longer than 2.5s, gracefully finish checking
+    const timeoutId = setTimeout(() => {
+      if (isMounted) {
+        setIsAuthChecking(false);
+      }
+    }, 2500);
+
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (!isMounted) return;
+
       if (firebaseUser) {
         try {
           const isSuper = firebaseUser.email?.trim().toLowerCase() === SUPERVISOR_EMAIL.toLowerCase();
 
           // Fetch user profile from Firestore or initialize
-          let existingProfile = await UserService.getUserById(firebaseUser.uid);
+          let existingProfile = await Promise.race([
+            UserService.getUserById(firebaseUser.uid),
+            new Promise<null>((resolve) => setTimeout(() => resolve(null), 3000))
+          ]);
+
           if (!existingProfile && firebaseUser.email) {
-            existingProfile = await UserService.getUserByEmail(firebaseUser.email);
+            existingProfile = await Promise.race([
+              UserService.getUserByEmail(firebaseUser.email),
+              new Promise<null>((resolve) => setTimeout(() => resolve(null), 2000))
+            ]);
           }
 
           if (existingProfile) {
             if (isSuper && existingProfile.role !== 'admin') {
               existingProfile.role = 'admin';
-              await UserService.saveUser(existingProfile);
+              UserService.saveUser(existingProfile).catch(console.warn);
             }
-            setUser(existingProfile);
+            if (isMounted) setUser(existingProfile);
           } else {
             const newProfile: User = {
               id: firebaseUser.uid,
@@ -121,19 +139,27 @@ export default function App() {
               ...(firebaseUser.photoURL ? { photoURL: firebaseUser.photoURL } : {}),
               ...(firebaseUser.phoneNumber ? { phone: firebaseUser.phoneNumber } : {})
             };
-            await UserService.saveUser(newProfile);
-            setUser(newProfile);
+            UserService.saveUser(newProfile).catch(console.warn);
+            if (isMounted) setUser(newProfile);
           }
         } catch (err) {
           console.error('Error fetching/creating user on auth state change:', err);
         }
       } else {
-        setUser(null);
+        if (isMounted) setUser(null);
       }
-      setIsAuthChecking(false);
+
+      if (isMounted) {
+        clearTimeout(timeoutId);
+        setIsAuthChecking(false);
+      }
     });
 
-    return () => unsubscribe();
+    return () => {
+      isMounted = false;
+      clearTimeout(timeoutId);
+      unsubscribe();
+    };
   }, []);
 
   // Fetch real data from Firestore
