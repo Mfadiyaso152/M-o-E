@@ -245,12 +245,12 @@ export const ProjectService = {
     return newProject;
   },
 
-  // Save a new quote request to Firestore
+  // Save a new quote request or update an existing one in Firestore
   async saveQuoteRequest(quote: QuoteRequest): Promise<void> {
     try {
       const quoteRef = doc(db, 'quotes', quote.id);
       const cleanedData = cleanForFirestore(quote);
-      await setDoc(quoteRef, cleanedData);
+      await setDoc(quoteRef, cleanedData, { merge: true });
     } catch (error) {
       console.warn('Firestore saveQuoteRequest error:', error);
       throw error;
@@ -269,6 +269,35 @@ export const ProjectService = {
     } catch (error) {
       console.warn('Firestore getAllQuotes error:', error);
       return [];
+    }
+  },
+
+  // Get quote requests for a specific client
+  async getQuotesForUser(clientId: string): Promise<QuoteRequest[]> {
+    try {
+      const q = query(collection(db, 'quotes'), where('clientId', '==', clientId));
+      const querySnapshot = await getDocs(q);
+      const quotes: QuoteRequest[] = [];
+      querySnapshot.forEach((docSnap) => {
+        quotes.push(docSnap.data() as QuoteRequest);
+      });
+      return quotes;
+    } catch (error) {
+      console.warn('Firestore getQuotesForUser error, falling back to client filter:', error);
+      // Fallback: fetch all and filter client side
+      const all = await ProjectService.getAllQuotes();
+      return all.filter(q => q.clientId === clientId);
+    }
+  },
+
+  // Delete a quote request
+  async deleteQuoteRequest(quoteId: string): Promise<void> {
+    try {
+      const quoteRef = doc(db, 'quotes', quoteId);
+      await deleteDoc(quoteRef);
+    } catch (error) {
+      console.warn('Firestore deleteQuoteRequest error:', error);
+      throw error;
     }
   }
 };

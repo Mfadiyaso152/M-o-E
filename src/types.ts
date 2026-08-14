@@ -127,6 +127,14 @@ export interface QuoteRequest {
   description: string;
   status: QuoteStatus;
   amount?: string;
+  quoteAmount?: string;
+  fileUrl?: string;
+  fileName?: string;
+  fileSize?: string;
+  validUntil?: string;
+  clientDecision?: 'accepted' | 'rejected' | 'pending';
+  clientRejectionReason?: string;
+  clientDecisionDate?: string;
   date: string;
   adminNote?: string;
 }

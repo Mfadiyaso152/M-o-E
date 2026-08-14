@@ -42,7 +42,10 @@ import {
   RefreshCw,
   Mail,
   AlertTriangle,
-  BellRing
+  BellRing,
+  FileCheck,
+  FileUp,
+  XCircle
 } from 'lucide-react';
 
 // Types and Components
@@ -156,8 +159,12 @@ export default function App() {
         setClients(allUsers);
         setQuotes(allQuotes);
       } else {
-        const userProjs = await ProjectService.getProjectsForUser(currentUser.id);
+        const [userProjs, userQuotes] = await Promise.all([
+          ProjectService.getProjectsForUser(currentUser.id),
+          ProjectService.getQuotesForUser(currentUser.id)
+        ]);
         setProjects(userProjs);
+        setQuotes(userQuotes);
       }
     } catch (err) {
       console.error('Error fetching data:', err);
@@ -373,6 +380,27 @@ export default function App() {
                     <HomeView 
                       user={user} 
                       projects={projects} 
+                      quotes={quotes}
+                      onDecisionQuote={async (quote, decision) => {
+                        try {
+                          const updated: QuoteRequest = {
+                            ...quote,
+                            status: decision === 'accepted' ? 'مقبول' : 'مرفوض',
+                            clientDecision: decision,
+                            clientDecisionDate: new Date().toISOString().split('T')[0]
+                          };
+                          await ProjectService.saveQuoteRequest(updated);
+                          if (user) loadData(user);
+                          triggerToast(
+                            decision === 'accepted' 
+                              ? 'تمت الموافقة على عرض السعر بنجاح! سيتم إعداد العقد وتدشين المشروع.' 
+                              : 'تم تسجيل رفضك لعرض السعر.'
+                          );
+                        } catch (err) {
+                          console.error(err);
+                          triggerToast('حدث خطأ أثناء حفظ القرار.');
+                        }
+                      }}
                       onRequestQuote={() => setShowQuoteForm(true)} 
                       onGoToPayments={() => setActiveTab('payments')}
                     />
@@ -849,11 +877,15 @@ function AuthFlow({
 function HomeView({ 
   user, 
   projects, 
+  quotes = [],
+  onDecisionQuote,
   onRequestQuote,
   onGoToPayments
 }: { 
   user: User; 
   projects: Project[]; 
+  quotes?: QuoteRequest[];
+  onDecisionQuote?: (quote: QuoteRequest, decision: 'accepted' | 'rejected') => Promise<void>;
   onRequestQuote: () => void; 
   onGoToPayments: () => void;
 }) {
@@ -908,6 +940,134 @@ function HomeView({
             <Smartphone className="w-3.5 h-3.5" />
             <span>الانتقال لجدول الدفعات والسداد الآن</span>
           </button>
+        </div>
+      )}
+
+      {/* QUOTES & PROPOSALS SECTION (عروض الأسعار والطلبات) */}
+      {quotes.length > 0 && (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-xl bg-[#FAF7F2] border border-[#E8E2D8] flex items-center justify-center text-[#1C3022]">
+                <FileText className="w-3.5 h-3.5 text-[#A99379]" />
+              </div>
+              <h3 className="text-sm font-black text-[#1C3022]">عروض الأسعار ودراسات المشاريع</h3>
+            </div>
+            <span className="text-[10px] font-black bg-[#EFE7DC] text-[#1C3022] px-2 py-0.5 rounded-full">
+              {quotes.length} طلبات
+            </span>
+          </div>
+
+          <div className="space-y-3">
+            {quotes.map(quote => {
+              const hasProposal = quote.status === 'تم إرسال العرض' || Boolean(quote.fileUrl);
+              const isDecisionPending = !quote.clientDecision || quote.clientDecision === 'pending';
+
+              return (
+                <div key={quote.id} className="bg-white rounded-3xl p-5 border border-[#E8E2D8] shadow-sm space-y-3.5">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <span className="text-[10px] font-black text-[#A99379]">طلب رقم #{quote.id}</span>
+                      <h4 className="text-sm font-black text-[#1C3022] mt-0.5">{quote.projectName}</h4>
+                      <p className="text-xs text-slate-600 mt-1 leading-relaxed">{quote.description}</p>
+                    </div>
+                    <span className={`text-[10px] font-black px-2.5 py-1 rounded-xl shrink-0 ${
+                      quote.status === 'طلب جديد' ? 'bg-amber-100 text-amber-900 border border-amber-200' :
+                      quote.status === 'تم إرسال العرض' ? 'bg-blue-100 text-blue-900 border border-blue-200' :
+                      quote.status === 'مقبول' ? 'bg-emerald-100 text-emerald-900 border border-emerald-200' :
+                      quote.status === 'مرفوض' ? 'bg-red-100 text-red-900 border border-red-200' : 'bg-slate-100 text-slate-700'
+                    }`}>
+                      {quote.status}
+                    </span>
+                  </div>
+
+                  {/* If new request and supervisor hasn't sent quote yet */}
+                  {quote.status === 'طلب جديد' && (
+                    <div className="p-3 bg-[#FAF7F2] rounded-2xl border border-[#E8E2D8] text-xs flex items-center gap-2 text-slate-600">
+                      <Clock className="w-4 h-4 text-[#A99379] shrink-0" />
+                      <span>طلبك قيد المراجعة والدراسة الفنية من المهندس المشرف. سيصلك إشعار ومستند عرض السعر هنا قريباً.</span>
+                    </div>
+                  )}
+
+                  {/* If Supervisor sent a proposal (File + Price) */}
+                  {hasProposal && (
+                    <div className="p-4 bg-[#FAF7F2] rounded-2xl border border-[#E8E2D8] space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <span className="text-[10px] font-black text-[#A99379] block">مبلغ عرض السعر المقترح</span>
+                          <span className="text-base font-black text-[#1C3022]">
+                            {quote.quoteAmount || quote.amount || 'حسب المواصفات الهندسية'}
+                          </span>
+                        </div>
+
+                        {quote.fileUrl && (
+                          <a
+                            href={quote.fileUrl}
+                            download={quote.fileName || `عرض_سعر_${quote.projectName}.pdf`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="bg-white hover:bg-[#EFE7DC] text-[#1C3022] px-3 py-2 rounded-xl text-xs font-black flex items-center gap-1.5 border border-[#E8E2D8] shadow-sm transition-all"
+                          >
+                            <Download className="w-3.5 h-3.5 text-[#A99379]" />
+                            <span>تحميل مستند العرض ({quote.fileName || 'ملف PDF'})</span>
+                          </a>
+                        )}
+                      </div>
+
+                      {quote.adminNote && (
+                        <div className="pt-2 border-t border-[#E8E2D8] text-xs text-slate-600">
+                          <strong className="text-[#1C3022]">ملاحظات المشرف: </strong>
+                          {quote.adminNote}
+                        </div>
+                      )}
+
+                      {/* Client Decision Actions */}
+                      {isDecisionPending && quote.status === 'تم إرسال العرض' && onDecisionQuote && (
+                        <div className="pt-2 border-t border-[#E8E2D8] space-y-2">
+                          <span className="text-[11px] font-black text-[#1C3022] block">
+                            يرجى الاطلاع على ملف العرض وتحديد قراركم:
+                          </span>
+                          <div className="grid grid-cols-2 gap-2">
+                            <button
+                              type="button"
+                              onClick={() => onDecisionQuote(quote, 'accepted')}
+                              className="bg-emerald-700 hover:bg-emerald-800 text-white py-2.5 px-3 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 shadow-sm transition-all active:scale-[0.98]"
+                            >
+                              <Check className="w-4 h-4" />
+                              <span>قبول العرض والموافقة</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => onDecisionQuote(quote, 'rejected')}
+                              className="bg-white hover:bg-red-50 text-red-700 border border-red-200 py-2.5 px-3 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 transition-all active:scale-[0.98]"
+                            >
+                              <X className="w-4 h-4 text-red-600" />
+                              <span>رفض العرض</span>
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Decision Result Status Banner */}
+                      {quote.clientDecision === 'accepted' && (
+                        <div className="pt-2 border-t border-[#E8E2D8] flex items-center gap-2 text-emerald-800 text-xs font-black">
+                          <CheckCircle2 className="w-4 h-4 text-emerald-700 shrink-0" />
+                          <span>تمت موافقتكم على عرض السعر. يقوم المهندس المشرف الآن بتجهيز العقد وتدشين المشروع في حسابك.</span>
+                        </div>
+                      )}
+
+                      {quote.clientDecision === 'rejected' && (
+                        <div className="pt-2 border-t border-[#E8E2D8] flex items-center gap-2 text-red-800 text-xs font-black">
+                          <XCircle className="w-4 h-4 text-red-700 shrink-0" />
+                          <span>تم تسجيل رفضكم لعرض السعر. يمكنك التواصل مع المشرف لطلب دراسة معدلة.</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
 

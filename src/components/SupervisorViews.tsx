@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import {
   Users,
   HardHat,
@@ -27,7 +27,13 @@ import {
   CreditCard,
   BellRing,
   Send,
-  AlertTriangle
+  AlertTriangle,
+  Upload,
+  FileUp,
+  Download,
+  X,
+  FileCheck,
+  Loader2
 } from 'lucide-react';
 import { User, Project, QuoteRequest, ProjectStatus, Installment, getInstallmentOverdueStatus } from '../types';
 import { ProjectService } from '../services/dbService';
@@ -58,6 +64,7 @@ export function SupervisorClientsView({
 }: SupervisorClientsViewProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<'clients' | 'quotes'>('clients');
+  const [selectedQuoteForProposal, setSelectedQuoteForProposal] = useState<QuoteRequest | null>(null);
 
   // Filter clients
   const filteredClients = clients.filter(c => {
@@ -193,24 +200,14 @@ export function SupervisorClientsView({
                     </div>
 
                     {/* Action buttons for this client */}
-                    <div className="pt-2 border-t border-[#F0EBE1] flex gap-2">
+                    <div className="pt-2 border-t border-[#F0EBE1]">
                       <button
                         type="button"
                         onClick={() => onSelectClientForProjects(client.id)}
-                        className="flex-1 bg-[#FAF7F2] hover:bg-[#EFE7DC] text-[#1C3022] py-2 px-3 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 border border-[#E8E2D8] transition-all"
+                        className="w-full bg-[#FAF7F2] hover:bg-[#EFE7DC] text-[#1C3022] py-2 px-3 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 border border-[#E8E2D8] transition-all"
                       >
                         <HardHat className="w-3.5 h-3.5 text-[#A99379]" />
-                        <span>مشاريع العميل ({clientProjects.length})</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => onCreateProjectForClient(client.id)}
-                        className="bg-[#1C3022] text-[#F8F5F0] py-2 px-3 rounded-xl text-xs font-black flex items-center justify-center gap-1 hover:bg-[#122116] transition-all"
-                        title="إضافة مشروع للعميل"
-                      >
-                        <Plus className="w-3.5 h-3.5 text-[#C5B198]" />
-                        <span>+ مشروع</span>
+                        <span>استعراض مشاريع العميل ({clientProjects.length})</span>
                       </button>
                     </div>
                   </div>
@@ -228,7 +225,7 @@ export function SupervisorClientsView({
             <div className="bg-white rounded-3xl p-8 text-center border border-[#E8E2D8] space-y-2">
               <FileText className="w-10 h-10 text-slate-300 mx-auto" />
               <h4 className="text-xs font-black text-[#1C3022]">لا توجد طلبات عروض أسعار جديدة</h4>
-              <p className="text-[11px] text-slate-400">أي طلب يقدمه العميل لدراسة مشروع جديد سيظهر هنا للمشرف</p>
+              <p className="text-[11px] text-slate-400">أي طلب يقدمه العميل لدراسة مشروع جديد سيظهر هنا للمشرف لإرسال عرض السعر والملف المرفق</p>
             </div>
           ) : (
             quotes.map(quote => (
@@ -237,25 +234,81 @@ export function SupervisorClientsView({
                   <div>
                     <span className="text-[10px] font-bold text-[#A99379]">طلب رقم: {quote.id}</span>
                     <h4 className="text-xs font-black text-[#1C3022] mt-0.5">{quote.projectName}</h4>
-                    <p className="text-[11px] text-slate-600 mt-1">{quote.description}</p>
-                    <span className="text-[10px] text-slate-400 font-bold block mt-1">العميل: {quote.clientName} | {quote.date}</span>
+                    <p className="text-[11px] text-slate-600 mt-1 leading-relaxed">{quote.description}</p>
+                    <span className="text-[10px] text-slate-400 font-bold block mt-1">العميل: {quote.clientName} | تاريخ الطلب: {quote.date}</span>
                   </div>
-                  <span className={`text-[10px] font-black px-2 py-0.5 rounded-lg ${
-                    quote.status === 'طلب جديد' ? 'bg-amber-100 text-amber-900' :
-                    quote.status === 'تم إرسال العرض' ? 'bg-blue-100 text-blue-900' :
-                    quote.status === 'مقبول' ? 'bg-emerald-100 text-emerald-900' : 'bg-slate-100 text-slate-700'
-                  }`}>
-                    {quote.status}
-                  </span>
+                  <div className="text-left">
+                    <span className={`text-[10px] font-black px-2.5 py-1 rounded-xl block ${
+                      quote.status === 'طلب جديد' ? 'bg-amber-100 text-amber-900 border border-amber-200' :
+                      quote.status === 'تم إرسال العرض' ? 'bg-blue-100 text-blue-900 border border-blue-200' :
+                      quote.status === 'مقبول' ? 'bg-emerald-100 text-emerald-900 border border-emerald-200' : 
+                      quote.status === 'مرفوض' ? 'bg-red-100 text-red-900 border border-red-200' : 'bg-slate-100 text-slate-700'
+                    }`}>
+                      {quote.status}
+                    </span>
+                    {quote.quoteAmount && (
+                      <span className="text-[11px] font-black text-[#1C3022] block mt-1">
+                        {quote.quoteAmount}
+                      </span>
+                    )}
+                  </div>
                 </div>
 
-                <div className="pt-2 border-t border-[#F0EBE1] flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-1">
-                    <span className="text-[10px] font-bold text-slate-500">تحديث الحالة:</span>
+                {/* Sent proposal details if available */}
+                {quote.fileUrl && (
+                  <div className="p-3 bg-[#FAF7F2] rounded-2xl border border-[#E8E2D8] text-xs space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-black text-slate-500">ملف عرض السعر المرسل:</span>
+                      <a
+                        href={quote.fileUrl}
+                        download={quote.fileName || `عرض_سعر_${quote.projectName}.pdf`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-[11px] text-[#1C3022] font-black hover:underline flex items-center gap-1 bg-white px-2 py-1 rounded-lg border border-[#E8E2D8]"
+                      >
+                        <Download className="w-3 h-3 text-[#A99379]" />
+                        <span>تحميل ({quote.fileName || 'ملف العرض'})</span>
+                      </a>
+                    </div>
+                    {quote.adminNote && (
+                      <p className="text-[11px] text-slate-600 font-medium">
+                        <strong>ملاحظات المشرف:</strong> {quote.adminNote}
+                      </p>
+                    )}
+                    {quote.clientDecision && (
+                      <div className="pt-1.5 border-t border-[#E8E2D8] flex items-center gap-1.5">
+                        <span className="text-[10px] font-bold text-slate-500">قرار العميل:</span>
+                        {quote.clientDecision === 'accepted' ? (
+                          <span className="text-[10px] font-black text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-md flex items-center gap-1">
+                            <Check className="w-3 h-3 text-emerald-700" />
+                            <span>وافق العميل على عرض السعر ({quote.clientDecisionDate || 'مؤخراً'})</span>
+                          </span>
+                        ) : (
+                          <span className="text-[10px] font-black text-red-800 bg-red-100 px-2 py-0.5 rounded-md flex items-center gap-1">
+                            <X className="w-3 h-3 text-red-700" />
+                            <span>رفض العميل عرض السعر ({quote.clientDecisionDate || 'مؤخراً'})</span>
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                <div className="pt-2 border-t border-[#F0EBE1] flex flex-wrap items-center justify-between gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedQuoteForProposal(quote)}
+                    className="bg-[#C5B198] text-[#1C3022] hover:bg-[#b8a287] px-3.5 py-2 rounded-xl text-xs font-black flex items-center gap-1.5 shadow-sm transition-all"
+                  >
+                    <FileUp className="w-3.5 h-3.5" />
+                    <span>{quote.fileUrl ? 'تعديل/إعادة إرسال عرض السعر' : 'إرسال عرض سعر وملف'}</span>
+                  </button>
+
+                  <div className="flex items-center gap-2">
                     <select
                       value={quote.status}
                       onChange={e => handleUpdateQuoteStatus(quote, e.target.value)}
-                      className="bg-[#FAF7F2] border border-[#E8E2D8] rounded-xl px-2 py-1 text-[11px] font-bold text-[#1C3022] outline-none"
+                      className="bg-[#FAF7F2] border border-[#E8E2D8] rounded-xl px-2 py-1.5 text-[11px] font-bold text-[#1C3022] outline-none"
                     >
                       <option value="طلب جديد">طلب جديد</option>
                       <option value="تم إرسال العرض">تم إرسال العرض</option>
@@ -263,22 +316,298 @@ export function SupervisorClientsView({
                       <option value="تم توقيع العقد">تم توقيع العقد</option>
                       <option value="مرفوض">مرفوض</option>
                     </select>
-                  </div>
 
-                  <button
-                    type="button"
-                    onClick={() => onCreateProjectForClient(quote.clientId)}
-                    className="bg-[#1C3022] text-[#F8F5F0] px-3 py-1.5 rounded-xl text-[10px] font-black hover:bg-[#122116] flex items-center gap-1"
-                  >
-                    <Plus className="w-3 h-3 text-[#C5B198]" />
-                    <span>تحويل لمشروع</span>
-                  </button>
+                    <button
+                      type="button"
+                      onClick={() => onCreateProjectForClient(quote.clientId)}
+                      className="bg-[#1C3022] text-[#F8F5F0] px-3 py-1.5 rounded-xl text-xs font-black hover:bg-[#122116] flex items-center gap-1"
+                    >
+                      <Plus className="w-3 h-3 text-[#C5B198]" />
+                      <span>تدشين المشروع</span>
+                    </button>
+                  </div>
                 </div>
               </div>
             ))
           )}
         </div>
       )}
+
+      {/* SEND QUOTE PROPOSAL MODAL */}
+      <AnimatePresence>
+        {selectedQuoteForProposal && (
+          <SupervisorSendQuoteModal
+            quote={selectedQuoteForProposal}
+            onClose={() => setSelectedQuoteForProposal(null)}
+            onSent={() => {
+              setSelectedQuoteForProposal(null);
+              onRefreshQuotes();
+              onRequestToast('تم إرسال عرض السعر والملف المرفق للعميل بنجاح!');
+            }}
+          />
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+// -------------------------------------------------------------
+// SEND QUOTE PROPOSAL MODAL (FILE ATTACHMENT FROM COMPUTER & PRICING)
+// -------------------------------------------------------------
+function SupervisorSendQuoteModal({
+  quote,
+  onClose,
+  onSent
+}: {
+  quote: QuoteRequest;
+  onClose: () => void;
+  onSent: () => void;
+}) {
+  const [status, setStatus] = useState<string>(quote.status || 'تم إرسال العرض');
+  const [quoteAmount, setQuoteAmount] = useState(quote.quoteAmount || quote.amount || '');
+  const [adminNote, setAdminNote] = useState(quote.adminNote || 'يسرنا تقديم هذا العرض الهندسي المعتمد من شركة نماذج التميز.');
+  const [fileUrl, setFileUrl] = useState<string | null>(quote.fileUrl || null);
+  const [fileName, setFileName] = useState<string>(quote.fileName || '');
+  const [fileSize, setFileSize] = useState<string>(quote.fileSize || '');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Check size limit (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      alert('حجم الملف كبير جداً. يرجى اختيار ملف بحجم أقل من 10 ميجابايت.');
+      return;
+    }
+
+    const sizeFormatted = (file.size / (1024 * 1024)).toFixed(2) + ' MB';
+    setFileName(file.name);
+    setFileSize(sizeFormatted);
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      if (event.target?.result) {
+        setFileUrl(event.target.result as string);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleSend = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!quoteAmount.trim()) {
+      alert('يرجى إدخال مبلغ عرض السعر.');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const updatedQuote: QuoteRequest = {
+        ...quote,
+        status: status as any,
+        quoteAmount: quoteAmount.trim(),
+        amount: quoteAmount.trim(),
+        adminNote: adminNote.trim(),
+        fileUrl: fileUrl || undefined,
+        fileName: fileName || undefined,
+        fileSize: fileSize || undefined,
+        clientDecision: status === 'مقبول' ? 'accepted' : status === 'مرفوض' ? 'rejected' : 'pending',
+        date: new Date().toISOString().split('T')[0]
+      };
+
+      await ProjectService.saveQuoteRequest(updatedQuote);
+      onSent();
+    } catch (err) {
+      console.error('Error sending quote:', err);
+      alert('حدث خطأ أثناء حفظ وإرسال عرض السعر.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4" dir="rtl">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        className="bg-white w-full max-w-lg rounded-3xl shadow-2xl border border-[#E8E2D8] overflow-hidden flex flex-col max-h-[90vh]"
+      >
+        {/* Modal Header */}
+        <div className="bg-[#1C3022] text-[#F8F5F0] p-5 flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-xl bg-[#C5B198] text-[#1C3022] flex items-center justify-center font-black">
+              <FileUp className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-sm font-black">إرسال عرض سعر ومستند المشروع</h3>
+              <p className="text-[10px] text-[#C5B198]">للعميل: {quote.clientName} - {quote.projectName}</p>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* Modal Body */}
+        <form onSubmit={handleSend} className="p-6 space-y-4 overflow-y-auto flex-1">
+          {/* Project Summary Box */}
+          <div className="bg-[#FAF7F2] p-4 rounded-2xl border border-[#E8E2D8] space-y-1.5">
+            <span className="text-[10px] font-black text-[#A99379]">تفاصيل طلب العميل:</span>
+            <h4 className="text-xs font-black text-[#1C3022]">{quote.projectName}</h4>
+            <p className="text-[11px] text-slate-600 leading-relaxed">{quote.description}</p>
+          </div>
+
+          {/* Amount input */}
+          <div className="space-y-1">
+            <label className="text-xs font-black text-[#1C3022] block">
+              إجمالي مبلغ عرض السعر (شامل الضريبة أو حسب الاتفاق) *
+            </label>
+            <input
+              type="text"
+              required
+              placeholder="مثال: 450,000 ر.س"
+              value={quoteAmount}
+              onChange={e => setQuoteAmount(e.target.value)}
+              className="w-full bg-[#FAF7F2] border border-[#E8E2D8] rounded-2xl px-4 py-3 text-xs font-bold text-[#1C3022] outline-none focus:ring-2 focus:ring-[#C5B198]"
+            />
+          </div>
+
+          {/* Proposal Status & Approval Mode */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-black text-[#1C3022] block">
+              حالة الطلب وقرار العرض:
+            </label>
+            <div className="grid grid-cols-3 gap-2">
+              <button
+                type="button"
+                onClick={() => setStatus('تم إرسال العرض')}
+                className={`py-2 px-2.5 rounded-xl text-xs font-black border transition-all ${
+                  status === 'تم إرسال العرض'
+                    ? 'bg-blue-900 text-white border-blue-950 shadow-sm'
+                    : 'bg-[#FAF7F2] text-slate-700 border-[#E8E2D8] hover:bg-[#EFE7DC]'
+                }`}
+              >
+                إرسال العرض
+              </button>
+              <button
+                type="button"
+                onClick={() => setStatus('مقبول')}
+                className={`py-2 px-2.5 rounded-xl text-xs font-black border transition-all ${
+                  status === 'مقبول'
+                    ? 'bg-emerald-800 text-white border-emerald-900 shadow-sm'
+                    : 'bg-[#FAF7F2] text-slate-700 border-[#E8E2D8] hover:bg-emerald-50'
+                }`}
+              >
+                موافقة واعتماد
+              </button>
+              <button
+                type="button"
+                onClick={() => setStatus('مرفوض')}
+                className={`py-2 px-2.5 rounded-xl text-xs font-black border transition-all ${
+                  status === 'مرفوض'
+                    ? 'bg-red-800 text-white border-red-900 shadow-sm'
+                    : 'bg-[#FAF7F2] text-slate-700 border-[#E8E2D8] hover:bg-red-50'
+                }`}
+              >
+                رفض الطلب
+              </button>
+            </div>
+          </div>
+
+          {/* File Picker from Computer */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-black text-[#1C3022] block">
+              تحديد ملف عرض السعر من الكمبيوتر (PDF / Word / صور) *
+            </label>
+            
+            <div className="border-2 border-dashed border-[#C5B198] bg-[#FAF7F2]/60 hover:bg-[#FAF7F2] rounded-2xl p-5 text-center transition-all relative">
+              <input
+                type="file"
+                accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
+                onChange={handleFileChange}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+              />
+              <div className="space-y-2 flex flex-col items-center justify-center pointer-events-none">
+                <div className="w-12 h-12 rounded-2xl bg-[#EFE7DC] text-[#1C3022] flex items-center justify-center">
+                  <Upload className="w-6 h-6 text-[#A99379]" />
+                </div>
+                <div>
+                  <p className="text-xs font-black text-[#1C3022]">انقر لاختيار ملف من جهازك أو اسحب الملف هنا</p>
+                  <p className="text-[10px] text-slate-400 mt-0.5">يدعم ملفات PDF، جداول الكميات، المستندات الرسمية (حتى 10MB)</p>
+                </div>
+              </div>
+            </div>
+
+            {fileName && (
+              <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-2xl flex items-center justify-between">
+                <div className="flex items-center gap-2 text-emerald-900 text-xs font-black">
+                  <FileCheck className="w-4 h-4 text-emerald-700 shrink-0" />
+                  <span className="truncate max-w-[240px]">{fileName}</span>
+                  {fileSize && <span className="text-[10px] text-emerald-700">({fileSize})</span>}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFileUrl(null);
+                    setFileName('');
+                    setFileSize('');
+                  }}
+                  className="text-red-600 hover:text-red-800 text-[11px] font-black"
+                >
+                  إلغاء الملف
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Admin Notes */}
+          <div className="space-y-1">
+            <label className="text-xs font-black text-[#1C3022] block">
+              ملاحظات للمشروع وشروط العرض
+            </label>
+            <textarea
+              rows={3}
+              value={adminNote}
+              onChange={e => setAdminNote(e.target.value)}
+              placeholder="اكتب أي توضيحات هندسية، مدة صلاحية العرض، أو شروط الدفع..."
+              className="w-full bg-[#FAF7F2] border border-[#E8E2D8] rounded-2xl p-3 text-xs font-medium text-[#1C3022] outline-none focus:ring-2 focus:ring-[#C5B198]"
+            />
+          </div>
+
+          {/* Action Buttons */}
+          <div className="pt-3 flex items-center gap-2">
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="flex-1 bg-[#1C3022] text-[#F8F5F0] hover:bg-[#122116] py-3.5 rounded-2xl text-xs font-black flex items-center justify-center gap-2 shadow-lg transition-all active:scale-[0.98] disabled:opacity-50"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>جاري الإرسال للعميل...</span>
+                </>
+              ) : (
+                <>
+                  <Send className="w-4 h-4 text-[#C5B198]" />
+                  <span>إرسال العرض للعميل مع الملف</span>
+                </>
+              )}
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="bg-slate-100 text-slate-700 hover:bg-slate-200 py-3.5 px-4 rounded-2xl text-xs font-bold transition-all"
+            >
+              إلغاء
+            </button>
+          </div>
+        </form>
+      </motion.div>
     </div>
   );
 }
