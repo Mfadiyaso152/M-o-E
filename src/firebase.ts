@@ -2,6 +2,7 @@ import { initializeApp, getApps, getApp } from "firebase/app";
 import { 
   getAuth, 
   GoogleAuthProvider,
+  OAuthProvider,
   signInWithPopup,
   signOut,
   onAuthStateChanged,
@@ -36,11 +37,16 @@ export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({ prompt: 'select_account' });
 
+export const appleProvider = new OAuthProvider('apple.com');
+appleProvider.addScope('email');
+appleProvider.addScope('name');
+
 // Use Firestore with specific database ID if configured or default
 export const db = getFirestore(app, firebaseConfigJson.firestoreDatabaseId || undefined);
 
 export { 
   GoogleAuthProvider,
+  OAuthProvider,
   signInWithPopup,
   signOut, 
   onAuthStateChanged,

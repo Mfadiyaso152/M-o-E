@@ -58,7 +58,7 @@ import { AdminProjectManagerModal } from './components/AdminProjectManagerModal'
 import { CreateProjectModal } from './components/CreateProjectModal';
 import { SupervisorClientsView, SupervisorProjectsView, SupervisorPaymentsView } from './components/SupervisorViews';
 import { UserService, ProjectService } from './services/dbService';
-import { auth, googleProvider, signInWithPopup, signOut, onAuthStateChanged } from './firebase';
+import { auth, googleProvider, appleProvider, signInWithPopup, signOut, onAuthStateChanged } from './firebase';
 import { Users } from 'lucide-react';
 
 const SUPERVISOR_EMAIL = 'mfb.15.f@gmail.com';
@@ -692,27 +692,28 @@ export default function App() {
 }
 
 // -------------------------------------------------------------
-// AuthFlow Component: Google Authentication
+// AuthFlow Component: Google & Apple Authentication
 // -------------------------------------------------------------
 function AuthFlow({ 
   onAuthenticated 
 }: { 
   onAuthenticated: (user: User) => void; 
 }) {
-  const [isLoading, setIsLoading] = useState(false);
+  const [loadingProvider, setLoadingProvider] = useState<'google' | 'apple' | null>(null);
   const [errorMessage, setErrorMessage] = useState('');
   const [showTermsModal, setShowTermsModal] = useState(false);
 
-  const handleGoogleSignIn = async () => {
-    setIsLoading(true);
+  const handleSignIn = async (providerType: 'google' | 'apple') => {
+    setLoadingProvider(providerType);
     setErrorMessage('');
 
     try {
-      const result = await signInWithPopup(auth, googleProvider);
+      const provider = providerType === 'google' ? googleProvider : appleProvider;
+      const result = await signInWithPopup(auth, provider);
       const fbUser = result.user;
 
       if (!fbUser) {
-        throw new Error('تعذر إتمام تسجيل الدخول باستخدام حساب Google.');
+        throw new Error(`تعذر إتمام تسجيل الدخول باستخدام حساب ${providerType === 'google' ? 'Google' : 'Apple'}.`);
       }
 
       // Check if user exists in Firestore
@@ -725,7 +726,7 @@ function AuthFlow({
         // Create new user profile in Firestore
         userProfile = {
           id: fbUser.uid,
-          name: fbUser.displayName || 'عميل نماذج التميز',
+          name: fbUser.displayName || (providerType === 'apple' ? 'مستخدم Apple' : 'عميل نماذج التميز'),
           email: fbUser.email || '',
           termsAccepted: true,
           role: 'client',
@@ -738,7 +739,7 @@ function AuthFlow({
 
       onAuthenticated(userProfile);
     } catch (err: any) {
-      console.error('Google Sign In Error:', err);
+      console.error(`${providerType} Sign In Error:`, err);
       const code = err?.code;
       if (code === 'auth/popup-closed-by-user') {
         setErrorMessage('تم إغلاق نافذة تسجيل الدخول قبل إتمام العملية. يرجى المحاولة مرة أخرى.');
@@ -746,15 +747,17 @@ function AuthFlow({
         setErrorMessage('تم إلغاء طلب تسجيل الدخول.');
       } else if (code === 'auth/popup-blocked') {
         setErrorMessage('تم حظر النافذة المنبثقة من قبل المتصفح. يرجى السماح بالنوافذ المنبثقة.');
+      } else if (code === 'auth/operation-not-allowed') {
+        setErrorMessage(`تسجيل الدخول عبر ${providerType === 'apple' ? 'Apple' : 'Google'} غير مفعّل في لوحة Firebase. يرجى تفعيله من قسم Authentication > Sign-in method.`);
       } else if (code === 'auth/unauthorized-domain') {
-        setErrorMessage('النطاق الحالي غير مصرح به في مشروع Firebase (models-app-fbbfe). يرجى التأكد من إضافة m-o-e.vercel.app في Authorized Domains بلوحة تحكم Firebase والانتظار بضع دقائق.');
+        setErrorMessage('النطاق الحالي غير مصرح به.');
       } else if (code === 'auth/network-request-failed') {
         setErrorMessage('تعذر الاتصال بالشبكة، يرجى التأكد من اتصال الإنترنت والمحاولة مجدداً.');
       } else {
-        setErrorMessage(err?.message || 'حدث خطأ أثناء تسجيل الدخول بحساب Google. يرجى المحاولة مرة أخرى.');
+        setErrorMessage(err?.message || `حدث خطأ أثناء تسجيل الدخول بحساب ${providerType === 'google' ? 'Google' : 'Apple'}. يرجى المحاولة مرة أخرى.`);
       }
     } finally {
-      setIsLoading(false);
+      setLoadingProvider(null);
     }
   };
 
@@ -786,7 +789,7 @@ function AuthFlow({
           </div>
           <h2 className="text-lg font-black text-[#1C3022]">بوابة العملاء والمشاريع</h2>
           <p className="text-slate-500 text-xs font-medium leading-relaxed">
-            سجّل دخولك بحساب Google لمتابعة مراحل البناء، الدفعات، والتقارير الهندسية
+            سجّل دخولك لمتابعة مراحل البناء، الدفعات المالية، والتقارير الهندسية المعتمدة
           </p>
         </div>
 
@@ -802,17 +805,18 @@ function AuthFlow({
           </motion.div>
         )}
 
-        {/* Google Sign-in Button */}
-        <div className="space-y-3 pt-2">
+        {/* Sign-in Buttons */}
+        <div className="space-y-3 pt-1">
+          {/* Google Sign-in Button */}
           <button
-            onClick={handleGoogleSignIn}
-            disabled={isLoading}
-            className="w-full bg-white hover:bg-slate-50 text-slate-800 border-2 border-[#E8E2D8] hover:border-[#1C3022] py-4 px-4 rounded-2xl font-black text-sm transition-all shadow-sm hover:shadow-md active:scale-[0.98] flex items-center justify-center gap-3 disabled:opacity-60 disabled:cursor-not-allowed group"
+            onClick={() => handleSignIn('google')}
+            disabled={loadingProvider !== null}
+            className="w-full bg-white hover:bg-slate-50 text-slate-800 border-2 border-[#E8E2D8] hover:border-[#1C3022] py-3.5 px-4 rounded-2xl font-black text-sm transition-all shadow-sm hover:shadow-md active:scale-[0.98] flex items-center justify-center gap-3 disabled:opacity-60 disabled:cursor-not-allowed group"
           >
-            {isLoading ? (
+            {loadingProvider === 'google' ? (
               <div className="flex items-center gap-2 text-[#1C3022]">
                 <Loader2 className="w-5 h-5 animate-spin text-[#C5B198]" />
-                <span>جاري تسجيل الدخول الآمن...</span>
+                <span>جاري تسجيل الدخول بحساب Google...</span>
               </div>
             ) : (
               <>
@@ -841,6 +845,37 @@ function AuthFlow({
               </>
             )}
           </button>
+
+          {/* Divider */}
+          <div className="relative flex items-center justify-center my-2">
+            <div className="border-t border-slate-200 w-full"></div>
+            <span className="bg-white px-3 text-[11px] font-bold text-slate-400 shrink-0">أو</span>
+            <div className="border-t border-slate-200 w-full"></div>
+          </div>
+
+          {/* Apple Sign-in Button */}
+          <button
+            onClick={() => handleSignIn('apple')}
+            disabled={loadingProvider !== null}
+            className="w-full bg-black hover:bg-neutral-900 text-white border-2 border-black py-3.5 px-4 rounded-2xl font-black text-sm transition-all shadow-sm hover:shadow-md active:scale-[0.98] flex items-center justify-center gap-3 disabled:opacity-60 disabled:cursor-not-allowed group"
+          >
+            {loadingProvider === 'apple' ? (
+              <div className="flex items-center gap-2 text-white">
+                <Loader2 className="w-5 h-5 animate-spin text-white" />
+                <span>جاري تسجيل الدخول بحساب Apple...</span>
+              </div>
+            ) : (
+              <>
+                {/* Official Apple SVG Icon */}
+                <svg className="w-5 h-5 shrink-0 fill-current" viewBox="0 0 24 24">
+                  <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.37c.64-.78 1.08-1.86.96-2.95-1 .04-2.14.65-2.79 1.43-.57.65-1.07 1.76-.94 2.81 1.11.09 2.19-.55 2.77-1.29z"/>
+                </svg>
+                <span>
+                  المتابعة بحساب Apple
+                </span>
+              </>
+            )}
+          </button>
         </div>
 
         {/* Security and Terms Notes */}
@@ -857,7 +892,7 @@ function AuthFlow({
           </p>
           <div className="flex items-center justify-center gap-1.5 text-[10px] text-emerald-800 font-bold bg-emerald-50 py-2 px-3 rounded-xl border border-emerald-200/60">
             <ShieldCheck className="w-3.5 h-3.5 text-emerald-700 shrink-0" />
-            <span>توثيق مشفر عبر Firebase Google Authentication</span>
+            <span>توثيق مشفر عبر Firebase OAuth Authentication</span>
           </div>
         </div>
       </motion.div>
