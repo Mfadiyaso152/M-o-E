@@ -13,15 +13,46 @@
 }
 
 @layer base {
+  html {
+    scroll-behavior: smooth;
+    scrollbar-width: none; /* Firefox: hide scrollbar */
+    -ms-overflow-style: none; /* IE and Edge */
+  }
+  
+  html::-webkit-scrollbar,
+  body::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera: hide scrollbar */
+    width: 0;
+    height: 0;
+  }
+
   body {
     background-color: #F5F3EF;
     color: #192A1D;
     font-family: var(--font-sans);
+    -webkit-tap-highlight-color: transparent;
+    overflow-x: hidden;
+  }
+
+  /* Universal clean scrollbars */
+  * {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  *::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
   }
 }
 
+/* Smooth Interactive Utilities */
+.smooth-hover {
+  @apply transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 active:scale-[0.98];
+}
+
 .card-construction {
-  @apply bg-white rounded-3xl border border-[#E8E3DA] shadow-sm overflow-hidden transition-all hover:shadow-md;
+  @apply bg-white rounded-3xl border border-[#E8E3DA] shadow-sm overflow-hidden transition-all duration-300 ease-out hover:shadow-md;
 }
 
 .status-badge {
@@ -36,7 +67,7 @@
   @apply bg-[#C5B198] text-[#1C3022] px-6 py-3.5 rounded-2xl font-bold hover:bg-[#B9A387] transition-all shadow-sm active:scale-[0.98];
 }
 
-/* Hide scrollbar for clean mobile tabs */
+/* Hide scrollbar utility */
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }

@@ -96,11 +96,31 @@ export const UserService = {
     }
   },
 
-  // Delete user document
+  // Delete user document and associated user data
   async deleteUser(userId: string): Promise<void> {
     try {
       const userRef = doc(db, 'users', userId);
       await deleteDoc(userRef);
+
+      // Clean up user's projects
+      try {
+        const userProjects = await ProjectService.getProjectsForUser(userId);
+        for (const p of userProjects) {
+          await ProjectService.deleteProject(p.id);
+        }
+      } catch (pErr) {
+        console.warn('Error deleting user projects:', pErr);
+      }
+
+      // Clean up user's quote requests
+      try {
+        const userQuotes = await ProjectService.getQuotesForUser(userId);
+        for (const q of userQuotes) {
+          await ProjectService.deleteQuoteRequest(q.id);
+        }
+      } catch (qErr) {
+        console.warn('Error deleting user quotes:', qErr);
+      }
     } catch (error) {
       console.warn('Firestore deleteUser error:', error);
       throw error;

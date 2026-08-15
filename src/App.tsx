@@ -57,8 +57,20 @@ import { DeleteAccountModal } from './components/DeleteAccountModal';
 import { AdminProjectManagerModal } from './components/AdminProjectManagerModal';
 import { CreateProjectModal } from './components/CreateProjectModal';
 import { SupervisorClientsView, SupervisorProjectsView, SupervisorPaymentsView } from './components/SupervisorViews';
+import { ClientsDirectoryModal } from './components/ClientsDirectoryModal';
 import { UserService, ProjectService } from './services/dbService';
-import { auth, googleProvider, signInWithPopup, signOut, onAuthStateChanged } from './firebase';
+import { 
+  auth, 
+  googleProvider, 
+  signInWithPopup, 
+  signOut, 
+  onAuthStateChanged,
+  db,
+  collection,
+  query,
+  where,
+  onSnapshot
+} from './firebase';
 import { Users } from 'lucide-react';
 
 const SUPERVISOR_EMAIL = 'mfb.15.f@gmail.com';
@@ -91,16 +103,16 @@ export default function App() {
     setTimeout(() => setShowSuccessToast(null), 4000);
   };
 
-  // Listen to Firebase Auth state on app startup with safety timeout to prevent hanging
+  // Listen to Firebase Auth state with fast responsiveness
   useEffect(() => {
     let isMounted = true;
 
-    // Safety timeout: If Firebase auth takes longer than 2.5s, gracefully finish checking
+    // Fast safety fallback: Finish auth checking quickly so no endless screen
     const timeoutId = setTimeout(() => {
       if (isMounted) {
         setIsAuthChecking(false);
       }
-    }, 2500);
+    }, 800);
 
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (!isMounted) return;
@@ -112,13 +124,13 @@ export default function App() {
           // Fetch user profile from Firestore or initialize
           let existingProfile = await Promise.race([
             UserService.getUserById(firebaseUser.uid),
-            new Promise<null>((resolve) => setTimeout(() => resolve(null), 3000))
+            new Promise<null>((resolve) => setTimeout(() => resolve(null), 1500))
           ]);
 
           if (!existingProfile && firebaseUser.email) {
             existingProfile = await Promise.race([
               UserService.getUserByEmail(firebaseUser.email),
-              new Promise<null>((resolve) => setTimeout(() => resolve(null), 2000))
+              new Promise<null>((resolve) => setTimeout(() => resolve(null), 1000))
             ]);
           }
 
@@ -162,20 +174,92 @@ export default function App() {
     };
   }, []);
 
-  // Fetch real data from Firestore
+  // Real-time synchronization across devices (Client & Supervisor)
+  useEffect(() => {
+    if (!user) {
+      setProjects([]);
+      setClients([]);
+      setQuotes([]);
+      setSelectedProject(null);
+      return;
+    }
+
+    const isSuper = user.email?.trim().toLowerCase() === SUPERVISOR_EMAIL.toLowerCase() || user.role === 'admin';
+    const unsubscribers: (() => void)[] = [];
+
+    if (isSuper) {
+      // 1. Supervisor Real-Time Projects Listener
+      const unSubProjs = onSnapshot(collection(db, 'projects'), (snapshot) => {
+        const projs: Project[] = [];
+        snapshot.forEach((docSnap) => projs.push(docSnap.data() as Project));
+        setProjects(projs);
+        // Keep active selection in sync immediately
+        setSelectedProject((curr) => curr ? projs.find(p => p.id === curr.id) || null : null);
+        setAdminManagingProject((curr) => curr ? projs.find(p => p.id === curr.id) || null : null);
+        setIsLoadingProjects(false);
+      }, (err) => {
+        console.warn('Real-time projects error:', err);
+        setIsLoadingProjects(false);
+      });
+      unsubscribers.push(unSubProjs);
+
+      // 2. Supervisor Real-Time Users/Clients Listener
+      const unSubUsers = onSnapshot(collection(db, 'users'), (snapshot) => {
+        const userList: User[] = [];
+        snapshot.forEach((docSnap) => userList.push(docSnap.data() as User));
+        setClients(userList);
+      }, (err) => {
+        console.warn('Real-time users error:', err);
+      });
+      unsubscribers.push(unSubUsers);
+
+      // 3. Supervisor Real-Time Quotes Listener
+      const unSubQuotes = onSnapshot(collection(db, 'quotes'), (snapshot) => {
+        const quoteList: QuoteRequest[] = [];
+        snapshot.forEach((docSnap) => quoteList.push(docSnap.data() as QuoteRequest));
+        setQuotes(quoteList);
+      }, (err) => {
+        console.warn('Real-time quotes error:', err);
+      });
+      unsubscribers.push(unSubQuotes);
+
+    } else {
+      // 1. Client Real-Time Projects Listener (Filtered to user's projects)
+      const qProjects = query(collection(db, 'projects'), where('clientId', '==', user.id));
+      const unSubProjs = onSnapshot(qProjects, (snapshot) => {
+        const projs: Project[] = [];
+        snapshot.forEach((docSnap) => projs.push(docSnap.data() as Project));
+        setProjects(projs);
+        setSelectedProject((curr) => curr ? projs.find(p => p.id === curr.id) || null : null);
+        setIsLoadingProjects(false);
+      }, (err) => {
+        console.warn('Real-time client projects error:', err);
+        setIsLoadingProjects(false);
+      });
+      unsubscribers.push(unSubProjs);
+
+      // 2. Client Real-Time Quotes Listener
+      const qQuotes = query(collection(db, 'quotes'), where('clientId', '==', user.id));
+      const unSubQuotes = onSnapshot(qQuotes, (snapshot) => {
+        const quoteList: QuoteRequest[] = [];
+        snapshot.forEach((docSnap) => quoteList.push(docSnap.data() as QuoteRequest));
+        setQuotes(quoteList);
+      }, (err) => {
+        console.warn('Real-time client quotes error:', err);
+      });
+      unsubscribers.push(unSubQuotes);
+    }
+
+    return () => {
+      unsubscribers.forEach(unsub => unsub());
+    };
+  }, [user?.id, user?.role, user?.email]);
+
+  // Fallback explicit load data helper
   const loadData = async (currentUser: User) => {
-    setIsLoadingProjects(true);
     try {
       const isSuper = currentUser.email?.trim().toLowerCase() === SUPERVISOR_EMAIL.toLowerCase() || currentUser.role === 'admin';
       if (isSuper) {
-        // Execute one-time purge requested by user: clear all clients except supervisor, and clear all projects
-        const PURGE_KEY = 'namathij_db_purged_v2';
-        if (!localStorage.getItem(PURGE_KEY)) {
-          await UserService.purgeNonSupervisorUsers(SUPERVISOR_EMAIL);
-          await ProjectService.purgeAllProjects();
-          localStorage.setItem(PURGE_KEY, 'true');
-        }
-
         const [allProjs, allUsers, allQuotes] = await Promise.all([
           ProjectService.getAllProjects(),
           UserService.getAllUsers(),
@@ -193,22 +277,9 @@ export default function App() {
         setQuotes(userQuotes);
       }
     } catch (err) {
-      console.error('Error fetching data:', err);
-    } finally {
-      setIsLoadingProjects(false);
+      console.error('Error fetching data manually:', err);
     }
   };
-
-  useEffect(() => {
-    if (user) {
-      loadData(user);
-    } else {
-      setProjects([]);
-      setClients([]);
-      setQuotes([]);
-      setSelectedProject(null);
-    }
-  }, [user]);
 
   const handleLogout = async () => {
     try {
@@ -249,6 +320,21 @@ export default function App() {
     }
   };
 
+  const handleDeleteClientBySupervisor = async (clientId: string, reason: string) => {
+    try {
+      await UserService.deleteUser(clientId);
+      // Remove from client state immediately
+      setClients(prev => prev.filter(c => c.id !== clientId));
+      setProjects(prev => prev.filter(p => p.clientId !== clientId));
+      setQuotes(prev => prev.filter(q => q.clientId !== clientId));
+      triggerToast('تم حذف حساب العميل وبياناته بنجاح من قاعدة البيانات.');
+    } catch (err) {
+      console.error('Error deleting client by supervisor:', err);
+      triggerToast('حدث خطأ أثناء محاولة حذف العميل.');
+      throw err;
+    }
+  };
+
   const handleUpdateProject = async (updated: Project) => {
     setProjects(prev => prev.map(p => p.id === updated.id ? updated : p));
     if (selectedProject?.id === updated.id) {
@@ -273,8 +359,8 @@ export default function App() {
   if (isAuthChecking) {
     return (
       <div className="min-h-screen bg-[#1C3022] flex flex-col items-center justify-center p-6 text-center max-w-md mx-auto" dir="rtl">
-        <div className="w-16 h-16 bg-[#C5B198] rounded-2xl flex items-center justify-center p-3 shadow-xl mb-4 animate-pulse">
-          <Logo size="md" showText={false} />
+        <div className="w-24 h-24 flex items-center justify-center mb-4 animate-pulse rounded-2xl overflow-hidden">
+          <Logo size="lg" showText={false} />
         </div>
         <Loader2 className="w-6 h-6 animate-spin text-[#C5B198] mb-2" />
         <p className="text-xs font-bold text-[#EFE7DC]/80">جاري التحقق من الجلسة الآمنة...</p>
@@ -296,7 +382,7 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F5F3EF] flex flex-col text-[#192A1D] max-w-md mx-auto shadow-2xl relative overflow-hidden font-sans" dir="rtl">
+    <div className="min-h-screen bg-[#F5F3EF] flex flex-col text-[#192A1D] w-full max-w-4xl mx-auto shadow-2xl relative overflow-x-hidden font-sans" dir="rtl">
       {/* Toast Notification */}
       <AnimatePresence>
         {showSuccessToast && (
@@ -315,37 +401,50 @@ export default function App() {
       </AnimatePresence>
 
       {/* Brand Header */}
-      <header className="bg-[#1C3022] text-[#F8F5F0] px-6 pt-5 pb-4 sticky top-0 z-40 border-b border-[#284430] shadow-sm">
+      <header className="bg-[#1C3022] text-[#F8F5F0] px-5 sm:px-6 pt-4 pb-3.5 sticky top-0 z-40 border-b border-[#284430] shadow-md transition-all duration-300">
         <div className="flex items-center justify-between">
+          {/* Institution Corner Logo & Brand Name */}
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-[#C5B198] rounded-xl flex items-center justify-center p-1.5 shadow-md">
+            <motion.div 
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="flex items-center justify-center cursor-pointer select-none shrink-0"
+              title="مؤسسة نماذج التميز"
+              onClick={() => {
+                setSelectedProject(null);
+                setActiveTab('home');
+              }}
+            >
               <Logo size="sm" showText={false} />
-            </div>
+            </motion.div>
             <div>
               <div className="flex items-center gap-1.5">
                 <h1 className="text-base font-black tracking-wide text-[#F8F5F0]">نماذج التميز</h1>
                 {isSupervisor && (
-                  <span className="bg-[#C5B198] text-[#1C3022] text-[9px] font-black px-1.5 py-0.5 rounded">
+                  <span className="bg-[#C5B198] text-[#1C3022] text-[9px] font-black px-1.5 py-0.5 rounded shadow-sm">
                     مشرف
                   </span>
                 )}
               </div>
-              <p className="text-[10px] text-[#C5B198] font-bold">
-                {isSupervisor ? 'بوابة إدارة المشاريع والعملاء' : 'للمقاولات العامة والتطوير'}
+              <p className="text-[10px] text-[#C5B198] font-bold tracking-tight">
+                {isSupervisor ? 'بوابة إدارة المشاريع والعملاء' : 'للمقاولات العامة والتطوير العقاري'}
               </p>
             </div>
           </div>
+
           <div className="flex items-center gap-2">
-            <button 
+            <motion.button 
+              whileTap={{ scale: 0.9, rotate: 180 }}
+              transition={{ duration: 0.3 }}
               onClick={() => {
                 if (user) loadData(user);
                 triggerToast('تم تحديث البيانات من السحابة بنجاح');
               }}
-              className="w-9 h-9 rounded-xl bg-[#284430] text-[#C5B198] flex items-center justify-center hover:bg-[#32523b] transition-all"
+              className="w-9 h-9 rounded-xl bg-[#284430] text-[#C5B198] flex items-center justify-center hover:bg-[#34593f] transition-all shadow-inner border border-[#3b6147]/50"
               title="تحديث البيانات"
             >
               <RefreshCw className="w-4 h-4" />
-            </button>
+            </motion.button>
           </div>
         </div>
       </header>
@@ -377,10 +476,10 @@ export default function App() {
             ) : (
               <motion.div
                 key={`${activeTab}-${isSupervisor ? 'super' : 'client'}`}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.2 }}
+                initial={{ opacity: 0, y: 8, scale: 0.995 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -8, scale: 0.995 }}
+                transition={{ duration: 0.25, ease: [0.25, 1, 0.5, 1] }}
                 className="p-5 space-y-6"
               >
                 {/* 1. HOME TAB (العملاء for Supervisor / الرئيسية for Client) */}
@@ -400,6 +499,7 @@ export default function App() {
                         setShowCreateProjectModal(true);
                       }}
                       onRefreshQuotes={() => user && loadData(user)}
+                      onDeleteClient={handleDeleteClientBySupervisor}
                       onRequestToast={triggerToast}
                     />
                   ) : (
@@ -416,15 +516,43 @@ export default function App() {
                             clientDecisionDate: new Date().toISOString().split('T')[0]
                           };
                           await ProjectService.saveQuoteRequest(updated);
+
+                          if (decision === 'accepted') {
+                            // Check if project exists already for this quote or create it automatically
+                            const userProjects = await ProjectService.getProjectsForUser(quote.clientId);
+                            const existing = userProjects.find(p => p.quoteRequestId === quote.id || p.title === quote.projectName);
+                            if (!existing) {
+                              const newProj = await ProjectService.createNewProject({
+                                clientId: quote.clientId,
+                                title: quote.projectName,
+                                location: quote.description?.split('|')?.[0]?.replace('الموقع:', '')?.trim() || 'الرياض',
+                                status: 'بانتظار العقد',
+                                progress: 0,
+                                quoteRequestId: quote.id
+                              });
+                              setProjects(prev => [newProj, ...prev]);
+                            }
+                          }
+
                           if (user) loadData(user);
                           triggerToast(
                             decision === 'accepted' 
-                              ? 'تمت الموافقة على عرض السعر بنجاح! سيتم إعداد العقد وتدشين المشروع.' 
+                              ? 'تمت الموافقة على عرض السعر وإضافة المشروع لقائمتك تلقائياً! سيقوم المشرف بإنشاء العقد وتوقيعه إلكترونياً.' 
                               : 'تم تسجيل رفضك لعرض السعر.'
                           );
                         } catch (err) {
                           console.error(err);
                           triggerToast('حدث خطأ أثناء حفظ القرار.');
+                        }
+                      }}
+                      onDeleteQuote={async (quoteId) => {
+                        try {
+                          await ProjectService.deleteQuoteRequest(quoteId);
+                          if (user) loadData(user);
+                          triggerToast('تم حذف طلب عرض السعر المرفوض بنجاح');
+                        } catch (err) {
+                          console.error(err);
+                          triggerToast('حدث خطأ أثناء حذف الطلب.');
                         }
                       }}
                       onRequestQuote={() => setShowQuoteForm(true)} 
@@ -483,6 +611,7 @@ export default function App() {
                   <ProfileView 
                     user={user} 
                     projects={projects}
+                    clients={clients}
                     isSupervisor={isSupervisor}
                     onLogout={handleLogout} 
                     onRequestDeleteAccount={() => {
@@ -497,6 +626,10 @@ export default function App() {
                       await UserService.saveUser(updated);
                       triggerToast('تم حفظ التعديلات بنجاح في قاعدة البيانات');
                     }}
+                    onSelectClientProjects={(clientId) => {
+                      setSelectedClientFilter(clientId);
+                      setActiveTab('projects');
+                    }}
                   />
                 )}
               </motion.div>
@@ -506,7 +639,7 @@ export default function App() {
       </main>
 
       {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white/95 backdrop-blur-lg border-t border-[#E8E2D8] h-20 flex items-center justify-around px-2 z-40 shadow-lg">
+      <nav className="fixed bottom-0 left-0 right-0 max-w-4xl mx-auto bg-white/95 backdrop-blur-lg border-t border-[#E8E2D8] h-20 flex items-center justify-around px-2 z-40 shadow-lg">
         {[
           { id: 'home', label: isSupervisor ? 'العملاء' : 'الرئيسية', icon: isSupervisor ? Users : LayoutDashboard },
           { id: 'projects', label: isSupervisor ? 'المشاريع' : 'مشاريعي', icon: HardHat },
@@ -623,7 +756,7 @@ export default function App() {
             <form onSubmit={async (e) => {
               e.preventDefault();
               const form = e.target as HTMLFormElement;
-              const type = (form.elements.namedItem('projectType') as HTMLSelectElement).value;
+              const projectName = (form.elements.namedItem('projectName') as HTMLInputElement).value;
               const location = (form.elements.namedItem('location') as HTMLInputElement).value;
               const details = (form.elements.namedItem('details') as HTMLTextAreaElement).value;
 
@@ -631,7 +764,7 @@ export default function App() {
                 id: `QR-${Math.floor(1000 + Math.random() * 9000)}`,
                 clientId: user.id,
                 clientName: user.name,
-                projectName: type,
+                projectName: projectName.trim(),
                 description: `الموقع: ${location} | التفاصيل: ${details}`,
                 status: 'طلب جديد',
                 date: new Date().toISOString().split('T')[0]
@@ -647,14 +780,14 @@ export default function App() {
               }
             }} className="space-y-4">
               <div>
-                <label className="block text-xs font-black text-[#192A1D] mb-1.5">نوع المشروع الإنشائي</label>
-                <select name="projectType" className="w-full bg-[#FAF7F2] border border-[#E8E2D8] rounded-xl px-3.5 py-3 text-xs font-bold outline-none focus:ring-2 focus:ring-[#C5B198] text-[#1C3022]">
-                  <option>بناء فيلا سكنية (عظم / مفتاح)</option>
-                  <option>تشطيب وتطوير عقاري</option>
-                  <option>ترميم وتجديد مبنى</option>
-                  <option>تصميم داخلي وتنفيذ ديكورات</option>
-                  <option>بناء مجمع تجاري أو مستودع</option>
-                </select>
+                <label className="block text-xs font-black text-[#192A1D] mb-1.5">اكتب اسم ونوع المشروع المطلوب</label>
+                <input 
+                  name="projectName" 
+                  type="text" 
+                  placeholder="مثال: بناء فيلا سكنية دورين وملحق / تشطيب وتطوير شقة" 
+                  required 
+                  className="w-full bg-[#FAF7F2] border border-[#E8E2D8] rounded-xl px-3.5 py-3 text-xs font-bold outline-none focus:ring-2 focus:ring-[#C5B198] text-[#1C3022]" 
+                />
               </div>
 
               <div>
@@ -767,9 +900,9 @@ function AuthFlow({
       <div className="absolute -bottom-24 -left-24 w-80 h-80 bg-[#284430] rounded-full blur-2xl pointer-events-none"></div>
 
       {/* Top Branding Section */}
-      <div className="pt-10 pb-4 text-center relative z-10">
-        <div className="w-20 h-20 bg-[#C5B198] rounded-3xl mx-auto flex items-center justify-center p-3.5 shadow-2xl mb-4 border border-[#EFE7DC]/40">
-          <Logo size="lg" showText={false} />
+      <div className="pt-8 pb-4 text-center relative z-10">
+        <div className="mx-auto flex items-center justify-center mb-3 transition-transform">
+          <Logo size="xl" showText={false} />
         </div>
         <h1 className="text-2xl font-black text-[#F8F5F0] tracking-wide">نماذج التميز</h1>
         <p className="text-xs text-[#C5B198] font-bold mt-1">للمقاولات العامة والتطوير الإنشائي</p>
@@ -909,6 +1042,7 @@ function HomeView({
   projects, 
   quotes = [],
   onDecisionQuote,
+  onDeleteQuote,
   onRequestQuote,
   onGoToPayments
 }: { 
@@ -916,6 +1050,7 @@ function HomeView({
   projects: Project[]; 
   quotes?: QuoteRequest[];
   onDecisionQuote?: (quote: QuoteRequest, decision: 'accepted' | 'rejected') => Promise<void>;
+  onDeleteQuote?: (quoteId: string) => Promise<void>;
   onRequestQuote: () => void; 
   onGoToPayments: () => void;
 }) {
@@ -1001,14 +1136,26 @@ function HomeView({
                       <h4 className="text-sm font-black text-[#1C3022] mt-0.5">{quote.projectName}</h4>
                       <p className="text-xs text-slate-600 mt-1 leading-relaxed">{quote.description}</p>
                     </div>
-                    <span className={`text-[10px] font-black px-2.5 py-1 rounded-xl shrink-0 ${
-                      quote.status === 'طلب جديد' ? 'bg-amber-100 text-amber-900 border border-amber-200' :
-                      quote.status === 'تم إرسال العرض' ? 'bg-blue-100 text-blue-900 border border-blue-200' :
-                      quote.status === 'مقبول' ? 'bg-emerald-100 text-emerald-900 border border-emerald-200' :
-                      quote.status === 'مرفوض' ? 'bg-red-100 text-red-900 border border-red-200' : 'bg-slate-100 text-slate-700'
-                    }`}>
-                      {quote.status}
-                    </span>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className={`text-[10px] font-black px-2.5 py-1 rounded-xl ${
+                        quote.status === 'طلب جديد' ? 'bg-amber-100 text-amber-900 border border-amber-200' :
+                        quote.status === 'تم إرسال العرض' ? 'bg-blue-100 text-blue-900 border border-blue-200' :
+                        quote.status === 'مقبول' ? 'bg-emerald-100 text-emerald-900 border border-emerald-200' :
+                        quote.status === 'مرفوض' ? 'bg-red-100 text-red-900 border border-red-200' : 'bg-slate-100 text-slate-700'
+                      }`}>
+                        {quote.status}
+                      </span>
+                      {(quote.status === 'مرفوض' || quote.clientDecision === 'rejected') && onDeleteQuote && (
+                        <button
+                          type="button"
+                          onClick={() => onDeleteQuote(quote.id)}
+                          className="p-1.5 rounded-xl bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 transition-all"
+                          title="حذف الطلب المرفوض"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
                   </div>
 
                   {/* If new request and supervisor hasn't sent quote yet */}
@@ -1646,23 +1793,28 @@ function ProjectDetailView({
 function ProfileView({
   user,
   projects,
+  clients = [],
   isSupervisor,
   onLogout,
   onRequestDeleteAccount,
-  onUpdateUser
+  onUpdateUser,
+  onSelectClientProjects
 }: {
   user: User;
   projects: Project[];
+  clients?: User[];
   isSupervisor?: boolean;
   onLogout: () => void;
   onRequestDeleteAccount: () => void;
   onUpdateUser: (u: User) => void;
+  onSelectClientProjects?: (clientId: string) => void;
 }) {
   const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState(user.name);
   const [email, setEmail] = useState(user.email || '');
   const [phone, setPhone] = useState(user.phone || '');
   const [isSaving, setIsSaving] = useState(false);
+  const [showClientsModal, setShowClientsModal] = useState(false);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1685,7 +1837,7 @@ function ProfileView({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" dir="rtl">
       <div className="bg-white rounded-3xl p-6 border border-[#E8E2D8] shadow-sm text-center space-y-3">
         <div className="w-20 h-20 bg-[#EFE7DC] rounded-full mx-auto flex items-center justify-center text-[#1C3022] border-2 border-[#C5B198]/40 shadow-inner overflow-hidden">
           {user.photoURL ? (
@@ -1787,6 +1939,25 @@ function ProfileView({
         )}
       </div>
 
+      {/* Supervisor: Clean and Compact Clients Directory Button */}
+      {isSupervisor && (
+        <button
+          type="button"
+          onClick={() => setShowClientsModal(true)}
+          className="w-full bg-[#1C3022] hover:bg-[#122116] text-[#F8F5F0] py-2.5 px-4 rounded-2xl font-black text-xs flex items-center justify-between shadow-sm transition-all active:scale-[0.98] border border-[#C5B198]/30 group"
+        >
+          <div className="flex items-center gap-2.5">
+            <div className="w-7 h-7 rounded-xl bg-[#C5B198] text-[#1C3022] flex items-center justify-center font-black shadow-sm group-hover:scale-105 transition-transform">
+              <Users className="w-3.5 h-3.5" />
+            </div>
+            <span className="font-black text-xs text-[#F8F5F0]">العملاء</span>
+          </div>
+          <div className="w-6 h-6 rounded-lg bg-white/10 flex items-center justify-center text-[#C5B198] group-hover:translate-x-[-2px] transition-transform">
+            <ChevronLeft className="w-3.5 h-3.5" />
+          </div>
+        </button>
+      )}
+
       {/* Supervisor Account Protection Notice */}
       {isSupervisor && (
         <div className="bg-[#FAF7F2] border border-[#C5B198]/40 rounded-2xl p-4 flex items-start gap-3">
@@ -1804,7 +1975,7 @@ function ProfileView({
       <div className="space-y-2.5 pt-2">
         <button
           onClick={onLogout}
-          className="w-full bg-white border border-[#E8E2D8] text-slate-700 py-3.5 rounded-2xl font-black text-xs hover:bg-[#FAF7F2] flex items-center justify-center gap-2"
+          className="w-full bg-white border border-[#E8E2D8] text-slate-700 py-3 rounded-2xl font-black text-xs hover:bg-[#FAF7F2] flex items-center justify-center gap-2 transition-all active:scale-[0.98] shadow-sm"
         >
           <LogOut className="w-4 h-4 text-slate-500" />
           <span>تسجيل الخروج</span>
@@ -1814,13 +1985,70 @@ function ProfileView({
         {!isSupervisor && (
           <button
             onClick={onRequestDeleteAccount}
-            className="w-full bg-red-50 border border-red-200 text-red-700 py-3.5 rounded-2xl font-black text-xs hover:bg-red-100 flex items-center justify-center gap-2 transition-all"
+            className="w-full bg-red-50 border border-red-200 text-red-700 py-2.5 rounded-2xl font-black text-xs hover:bg-red-100 flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
           >
             <Trash2 className="w-4 h-4 text-red-600" />
             <span>حذف الحساب والبيانات نهائياً</span>
           </button>
         )}
       </div>
+
+      {/* Social Media Channels (Compact & at the Very Bottom) */}
+      <div className="pt-3 pb-1 border-t border-[#E8E2D8]/60 flex flex-col items-center justify-center gap-2">
+        <span className="text-[11px] font-bold text-slate-500">
+          تابع نماذج التميز
+        </span>
+        
+        <div className="flex items-center justify-center gap-2.5">
+          {/* TikTok Small Icon */}
+          <a
+            href="https://www.tiktok.com/@models_of_excellence?_r=1&_t=ZS-98f5Rfgof5A"
+            target="_blank"
+            rel="noreferrer"
+            className="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center hover:scale-110 active:scale-95 transition-all shadow-sm group"
+            title="تيك توك"
+          >
+            <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
+              <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64c.298-.002.595.042.88.13V9.4a6.33 6.33 0 0 0-1-.08A6.34 6.34 0 0 0 3 15.66a6.34 6.34 0 0 0 10.86 4.43V10.74a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-.04-2.17z"/>
+            </svg>
+          </a>
+
+          {/* Instagram Small Icon */}
+          <a
+            href="https://www.instagram.com/models_of_excellence?igsh=Yml2cGFoeHp1eXds&utm_source=qr"
+            target="_blank"
+            rel="noreferrer"
+            className="w-8 h-8 rounded-full bg-gradient-to-tr from-amber-500 via-pink-600 to-purple-600 text-white flex items-center justify-center hover:scale-110 active:scale-95 transition-all shadow-sm group"
+            title="انستغرام"
+          >
+            <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
+              <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+            </svg>
+          </a>
+
+          {/* X (Twitter) Small Icon */}
+          <a
+            href="https://x.com/modelsexcelence?s=21&t=wGA1XXTxXGN_bY17hMAAqw"
+            target="_blank"
+            rel="noreferrer"
+            className="w-8 h-8 rounded-full bg-[#0f1419] text-white flex items-center justify-center hover:scale-110 active:scale-95 transition-all shadow-sm group"
+            title="منصة X"
+          >
+            <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
+              <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+            </svg>
+          </a>
+        </div>
+      </div>
+
+      {/* Clients Directory Modal */}
+      {isSupervisor && (
+        <ClientsDirectoryModal
+          isOpen={showClientsModal}
+          onClose={() => setShowClientsModal(false)}
+          clients={clients}
+        />
+      )}
     </div>
   );
 }

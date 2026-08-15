@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   X,
@@ -46,6 +46,15 @@ export function AdminProjectManagerModal({
 }: Props) {
   const [activeTab, setActiveTab] = useState<TabType>('progress');
   const [isSaving, setIsSaving] = useState(false);
+
+  // Prevent background scrolling
+  useEffect(() => {
+    const originalStyle = window.getComputedStyle(document.body).overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = originalStyle;
+    };
+  }, []);
 
   // Editable Project State
   const [title, setTitle] = useState(project.title);

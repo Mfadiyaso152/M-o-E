@@ -1,4 +1,4 @@
-export type ProjectStatus = 'قيد الانتظار' | 'بانتظار العقد' | 'قيد التنفيذ' | 'مكتمل';
+export type ProjectStatus = 'قيد الانتظار' | 'بانتظار العقد' | 'بانتظار توقيع العميل' | 'قيد التنفيذ' | 'مكتمل' | 'ملغي';
 export type QuoteStatus = 'طلب جديد' | 'تم إرسال العرض' | 'مقبول' | 'مرفوض' | 'بانتظار مراجعة التعديل' | 'تم اعتماد المشروع' | 'تم توقيع العقد';
 
 export interface Installment {
@@ -89,9 +89,30 @@ export interface ProjectContract {
   contractNumber: string;
   signDate: string;
   totalValue: string;
-  status: 'ساري وموثق' | 'مكتمل' | 'بانتظار التجديد';
+  status: 'مسودة' | 'بانتظار توقيع المشرف' | 'بانتظار توقيع العميل' | 'ساري وموثق' | 'ملغي';
   pdfUrl?: string;
   termsSummary: string[];
+  supervisorSignature?: string;
+  supervisorSignedDate?: string;
+  supervisorSignerName?: string;
+  clientSignature?: string;
+  clientSignedDate?: string;
+  clientSignerName?: string;
+  clientNationalId?: string;
+  isCertified?: boolean;
+  certifiedAt?: string;
+}
+
+export interface ProjectCancellationRequest {
+  id: string;
+  requestedBy: 'supervisor' | 'client';
+  requestedByName?: string;
+  reason: string;
+  requestDate: string;
+  status: 'pending' | 'approved' | 'rejected';
+  responseDate?: string;
+  responseNote?: string;
+  decisionDate?: string;
 }
 
 export interface Project {
@@ -123,6 +144,9 @@ export interface Project {
   installments: Installment[];
   contractUrl?: string;
   quoteUrl?: string;
+  quoteRequestId?: string;
+  isCertified?: boolean;
+  cancellationRequest?: ProjectCancellationRequest;
   feedback?: {
     rating: number;
     comment: string;

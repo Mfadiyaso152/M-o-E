@@ -172,7 +172,7 @@ export function SupervisorClientsView({
                       hasOverduePayment ? 'border-red-300 ring-1 ring-red-100' : 'border-[#E8E2D8]'
                     }`}
                   >
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between gap-2">
                       <div className="flex items-center gap-3">
                         <div className="w-11 h-11 rounded-2xl bg-[#EFE7DC] border border-[#C5B198]/40 flex items-center justify-center text-[#1C3022] overflow-hidden shrink-0">
                           {client.photoURL ? (
@@ -202,33 +202,30 @@ export function SupervisorClientsView({
                         </div>
                       </div>
 
-                      <span className="text-[10px] font-black bg-[#FAF7F2] border border-[#E8E2D8] text-[#1C3022] px-2.5 py-1 rounded-xl">
-                        {clientProjects.length} مشاريع
-                      </span>
-                    </div>
-
-                    {/* Action buttons for this client */}
-                    <div className="flex gap-2 pt-2 border-t border-[#F0EBE1]">
-                      <button
-                        type="button"
-                        onClick={() => onSelectClientForProjects(client.id)}
-                        className="flex-1 bg-[#FAF7F2] hover:bg-[#EFE7DC] text-[#1C3022] py-2 px-3 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 border border-[#E8E2D8] transition-all"
-                      >
-                        <HardHat className="w-3.5 h-3.5 text-[#A99379]" />
-                        <span>استعراض مشاريع العميل ({clientProjects.length})</span>
-                      </button>
-
-                      {client.email?.toLowerCase() !== 'mfb.15.f@gmail.com' && (
+                      {/* Compact actions without project count badge */}
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        {/* View projects icon button (icon-only) */}
                         <button
                           type="button"
-                          onClick={() => setClientToDelete(client)}
-                          className="bg-red-50 hover:bg-red-100 text-red-700 py-2 px-3 rounded-xl text-xs font-black flex items-center justify-center gap-1 border border-red-200 transition-all active:scale-95"
-                          title="حذف حساب العميل مع تسجيل السبب"
+                          onClick={() => onSelectClientForProjects(client.id)}
+                          className="w-8 h-8 rounded-xl bg-[#FAF7F2] hover:bg-[#EFE7DC] text-[#1C3022] flex items-center justify-center border border-[#E8E2D8] transition-all shadow-sm active:scale-95 hover:border-[#C5B198]"
+                          title="استعراض مشاريع العميل"
                         >
-                          <Trash2 className="w-3.5 h-3.5 text-red-600" />
-                          <span>حذف العميل</span>
+                          <Eye className="w-4 h-4 text-[#1C3022]" />
                         </button>
-                      )}
+
+                        {/* Delete client icon button (icon-only) */}
+                        {client.email?.toLowerCase() !== 'mfb.15.f@gmail.com' && (
+                          <button
+                            type="button"
+                            onClick={() => setClientToDelete(client)}
+                            className="w-8 h-8 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 flex items-center justify-center border border-red-200 transition-all shadow-sm active:scale-95"
+                            title="حذف حساب العميل"
+                          >
+                            <Trash2 className="w-4 h-4 text-red-600" />
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 );
@@ -480,7 +477,7 @@ export function SupervisorClientsView({
                   )}
 
                   {/* Action Button: إرسال عرض سعر وملف */}
-                  <div className="pt-2 border-t border-[#F0EBE1] flex items-center justify-between">
+                  <div className="pt-2 border-t border-[#F0EBE1] flex items-center justify-between gap-2 flex-wrap">
                     <button
                       type="button"
                       onClick={() => setSelectedQuoteForProposal(quote)}
@@ -490,13 +487,37 @@ export function SupervisorClientsView({
                       <span>{hasProposal ? 'تعديل/إعادة إرسال عرض السعر والدفعات' : 'إرسال عرض سعر وملف'}</span>
                     </button>
 
-                    <button
-                      type="button"
-                      onClick={() => handleUpdateQuoteStatus(quote, 'مرفوض')}
-                      className="text-xs text-red-600 hover:text-red-800 font-bold px-2 py-1"
-                    >
-                      رفض الطلب
-                    </button>
+                    <div className="flex items-center gap-2">
+                      {(quote.status === 'مرفوض' || quote.clientDecision === 'rejected') && (
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            try {
+                              await ProjectService.deleteQuoteRequest(quote.id);
+                              onRefreshQuotes();
+                              onRequestToast('تم حذف الطلب المرفوض بنجاح');
+                            } catch (err) {
+                              console.error(err);
+                              onRequestToast('حدث خطأ أثناء حذف الطلب');
+                            }
+                          }}
+                          className="text-xs text-red-600 hover:bg-red-50 px-2.5 py-1.5 rounded-xl font-black flex items-center gap-1 border border-red-200"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                          <span>حذف الطلب المرفوض</span>
+                        </button>
+                      )}
+
+                      {quote.status !== 'مرفوض' && (
+                        <button
+                          type="button"
+                          onClick={() => handleUpdateQuoteStatus(quote, 'مرفوض')}
+                          className="text-xs text-red-600 hover:text-red-800 font-bold px-2 py-1"
+                        >
+                          رفض الطلب
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               );
@@ -969,6 +990,9 @@ interface SupervisorProjectsViewProps {
   onManageProject: (project: Project) => void;
   onPreviewProject: (project: Project) => void;
   onCreateNewProject: () => void;
+  onSignContract?: (project: Project) => void;
+  onUpdateProject?: (project: Project) => Promise<void>;
+  onRequestToast?: (msg: string) => void;
   selectedClientFilter?: string;
   onClearClientFilter?: () => void;
 }
@@ -979,10 +1003,16 @@ export function SupervisorProjectsView({
   onManageProject,
   onPreviewProject,
   onCreateNewProject,
+  onSignContract,
+  onUpdateProject,
+  onRequestToast,
   selectedClientFilter,
   onClearClientFilter
 }: SupervisorProjectsViewProps) {
   const [searchQuery, setSearchQuery] = useState('');
+  const [cancellationTargetProject, setCancellationTargetProject] = useState<Project | null>(null);
+  const [cancellationReason, setCancellationReason] = useState('');
+  const [isSubmittingCancellation, setIsSubmittingCancellation] = useState(false);
 
   // Filter projects ONLY by search query and optional client filter (No status filter pills)
   const filteredProjects = projects.filter(p => {
@@ -1000,6 +1030,65 @@ export function SupervisorProjectsView({
   });
 
   const filteredClientObj = selectedClientFilter ? clients.find(c => c.id === selectedClientFilter) : null;
+
+  const handleSupervisorRequestCancellation = async () => {
+    if (!cancellationTargetProject || !cancellationReason.trim() || !onUpdateProject) return;
+    setIsSubmittingCancellation(true);
+    try {
+      const updatedProject: Project = {
+        ...cancellationTargetProject,
+        cancellationRequest: {
+          id: `CAN-${Date.now().toString().slice(-4)}`,
+          requestedBy: 'supervisor',
+          reason: cancellationReason.trim(),
+          requestDate: new Date().toLocaleDateString('ar-SA'),
+          status: 'pending'
+        }
+      };
+      await onUpdateProject(updatedProject);
+      if (onRequestToast) onRequestToast('تم إرسال طلب إلغاء المشروع للعميل للموافقة أو الرفض.');
+      setCancellationTargetProject(null);
+      setCancellationReason('');
+    } catch (err) {
+      console.error(err);
+      if (onRequestToast) onRequestToast('حدث خطأ أثناء إرسال طلب الإلغاء');
+    } finally {
+      setIsSubmittingCancellation(false);
+    }
+  };
+
+  const handleRespondToClientCancellation = async (project: Project, decision: 'accept' | 'reject') => {
+    if (!onUpdateProject || !project.cancellationRequest) return;
+    try {
+      if (decision === 'accept') {
+        const updated: Project = {
+          ...project,
+          status: 'ملغي',
+          cancellationRequest: {
+            ...project.cancellationRequest,
+            status: 'approved',
+            decisionDate: new Date().toLocaleDateString('ar-SA')
+          }
+        };
+        await onUpdateProject(updated);
+        if (onRequestToast) onRequestToast('تمت الموافقة على طلب إلغاء المشروع وتغيير حالته إلى «ملغي».');
+      } else {
+        const updated: Project = {
+          ...project,
+          cancellationRequest: {
+            ...project.cancellationRequest,
+            status: 'rejected',
+            decisionDate: new Date().toLocaleDateString('ar-SA')
+          }
+        };
+        await onUpdateProject(updated);
+        if (onRequestToast) onRequestToast('تم رفض طلب إلغاء المشروع من العميل.');
+      }
+    } catch (err) {
+      console.error(err);
+      if (onRequestToast) onRequestToast('حدث خطأ أثناء تحديث حالة الإلغاء');
+    }
+  };
 
   return (
     <div className="space-y-5">
@@ -1058,11 +1147,16 @@ export function SupervisorProjectsView({
             const paidInst = project.installments?.filter(i => i.status === 'paid').length || 0;
             const payPercent = totalInst > 0 ? Math.round((paidInst / totalInst) * 100) : 0;
             const hasOverdue7Days = project.installments?.some(i => getInstallmentOverdueStatus(i).isOverdue7Days);
+            const contract = project.contracts?.[0];
+            const hasSupervisorSigned = Boolean(contract?.supervisorSignature || (contract?.signDate && contract.signDate !== 'بانتظار توقيع المشرف أولاً'));
+            const isClientCancellationPending = project.cancellationRequest?.status === 'pending' && project.cancellationRequest?.requestedBy === 'client';
+            const isSupervisorCancellationPending = project.cancellationRequest?.status === 'pending' && project.cancellationRequest?.requestedBy === 'supervisor';
 
             return (
               <div
                 key={project.id}
                 className={`bg-white rounded-3xl border shadow-sm hover:shadow-md transition-all overflow-hidden ${
+                  project.status === 'ملغي' ? 'border-red-200 bg-red-50/20' :
                   hasOverdue7Days ? 'border-red-300 ring-1 ring-red-100' : 'border-[#E8E2D8]'
                 }`}
               >
@@ -1088,10 +1182,17 @@ export function SupervisorProjectsView({
                       <span className={`text-[10px] font-black px-2.5 py-1 rounded-xl border ${
                         project.status === 'مكتمل' ? 'bg-emerald-50 text-emerald-800 border-emerald-200' :
                         project.status === 'قيد التنفيذ' ? 'bg-blue-50 text-blue-800 border-blue-200' :
+                        project.status === 'ملغي' ? 'bg-red-100 text-red-900 border-red-200' :
                         'bg-amber-50 text-amber-800 border-amber-200'
                       }`}>
                         {project.status}
                       </span>
+                      {project.isCertified && (
+                        <span className="text-[9px] font-black bg-emerald-100 text-emerald-900 px-2 py-0.5 rounded-md flex items-center gap-1 border border-emerald-200">
+                          <ShieldCheck className="w-3 h-3 text-emerald-700" />
+                          <span>عقد موثق رسمياً</span>
+                        </span>
+                      )}
                       {hasOverdue7Days && (
                         <span className="text-[9px] font-black bg-red-100 text-red-800 px-2 py-0.5 rounded-md">
                           تأخر سداد &gt; 7 أيام
@@ -1099,6 +1200,45 @@ export function SupervisorProjectsView({
                       )}
                     </div>
                   </div>
+
+                  {/* CANCELLATION REQUEST ALERT FROM CLIENT */}
+                  {isClientCancellationPending && (
+                    <div className="p-3.5 bg-red-50 border-2 border-red-200 rounded-2xl space-y-2">
+                      <div className="flex items-center gap-2 text-red-900 font-black text-xs">
+                        <AlertTriangle className="w-4 h-4 text-red-700 shrink-0" />
+                        <span>طلب إلغاء من العميل ({project.cancellationRequest?.requestDate})</span>
+                      </div>
+                      <p className="text-[11px] text-red-800 bg-white p-2.5 rounded-xl border border-red-100 font-medium">
+                        <strong>سبب الإلغاء المطلوب من العميل:</strong> {project.cancellationRequest?.reason}
+                      </p>
+                      <div className="flex gap-2 pt-1">
+                        <button
+                          type="button"
+                          onClick={() => handleRespondToClientCancellation(project, 'accept')}
+                          className="flex-1 bg-red-700 text-white py-2 rounded-xl text-xs font-black hover:bg-red-800 transition-all shadow-sm"
+                        >
+                          قبول إلغاء المشروع
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleRespondToClientCancellation(project, 'reject')}
+                          className="px-4 bg-white text-slate-700 border border-slate-300 py-2 rounded-xl text-xs font-bold hover:bg-slate-50 transition-all"
+                        >
+                          رفض الإلغاء
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* SUPERVISOR CANCELLATION PENDING BANNER */}
+                  {isSupervisorCancellationPending && (
+                    <div className="p-3 bg-amber-50 border border-amber-200 rounded-2xl text-xs text-amber-900 flex items-center justify-between font-bold">
+                      <div className="flex items-center gap-2">
+                        <Clock className="w-4 h-4 text-amber-700 shrink-0" />
+                        <span>تم إرسال طلب إلغاء المشروع للعميل وبانتظار موافقته.</span>
+                      </div>
+                    </div>
+                  )}
 
                   {/* Dual Metric Cards: Progress % & Payment % */}
                   <div className="grid grid-cols-2 gap-2 pt-1">
@@ -1134,30 +1274,107 @@ export function SupervisorProjectsView({
                     </div>
                   </div>
 
-                  {/* Primary Supervisor Action Button: إدارة وتعديل المشروع */}
-                  <div className="pt-2 border-t border-[#F0EBE1] flex gap-2">
+                  {/* Primary Supervisor Action Buttons */}
+                  <div className="pt-2 border-t border-[#F0EBE1] flex flex-wrap gap-2">
                     <button
                       type="button"
                       onClick={() => onManageProject(project)}
-                      className="flex-1 bg-[#1C3022] text-[#F8F5F0] py-3 px-4 rounded-xl text-xs font-black flex items-center justify-center gap-2 hover:bg-[#122116] shadow-sm active:scale-[0.98] transition-all"
+                      className="flex-1 min-w-[130px] bg-[#1C3022] text-[#F8F5F0] py-2.5 px-3 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 hover:bg-[#122116] shadow-sm active:scale-[0.98] transition-all"
                     >
-                      <Sliders className="w-4 h-4 text-[#C5B198]" />
+                      <Sliders className="w-3.5 h-3.5 text-[#C5B198]" />
                       <span>إدارة وتعديل المشروع</span>
                     </button>
+
+                    {onSignContract && (
+                      <button
+                        type="button"
+                        onClick={() => onSignContract(project)}
+                        className={`py-2.5 px-3 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 transition-all shadow-sm ${
+                          hasSupervisorSigned 
+                            ? 'bg-[#EFE7DC] text-[#1C3022] hover:bg-[#E5DBCF]' 
+                            : 'bg-amber-600 hover:bg-amber-700 text-white animate-pulse'
+                        }`}
+                      >
+                        <FileCheck className="w-3.5 h-3.5" />
+                        <span>{hasSupervisorSigned ? 'العقد والمصادقة' : '✍️ توقيع المشرف'}</span>
+                      </button>
+                    )}
 
                     <button
                       type="button"
                       onClick={() => onPreviewProject(project)}
-                      className="px-3.5 py-3 bg-[#FAF7F2] text-[#1C3022] rounded-xl text-xs font-black flex items-center justify-center gap-1 border border-[#E8E2D8] hover:bg-[#EFE7DC] transition-all"
+                      className="px-3 py-2.5 bg-[#FAF7F2] text-[#1C3022] rounded-xl text-xs font-black flex items-center justify-center gap-1 border border-[#E8E2D8] hover:bg-[#EFE7DC] transition-all"
                     >
                       <span>التفاصيل</span>
                       <ChevronLeft className="w-3.5 h-3.5 text-[#A99379]" />
                     </button>
+
+                    {/* Supervisor Request Cancellation Button */}
+                    {project.status !== 'ملغي' && !isSupervisorCancellationPending && !isClientCancellationPending && (
+                      <button
+                        type="button"
+                        onClick={() => setCancellationTargetProject(project)}
+                        className="p-2 text-red-600 hover:bg-red-50 rounded-xl transition-all border border-red-200 text-xs font-bold"
+                        title="طلب إلغاء المشروع"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* SUPERVISOR CANCELLATION MODAL */}
+      {cancellationTargetProject && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm" dir="rtl">
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="bg-white rounded-3xl p-6 max-w-sm w-full space-y-4 border border-red-200 shadow-2xl"
+          >
+            <div className="flex items-center gap-2 text-red-900 pb-2 border-b border-slate-100 font-black text-sm">
+              <AlertTriangle className="w-5 h-5 text-red-600 shrink-0" />
+              <span>طلب إلغاء المشروع: {cancellationTargetProject.title}</span>
+            </div>
+            <p className="text-xs text-slate-600 font-medium leading-relaxed">
+              سيتم إرسال طلب إلغاء رسمي إلى العميل، ويشترط موافقة العميل لاعتماد إلغاء المشروع رسمياً.
+            </p>
+            <div>
+              <label className="block text-[11px] font-black text-[#1C3022] mb-1">سبب إلغاء المشروع *</label>
+              <textarea
+                rows={3}
+                required
+                value={cancellationReason}
+                onChange={e => setCancellationReason(e.target.value)}
+                placeholder="اكتب سبب طلب الإلغاء بالتفصيل..."
+                className="w-full bg-[#FAF7F2] border border-[#E8E2D8] rounded-xl p-3 text-xs font-medium outline-none focus:ring-2 focus:ring-red-400 resize-none"
+              />
+            </div>
+            <div className="flex gap-2 pt-2">
+              <button
+                type="button"
+                disabled={isSubmittingCancellation || !cancellationReason.trim()}
+                onClick={handleSupervisorRequestCancellation}
+                className="flex-1 bg-red-700 hover:bg-red-800 text-white py-2.5 rounded-xl text-xs font-black transition-all disabled:opacity-50"
+              >
+                {isSubmittingCancellation ? 'جاري الإرسال...' : 'إرسال طلب الإلغاء للعميل'}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setCancellationTargetProject(null);
+                  setCancellationReason('');
+                }}
+                className="px-4 bg-slate-100 text-slate-700 py-2.5 rounded-xl text-xs font-bold hover:bg-slate-200 transition-all"
+              >
+                تراجع
+              </button>
+            </div>
+          </motion.div>
         </div>
       )}
     </div>
@@ -1332,6 +1549,12 @@ export function SupervisorPaymentsView({
         ) : (
           allInstallments.map((item, idx) => {
             const overdueInfo = getInstallmentOverdueStatus(item.installment);
+            const hasBankTransferNotice = Boolean(
+              item.installment.transferReceiptUrl || 
+              item.installment.transferSenderName || 
+              item.installment.transferBankName || 
+              item.installment.status === 'under_review'
+            );
 
             return (
               <div
@@ -1366,7 +1589,7 @@ export function SupervisorPaymentsView({
                     <span className={`text-[10px] font-black px-2.5 py-0.5 rounded-full inline-block mt-1 ${
                       item.installment.status === 'paid'
                         ? 'bg-emerald-100 text-emerald-800'
-                        : item.installment.status === 'under_review' || (hasBankTransferNotice && item.installment.status !== 'paid')
+                        : item.installment.status === 'under_review' || hasBankTransferNotice
                         ? 'bg-blue-100 text-blue-900 border border-blue-200'
                         : overdueInfo.isOverdue7Days
                         ? 'bg-red-100 text-red-900 border border-red-200'
@@ -1374,7 +1597,7 @@ export function SupervisorPaymentsView({
                     }`}>
                       {item.installment.status === 'paid'
                         ? 'مسددة بنجاح ✓'
-                        : item.installment.status === 'under_review' || (hasBankTransferNotice && item.installment.status !== 'paid')
+                        : item.installment.status === 'under_review' || hasBankTransferNotice
                         ? 'إشعار تحويل بانتظار الاعتماد'
                         : overdueInfo.isOverdue7Days
                         ? `متأخرة (${overdueInfo.daysOverdue} يوم)`
