@@ -41,6 +41,8 @@ import {
 import { User, Project, QuoteRequest, ProjectStatus, Installment, getInstallmentOverdueStatus } from '../types';
 import { ProjectService } from '../services/dbService';
 import { DeleteClientByAdminModal } from './DeleteClientByAdminModal';
+import { downloadFile } from '../utils/fileDownloader';
+import { DigitalContractSigningModal } from './DigitalContractSigningModal';
 
 // -------------------------------------------------------------
 // 1. SUPERVISOR HOME VIEW: "العملاء" (Clients & Overview)
@@ -71,6 +73,7 @@ export function SupervisorClientsView({
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<'clients' | 'quotes'>('clients');
   const [selectedQuoteForProposal, setSelectedQuoteForProposal] = useState<QuoteRequest | null>(null);
+  const [quoteForContractSigning, setQuoteForContractSigning] = useState<QuoteRequest | null>(null);
   const [clientToDelete, setClientToDelete] = useState<User | null>(null);
 
   // Filter clients (exclude deleted)
@@ -93,6 +96,69 @@ export function SupervisorClientsView({
     } catch (err) {
       console.error(err);
       onRequestToast('حدث خطأ أثناء تحديث الطلب');
+    }
+  };
+
+  const handleSignContractAndCreateProject = async (quote: QuoteRequest, signatureData: {
+    contractNumber: string;
+    signDate: string;
+    signerName: string;
+    signatureImgUrl?: string;
+    contractDocument?: any;
+  }) => {
+    const totalNum = parseFloat((quote.quoteAmount || quote.amount || '0').replace(/[^0-9.]/g, '')) || 0;
+    const newProj: Project = {
+      id: `PROJ-${Date.now().toString().slice(-6)}`,
+      clientId: quote.clientId,
+      title: quote.projectName,
+      status: 'قيد التنفيذ',
+      progress: 0,
+      location: quote.description?.split('|')?.[0]?.replace('الموقع:', '')?.trim() || 'الرياض',
+      licenseNumber: `BLD-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`,
+      startDate: new Date().toISOString().split('T')[0],
+      estimatedEndDate: new Date(Date.now() + 180 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      installments: quote.installments && quote.installments.length > 0 ? quote.installments : [
+        {
+          id: `INST-1`,
+          title: 'الدفعة الأولى',
+          amount: `${(totalNum * 0.25).toLocaleString('ar-SA')} ر.س`,
+          amountNumber: totalNum * 0.25,
+          dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+          status: 'pending'
+        }
+      ],
+      contracts: [
+        {
+          id: `CNT-${Date.now().toString().slice(-4)}`,
+          contractNumber: signatureData.contractNumber,
+          title: `عقد تنفيذ ${quote.projectName}`,
+          signDate: signatureData.signDate,
+          totalValue: quote.quoteAmount || quote.amount || 'حسب جدول الدفعات',
+          status: 'ساري وموثق',
+          termsSummary: [
+            'الالتزام بالمخططات الهندسية المعتمدة وكود البناء السعودي',
+            'جدول دفعات حسب الإنجاز المالي والإنشائي'
+          ]
+        }
+      ],
+      documents: signatureData.contractDocument ? [signatureData.contractDocument] : [],
+      phases: [
+        { id: '1', title: 'المرحلة الإنشائية الأولى', status: 'قيد الانتظار', progress: 0 }
+      ],
+      images: { before: [], progress50: [], after: [], plans: [] },
+      engineerRequests: []
+    };
+
+    try {
+      await ProjectService.saveProject(newProj);
+      // Remove quote request so only the project remains
+      await ProjectService.deleteQuoteRequest(quote.id);
+      setQuoteForContractSigning(null);
+      onRefreshQuotes();
+      onRequestToast('تم توقيع العقد بنجاح وتحويل الطلب إلى مشروع نشط وحذف طلب عرض السعر!');
+    } catch (err) {
+      console.error(err);
+      onRequestToast('حدث خطأ أثناء اعتماد المشروع وتوقيع العقد');
     }
   };
 
@@ -304,16 +370,14 @@ export function SupervisorClientsView({
                           <span className="font-black text-[#1C3022]">{quote.quoteAmount || 'حسب المواصفات'}</span>
                         </div>
                         {quote.fileUrl && (
-                          <a
-                            href={quote.fileUrl}
-                            download={quote.fileName || `عرض_سعر_${quote.projectName}.pdf`}
-                            target="_blank"
-                            rel="noreferrer"
+                          <button
+                            type="button"
+                            onClick={() => downloadFile(quote.fileUrl!, quote.fileName || `عرض_سعر_${quote.projectName}.pdf`)}
                             className="text-[11px] text-[#1C3022] font-black hover:underline flex items-center gap-1 bg-white px-2.5 py-1.5 rounded-xl border border-[#E8E2D8] shadow-sm"
                           >
                             <Download className="w-3.5 h-3.5 text-[#A99379]" />
                             <span>تحميل ({quote.fileName || 'ملف العرض'})</span>
-                          </a>
+                          </button>
                         )}
                       </div>
 
@@ -348,6 +412,32 @@ export function SupervisorClientsView({
                     </div>
                   )}
 
+                  {/* APPROVED BY CLIENT: CONTRACT SIGNING CALL TO ACTION */}
+                  {(quote.clientDecision === 'accepted' || quote.status === 'مقبول') && (
+                    <div className="p-3.5 bg-emerald-50 border-2 border-emerald-300 rounded-2xl space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2 text-emerald-950 font-black text-xs">
+                          <CheckCircle2 className="w-4 h-4 text-emerald-700" />
+                          <span>تمت موافقة العميل على عرض السعر - بانتظار توقيع العقد</span>
+                        </div>
+                        <span className="text-[10px] font-black bg-emerald-200 text-emerald-900 px-2 py-0.5 rounded-full">
+                          جاهز للتعاقد
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-emerald-900 font-medium leading-relaxed">
+                        قام العميل بالموافقة على العرض والدفعات. يمكنك الآن إرفاق صيغة العقد والتوقيع الإلكتروني لتحويله فوراً إلى مشروع تنفيذي.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => setQuoteForContractSigning(quote)}
+                        className="w-full bg-[#1C3022] text-[#F8F5F0] hover:bg-[#122116] py-2.5 rounded-xl text-xs font-black flex items-center justify-center gap-2 shadow-md transition-all active:scale-[0.98]"
+                      >
+                        <FileCheck className="w-4 h-4 text-[#C5B198]" />
+                        <span>إرفاق العقد والتوقيع الإلكتروني واعتماد المشروع</span>
+                      </button>
+                    </div>
+                  )}
+
                   {/* CLIENT COUNTER-OFFER BANNER (قبول مع تعديل بالتسعير) */}
                   {isCounterOffer && (
                     <div className="p-3.5 bg-amber-50 border-2 border-amber-200 rounded-2xl space-y-2.5">
@@ -364,80 +454,11 @@ export function SupervisorClientsView({
                       <div className="flex flex-wrap gap-2 pt-1">
                         <button
                           type="button"
-                          onClick={async () => {
-                            try {
-                              // Accept and Launch Project into Firestore
-                              const totalNum = parseFloat((quote.quoteAmount || quote.amount || '0').replace(/[^0-9.]/g, '')) || 0;
-                              const newProj: Project = {
-                                id: `PROJ-${Date.now().toString().slice(-6)}`,
-                                clientId: quote.clientId,
-                                title: quote.projectName,
-                                status: 'بانتظار العقد',
-                                progress: 0,
-                                location: 'الرياض - الموقع يحدد بالعقد',
-                                licenseNumber: `BLD-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`,
-                                startDate: new Date().toISOString().split('T')[0],
-                                estimatedEndDate: new Date(Date.now() + 180 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-                                installments: quote.installments && quote.installments.length > 0 ? quote.installments : [
-                                  {
-                                    id: `INST-${Date.now().toString().slice(-4)}`,
-                                    title: 'الدفعة الأولى (مقدم التعاقد)',
-                                    amount: `${(totalNum * 0.2).toLocaleString('ar-SA')} ر.س`,
-                                    amountNumber: totalNum * 0.2,
-                                    dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-                                    status: 'pending'
-                                  }
-                                ],
-                                contracts: [
-                                  {
-                                    id: `CNT-${Date.now().toString().slice(-4)}`,
-                                    contractNumber: `CNT-${new Date().getFullYear()}-${Math.floor(10000 + Math.random() * 90000)}`,
-                                    title: `عقد تنفيذ وإنشاء ${quote.projectName}`,
-                                    signDate: 'بانتظار التوقيع الإلكتروني',
-                                    totalValue: quote.quoteAmount || quote.amount || 'حسب الاتفاق',
-                                    status: 'ساري وموثق',
-                                    termsSummary: [
-                                      'الالتزام بالمخططات الهندسية المعتمدة وكود البناء السعودي',
-                                      'جدول دفعات مرتبط بنسب الإنجاز الفعلي',
-                                      'ضمان 10 سنوات على الهيكل الإنشائي وعامين على التشطيبات'
-                                    ]
-                                  }
-                                ],
-                                phases: [
-                                  { id: '1', title: 'الحفر وأعمال الأساسات والقواعد', status: 'قيد الانتظار', progress: 0 },
-                                  { id: '2', title: 'الهيكل الإنشائي العظم والأسقف', status: 'قيد الانتظار', progress: 0 },
-                                  { id: '3', title: 'التمديدات الكهروميكانيكية والسباكة', status: 'قيد الانتظار', progress: 0 },
-                                  { id: '4', title: 'اللياسة والدهانات والتشطيبات', status: 'قيد الانتظار', progress: 0 },
-                                  { id: '5', title: 'التسليم النهائي والفحص الهندسي', status: 'قيد الانتظار', progress: 0 }
-                                ],
-                                images: { before: [], progress50: [], after: [], plans: [] },
-                                engineerRequests: [],
-                                supervisingEngineer: {
-                                  name: 'م. فهد بن عبدالله المقرن',
-                                  title: 'كبير مهندسي التنفيذ والإشراف',
-                                  phone: '0555123456'
-                                }
-                              };
-
-                              await ProjectService.saveProject(newProj);
-                              await ProjectService.saveQuoteRequest({
-                                ...quote,
-                                status: 'تم اعتماد المشروع',
-                                clientDecision: 'accepted',
-                                projectId: newProj.id
-                              });
-
-                              onRefreshQuotes();
-                              onRequestToast('تم قبول المشروع واعتماده بنجاح وإدراجه في مشاريع العميل!');
-                            } catch (err) {
-                              console.error(err);
-                              onRequestToast('حدث خطأ أثناء اعتماد المشروع');
-                            }
-                          }}
+                          onClick={() => setQuoteForContractSigning(quote)}
                           className="bg-emerald-800 hover:bg-emerald-900 text-white px-3 py-1.5 rounded-xl text-xs font-black flex items-center gap-1 shadow-sm"
                         >
                           <Check className="w-3.5 h-3.5" />
-                          <span>قبول المشروع واعتماده</span>
+                          <span>قبول المشروع وتوقيع العقد</span>
                         </button>
                         <button
                           type="button"
@@ -536,6 +557,21 @@ export function SupervisorClientsView({
               setSelectedQuoteForProposal(null);
               onRefreshQuotes();
               onRequestToast('تم إرسال عرض السعر ونظام الدفعات والملف المرفق للعميل بنجاح!');
+            }}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* DIGITAL CONTRACT SIGNING MODAL */}
+      <AnimatePresence>
+        {quoteForContractSigning && (
+          <DigitalContractSigningModal
+            quote={quoteForContractSigning}
+            user={user}
+            isSupervisor={true}
+            onClose={() => setQuoteForContractSigning(null)}
+            onSigned={async (sigData) => {
+              await handleSignContractAndCreateProject(quoteForContractSigning, sigData);
             }}
           />
         )}

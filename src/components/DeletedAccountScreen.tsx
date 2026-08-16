@@ -7,9 +7,10 @@ import { Logo } from './Logo';
 interface Props {
   user: User;
   onLogout: () => void;
+  onReRegister?: () => void;
 }
 
-export function DeletedAccountScreen({ user, onLogout }: Props) {
+export function DeletedAccountScreen({ user, onLogout, onReRegister }: Props) {
   return (
     <div className="min-h-screen bg-[#1C3022] flex flex-col justify-between p-6 max-w-md mx-auto relative overflow-hidden font-sans" dir="rtl">
       {/* Background Ambience */}
@@ -29,7 +30,7 @@ export function DeletedAccountScreen({ user, onLogout }: Props) {
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="bg-white rounded-[2.5rem] p-7 shadow-2xl border border-red-200 relative z-10 my-auto text-[#192A1D] space-y-5"
+        className="bg-white rounded-[2.5rem] p-7 shadow-2xl border border-red-200 relative z-10 my-auto text-[#192A1D] space-y-4"
       >
         <div className="w-16 h-16 bg-red-100 rounded-3xl flex items-center justify-center mx-auto text-red-600 shadow-inner">
           <ShieldAlert className="w-8 h-8" />
@@ -55,27 +56,26 @@ export function DeletedAccountScreen({ user, onLogout }: Props) {
           )}
         </div>
 
-        {/* Support Help */}
-        <div className="p-3.5 bg-[#FAF7F2] rounded-2xl border border-[#E8E2D8] text-[11px] text-slate-600 space-y-1.5 font-bold">
-          <p>إذا كنت تعتقد أن هذا الإجراء تم عن طريق الخطأ، يرجى التواصل مع إدارة العمليات الهندسية:</p>
-          <div className="flex items-center justify-between pt-1 border-t border-[#E8E2D8] text-[#1C3022]">
-            <span className="flex items-center gap-1">
-              <Phone className="w-3 h-3 text-[#A99379]" /> 0555123456
-            </span>
-            <span className="flex items-center gap-1" dir="ltr">
-              <Mail className="w-3 h-3 text-[#A99379]" /> support@tamayoz.sa
-            </span>
-          </div>
-        </div>
+        {/* Action Buttons */}
+        <div className="space-y-2 pt-2">
+          {onReRegister && (
+            <button
+              onClick={onReRegister}
+              className="w-full bg-[#1C3022] text-[#F8F5F0] py-3.5 rounded-2xl font-black text-xs hover:bg-[#122116] transition-all flex items-center justify-center gap-2 shadow-md active:scale-[0.98]"
+            >
+              <span>إنشاء حساب جديد والتسجيل مجدداً</span>
+            </button>
+          )}
 
-        {/* Logout Button */}
-        <button
-          onClick={onLogout}
-          className="w-full bg-[#1C3022] text-[#F8F5F0] py-3.5 rounded-2xl font-black text-xs hover:bg-[#122116] transition-all flex items-center justify-center gap-2 shadow-md active:scale-[0.98]"
-        >
-          <LogOut className="w-4 h-4 text-[#C5B198]" />
-          <span>تسجيل الخروج والعودة</span>
-        </button>
+          {/* Logout Button */}
+          <button
+            onClick={onLogout}
+            className="w-full bg-white border border-[#E8E2D8] text-slate-700 py-3 rounded-2xl font-black text-xs hover:bg-[#FAF7F2] transition-all flex items-center justify-center gap-2 active:scale-[0.98]"
+          >
+            <LogOut className="w-4 h-4 text-slate-500" />
+            <span>تسجيل الخروج والعودة</span>
+          </button>
+        </div>
       </motion.div>
 
       {/* Footer */}

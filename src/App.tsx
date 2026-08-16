@@ -59,6 +59,8 @@ import { CreateProjectModal } from './components/CreateProjectModal';
 import { SupervisorClientsView, SupervisorProjectsView, SupervisorPaymentsView } from './components/SupervisorViews';
 import { ClientsDirectoryModal } from './components/ClientsDirectoryModal';
 import { UserService, ProjectService } from './services/dbService';
+import { CompletePhoneModal } from './components/CompletePhoneModal';
+import { downloadFile } from './utils/fileDownloader';
 import { 
   auth, 
   googleProvider, 
@@ -358,12 +360,22 @@ export default function App() {
   // Loading screen during initial Firebase auth session check
   if (isAuthChecking) {
     return (
-      <div className="min-h-screen bg-[#1C3022] flex flex-col items-center justify-center p-6 text-center max-w-md mx-auto" dir="rtl">
-        <div className="w-24 h-24 flex items-center justify-center mb-4 animate-pulse rounded-2xl overflow-hidden">
-          <Logo size="lg" showText={false} />
+      <div className="min-h-screen w-full bg-[#1C3022] flex flex-col items-center justify-center p-6 text-center relative overflow-hidden font-sans" dir="rtl">
+        {/* Ambient background glows */}
+        <div className="absolute -top-32 -right-32 w-96 h-96 bg-[#C5B198]/15 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="absolute -bottom-32 -left-32 w-96 h-96 bg-[#284430] rounded-full blur-3xl pointer-events-none"></div>
+
+        <div className="relative z-10 flex flex-col items-center max-w-md mx-auto">
+          <div className="w-24 h-24 flex items-center justify-center mb-5 animate-pulse rounded-3xl overflow-hidden shadow-2xl">
+            <Logo size="lg" showText={false} />
+          </div>
+          <h2 className="text-xl font-black text-[#F8F5F0] mb-2 tracking-wide">نماذج التميز للمقاولات</h2>
+          <div className="flex items-center gap-2.5 text-[#C5B198] text-xs font-bold bg-[#284430]/80 px-4 py-2 rounded-xl border border-[#3b6147]/60 mb-6">
+            <Loader2 className="w-4 h-4 animate-spin text-[#C5B198]" />
+            <span>جاري التحقق من الجلسة والاتصال السحابي الآمن...</span>
+          </div>
+          <p className="text-[11px] text-[#EFE7DC]/60">نظام إدارة المشاريع الإنشائية المعتمد</p>
         </div>
-        <Loader2 className="w-6 h-6 animate-spin text-[#C5B198] mb-2" />
-        <p className="text-xs font-bold text-[#EFE7DC]/80">جاري التحقق من الجلسة الآمنة...</p>
       </div>
     );
   }
@@ -733,6 +745,17 @@ export default function App() {
         />
       )}
 
+      {/* COMPLETE PHONE NUMBER MODAL (Required upon first login) */}
+      {user && !user.phone && !isSupervisor && (
+        <CompletePhoneModal
+          user={user}
+          onSavePhone={(updatedUser) => {
+            setUser(updatedUser);
+            triggerToast('تم حفظ رقم الجوال وتأكيد الحساب بنجاح!');
+          }}
+        />
+      )}
+
       {/* Quote Request Modal */}
       {showQuoteForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-5 bg-black/60 backdrop-blur-sm" dir="rtl">
@@ -827,7 +850,7 @@ export default function App() {
 }
 
 // -------------------------------------------------------------
-// AuthFlow Component: Google Authentication
+// AuthFlow Component: Google Authentication (Full Screen on PC & iPad)
 // -------------------------------------------------------------
 function AuthFlow({ 
   onAuthenticated 
@@ -882,7 +905,7 @@ function AuthFlow({
       } else if (code === 'auth/popup-blocked') {
         setErrorMessage('تم حظر النافذة المنبثقة من قبل المتصفح. يرجى السماح بالنوافذ المنبثقة.');
       } else if (code === 'auth/unauthorized-domain') {
-        setErrorMessage('النطاق الحالي غير مصرح به في مشروع Firebase (models-app-fbbfe). يرجى التأكد من إضافة m-o-e.vercel.app في Authorized Domains بلوحة تحكم Firebase والانتظار بضع دقائق.');
+        setErrorMessage('النطاق الحالي غير مصرح به في مشروع Firebase (models-app-fbbfe). يرجى التأكد من إضافة النطاق في Authorized Domains بلوحة تحكم Firebase.');
       } else if (code === 'auth/network-request-failed') {
         setErrorMessage('تعذر الاتصال بالشبكة، يرجى التأكد من اتصال الإنترنت والمحاولة مجدداً.');
       } else {
@@ -894,112 +917,494 @@ function AuthFlow({
   };
 
   return (
-    <div className="min-h-screen bg-[#1C3022] flex flex-col justify-between p-6 max-w-md mx-auto relative overflow-hidden font-sans" dir="rtl">
-      {/* Architectural Background Blobs */}
-      <div className="absolute -top-24 -right-24 w-80 h-80 bg-[#C5B198]/15 rounded-full blur-3xl pointer-events-none"></div>
-      <div className="absolute -bottom-24 -left-24 w-80 h-80 bg-[#284430] rounded-full blur-2xl pointer-events-none"></div>
+    <>
+      {/* ========================================================================= */}
+      {/* 1. MOBILE VIEW ONLY (hidden on md & lg screens) - Clean, focused & simple */}
+      {/* ========================================================================= */}
+      <div className="md:hidden min-h-screen bg-[#1C3022] flex flex-col justify-between p-6 max-w-md mx-auto relative overflow-hidden font-sans" dir="rtl">
+        {/* Architectural Background Blobs */}
+        <div className="absolute -top-24 -right-24 w-80 h-80 bg-[#C5B198]/15 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="absolute -bottom-24 -left-24 w-80 h-80 bg-[#284430] rounded-full blur-2xl pointer-events-none"></div>
 
-      {/* Top Branding Section */}
-      <div className="pt-8 pb-4 text-center relative z-10">
-        <div className="mx-auto flex items-center justify-center mb-3 transition-transform">
-          <Logo size="xl" showText={false} />
+        {/* Top Branding Section */}
+        <div className="pt-8 pb-4 text-center relative z-10">
+          <div className="mx-auto flex items-center justify-center mb-3 transition-transform">
+            <Logo size="xl" showText={false} />
+          </div>
+          <h1 className="text-2xl font-black text-[#F8F5F0] tracking-wide">نماذج التميز</h1>
+          <p className="text-xs text-[#C5B198] font-bold mt-1">للمقاولات العامة والتطوير الإنشائي</p>
         </div>
-        <h1 className="text-2xl font-black text-[#F8F5F0] tracking-wide">نماذج التميز</h1>
-        <p className="text-xs text-[#C5B198] font-bold mt-1">للمقاولات العامة والتطوير الإنشائي</p>
+
+        {/* Main Authentication Card */}
+        <motion.div 
+          layout
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white rounded-[2.5rem] p-7 shadow-2xl border border-[#C5B198]/30 relative z-10 my-auto text-[#192A1D] space-y-6"
+        >
+          <div className="text-center space-y-1.5">
+            <div className="w-12 h-12 bg-[#EFE7DC] rounded-2xl flex items-center justify-center mx-auto mb-2 text-[#1C3022]">
+              <ShieldCheck className="w-6 h-6" />
+            </div>
+            <h2 className="text-lg font-black text-[#1C3022]">بوابة العملاء والمشاريع</h2>
+            <p className="text-slate-500 text-xs font-medium leading-relaxed">
+              سجّل دخولك بحساب Google لمتابعة مراحل البناء، الدفعات، والتقارير الهندسية
+            </p>
+          </div>
+
+          {/* Error Alert */}
+          {errorMessage && (
+            <motion.div 
+              initial={{ opacity: 0, y: -5 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="p-3.5 bg-red-50 border border-red-200 text-red-700 text-xs font-bold rounded-2xl flex items-start gap-2.5"
+            >
+              <AlertCircle className="w-4 h-4 shrink-0 text-red-600 mt-0.5" />
+              <span className="leading-relaxed">{errorMessage}</span>
+            </motion.div>
+          )}
+
+          {/* Google Sign-in Button */}
+          <div className="space-y-3 pt-2">
+            <button
+              onClick={handleGoogleSignIn}
+              disabled={isLoading}
+              className="w-full bg-white hover:bg-slate-50 text-slate-800 border-2 border-[#E8E2D8] hover:border-[#1C3022] py-4 px-4 rounded-2xl font-black text-sm transition-all shadow-sm hover:shadow-md active:scale-[0.98] flex items-center justify-center gap-3 disabled:opacity-60 disabled:cursor-not-allowed group"
+            >
+              {isLoading ? (
+                <div className="flex items-center gap-2 text-[#1C3022]">
+                  <Loader2 className="w-5 h-5 animate-spin text-[#C5B198]" />
+                  <span>جاري تسجيل الدخول الآمن...</span>
+                </div>
+              ) : (
+                <>
+                  <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">
+                    <path
+                      fill="#4285F4"
+                      d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                    />
+                    <path
+                      fill="#34A853"
+                      d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                    />
+                    <path
+                      fill="#FBBC05"
+                      d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
+                    />
+                    <path
+                      fill="#EA4335"
+                      d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
+                    />
+                  </svg>
+                  <span className="text-[#192A1D] group-hover:text-black">
+                    المتابعة بحساب Google
+                  </span>
+                </>
+              )}
+            </button>
+          </div>
+
+          {/* Security and Terms Notes */}
+          <div className="pt-2 text-center space-y-2">
+            <p className="text-[11px] text-slate-500 leading-relaxed">
+              بالتسجيل والمتابعة فإنك توافق على{' '}
+              <button
+                type="button"
+                onClick={() => setShowTermsModal(true)}
+                className="text-[#A99379] font-black underline hover:text-[#1C3022]"
+              >
+                شروط الخدمة وسياسة الخصوصية
+              </button>
+            </p>
+            <div className="flex items-center justify-center gap-1.5 text-[10px] text-emerald-800 font-bold bg-emerald-50 py-2 px-3 rounded-xl border border-emerald-200/60">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-700 shrink-0" />
+              <span>توثيق مشفر عبر Firebase Google Authentication</span>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Mobile Footer */}
+        <div className="text-center text-[11px] text-[#F8F5F0]/60 pb-2 relative z-10">
+          جميع الحقوق محفوظة © {new Date().getFullYear()} نماذج التميز للمقاولات
+        </div>
       </div>
 
-      {/* Main Authentication Card */}
-      <motion.div 
-        layout
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="bg-white rounded-[2.5rem] p-7 sm:p-8 shadow-2xl border border-[#C5B198]/30 relative z-10 my-auto text-[#192A1D] space-y-6"
-      >
-        <div className="text-center space-y-1.5">
-          <div className="w-12 h-12 bg-[#EFE7DC] rounded-2xl flex items-center justify-center mx-auto mb-2 text-[#1C3022]">
-            <ShieldCheck className="w-6 h-6" />
-          </div>
-          <h2 className="text-lg font-black text-[#1C3022]">بوابة العملاء والمشاريع</h2>
-          <p className="text-slate-500 text-xs font-medium leading-relaxed">
-            سجّل دخولك بحساب Google لمتابعة مراحل البناء، الدفعات، والتقارير الهندسية
-          </p>
-        </div>
+      {/* ========================================================================= */}
+      {/* 2. IPAD / TABLET VIEW ONLY (hidden on mobile and large desktop: md:flex lg:hidden) */}
+      {/* ========================================================================= */}
+      <div className="hidden md:flex lg:hidden min-h-screen w-full bg-[#1C3022] text-[#F8F5F0] flex-col justify-between p-8 relative overflow-hidden font-sans" dir="rtl">
+        {/* iPad Ambient glow rings */}
+        <div className="absolute top-0 right-1/4 w-[28rem] h-[28rem] bg-[#C5B198]/15 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="absolute bottom-0 left-1/4 w-[28rem] h-[28rem] bg-[#284430] rounded-full blur-3xl pointer-events-none"></div>
 
-        {/* Error Alert */}
-        {errorMessage && (
+        {/* iPad Top Architectural Header */}
+        <header className="flex items-center justify-between pb-6 border-b border-[#284430]/80 relative z-10">
+          <div className="flex items-center gap-3.5">
+            <div className="w-12 h-12 flex items-center justify-center rounded-2xl overflow-hidden shadow-lg border border-[#C5B198]/40">
+              <Logo size="md" showText={false} />
+            </div>
+            <div>
+              <h1 className="text-xl font-black tracking-wide text-[#F8F5F0]">نماذج التميز</h1>
+              <p className="text-xs text-[#C5B198] font-bold">بوابة المشاريع الإنشائية المعتمدة</p>
+            </div>
+          </div>
+        </header>
+
+        {/* iPad Centered Executive Slate */}
+        <main className="my-auto max-w-2xl w-full mx-auto relative z-10 py-6">
           <motion.div 
-            initial={{ opacity: 0, y: -5 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="p-3.5 bg-red-50 border border-red-200 text-red-700 text-xs font-bold rounded-2xl flex items-start gap-2.5"
+            initial={{ opacity: 0, scale: 0.96 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white rounded-[2.5rem] p-8 shadow-2xl border-2 border-[#C5B198]/50 text-[#192A1D] space-y-6"
           >
-            <AlertCircle className="w-4 h-4 shrink-0 text-red-600 mt-0.5" />
-            <span className="leading-relaxed">{errorMessage}</span>
-          </motion.div>
-        )}
-
-        {/* Google Sign-in Button */}
-        <div className="space-y-3 pt-2">
-          <button
-            onClick={handleGoogleSignIn}
-            disabled={isLoading}
-            className="w-full bg-white hover:bg-slate-50 text-slate-800 border-2 border-[#E8E2D8] hover:border-[#1C3022] py-4 px-4 rounded-2xl font-black text-sm transition-all shadow-sm hover:shadow-md active:scale-[0.98] flex items-center justify-center gap-3 disabled:opacity-60 disabled:cursor-not-allowed group"
-          >
-            {isLoading ? (
-              <div className="flex items-center gap-2 text-[#1C3022]">
-                <Loader2 className="w-5 h-5 animate-spin text-[#C5B198]" />
-                <span>جاري تسجيل الدخول الآمن...</span>
+            {/* iPad Card Header */}
+            <div className="text-center space-y-2">
+              <div className="w-14 h-14 bg-[#1C3022] text-[#C5B198] rounded-2xl flex items-center justify-center mx-auto mb-2 shadow-md">
+                <Sparkles className="w-7 h-7" />
               </div>
-            ) : (
-              <>
-                {/* Official Google G SVG Icon */}
-                <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">
-                  <path
-                    fill="#4285F4"
-                    d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                  />
-                  <path
-                    fill="#34A853"
-                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                  />
-                  <path
-                    fill="#FBBC05"
-                    d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
-                  />
-                  <path
-                    fill="#EA4335"
-                    d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
-                  />
-                </svg>
-                <span className="text-[#192A1D] group-hover:text-black">
-                  المتابعة بحساب Google
-                </span>
-              </>
+              <h2 className="text-2xl font-black text-[#1C3022]">تسجيل الدخول للمنصة</h2>
+              <p className="text-slate-600 text-xs font-medium max-w-md mx-auto leading-relaxed">
+                مرحباً بك في البوابة اللوحية لمتابعة مشاريع البناء، توثيق العقود، وإدارة الدفعات والتقارير الهندسية
+              </p>
+            </div>
+
+            {/* Error Alert */}
+            {errorMessage && (
+              <motion.div 
+                initial={{ opacity: 0, y: -5 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="p-3.5 bg-red-50 border border-red-200 text-red-700 text-xs font-bold rounded-2xl flex items-start gap-2.5"
+              >
+                <AlertCircle className="w-4 h-4 shrink-0 text-red-600 mt-0.5" />
+                <span className="leading-relaxed">{errorMessage}</span>
+              </motion.div>
             )}
-          </button>
-        </div>
 
-        {/* Security and Terms Notes */}
-        <div className="pt-2 text-center space-y-2">
-          <p className="text-[11px] text-slate-500 leading-relaxed">
-            بالتسجيل والمتابعة فإنك توافق على{' '}
-            <button
-              type="button"
-              onClick={() => setShowTermsModal(true)}
-              className="text-[#A99379] font-black underline hover:text-[#1C3022]"
-            >
-              شروط الخدمة وسياسة الخصوصية
-            </button>
-          </p>
-          <div className="flex items-center justify-center gap-1.5 text-[10px] text-emerald-800 font-bold bg-emerald-50 py-2 px-3 rounded-xl border border-emerald-200/60">
-            <ShieldCheck className="w-3.5 h-3.5 text-emerald-700 shrink-0" />
-            <span>توثيق مشفر عبر Firebase Google Authentication</span>
+            {/* iPad 3 Quick Capsules Grid */}
+            <div className="grid grid-cols-3 gap-3">
+              <div className="bg-[#FAF7F2] p-3 rounded-2xl border border-[#E8E2D8] text-center space-y-1.5">
+                <div className="w-7 h-7 rounded-lg bg-[#EFE7DC] text-[#1C3022] flex items-center justify-center mx-auto">
+                  <HardHat className="w-4 h-4" />
+                </div>
+                <h4 className="text-[11px] font-black text-[#1C3022]">متابعة حية</h4>
+                <p className="text-[9px] text-slate-500 font-medium">نسب إنجاز وتقارير</p>
+              </div>
+
+              <div className="bg-[#FAF7F2] p-3 rounded-2xl border border-[#E8E2D8] text-center space-y-1.5">
+                <div className="w-7 h-7 rounded-lg bg-[#EFE7DC] text-[#1C3022] flex items-center justify-center mx-auto">
+                  <CreditCard className="w-4 h-4" />
+                </div>
+                <h4 className="text-[11px] font-black text-[#1C3022]">سداد الدفعات</h4>
+                <p className="text-[9px] text-slate-500 font-medium">سندات إلكترونية معتمدة</p>
+              </div>
+
+              <div className="bg-[#FAF7F2] p-3 rounded-2xl border border-[#E8E2D8] text-center space-y-1.5">
+                <div className="w-7 h-7 rounded-lg bg-[#EFE7DC] text-[#1C3022] flex items-center justify-center mx-auto">
+                  <FileCheck className="w-4 h-4" />
+                </div>
+                <h4 className="text-[11px] font-black text-[#1C3022]">العقود الرقمية</h4>
+                <p className="text-[9px] text-slate-500 font-medium">توقيع واعتماد رسمي</p>
+              </div>
+            </div>
+
+            {/* Google Sign-in Button */}
+            <div className="pt-1">
+              <button
+                onClick={handleGoogleSignIn}
+                disabled={isLoading}
+                className="w-full bg-[#1C3022] hover:bg-[#122116] text-[#F8F5F0] py-4 px-6 rounded-2xl font-black text-sm transition-all shadow-lg hover:shadow-xl active:scale-[0.98] flex items-center justify-center gap-3 disabled:opacity-60 disabled:cursor-not-allowed group"
+              >
+                {isLoading ? (
+                  <div className="flex items-center gap-2.5 text-[#F8F5F0]">
+                    <Loader2 className="w-5 h-5 animate-spin text-[#C5B198]" />
+                    <span>جاري تسجيل الدخول الآمن...</span>
+                  </div>
+                ) : (
+                  <>
+                    <div className="w-6 h-6 rounded-full bg-white flex items-center justify-center shrink-0 p-1 shadow-sm">
+                      <svg className="w-full h-full" viewBox="0 0 24 24">
+                        <path
+                          fill="#4285F4"
+                          d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                        />
+                        <path
+                          fill="#34A853"
+                          d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                        />
+                        <path
+                          fill="#FBBC05"
+                          d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
+                        />
+                        <path
+                          fill="#EA4335"
+                          d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
+                        />
+                      </svg>
+                    </div>
+                    <span className="text-[#F8F5F0]">
+                      المتابعة السريعة بحساب Google
+                    </span>
+                  </>
+                )}
+              </button>
+            </div>
+
+            {/* iPad Footer Notes inside Slate */}
+            <div className="text-center space-y-2 pt-1">
+              <p className="text-[11px] text-slate-500">
+                بالتسجيل والمتابعة فإنك توافق على{' '}
+                <button
+                  type="button"
+                  onClick={() => setShowTermsModal(true)}
+                  className="text-[#A99379] font-black underline hover:text-[#1C3022]"
+                >
+                  شروط الخدمة وسياسة الخصوصية
+                </button>
+              </p>
+              <div className="flex items-center justify-center gap-1.5 text-[10px] text-emerald-800 font-bold bg-emerald-50 py-2 px-3 rounded-xl border border-emerald-200/60 max-w-sm mx-auto">
+                <Lock className="w-3.5 h-3.5 text-emerald-700 shrink-0" />
+                <span>توثيق مشفر عبر Firebase Google Authentication</span>
+              </div>
+            </div>
+          </motion.div>
+        </main>
+
+        {/* iPad Bottom Footer */}
+        <footer className="text-center text-xs text-[#F8F5F0]/60 pt-4 border-t border-[#284430]/80 relative z-10">
+          جميع الحقوق محفوظة © {new Date().getFullYear()} مؤسسة نماذج التميز للمقاولات العامة
+        </footer>
+      </div>
+
+      {/* ========================================================================= */}
+      {/* 3. PC / LARGE DESKTOP VIEW (visible on lg+ screens: hidden lg:flex) */}
+      {/* ========================================================================= */}
+      <div className="hidden lg:flex min-h-screen w-full bg-[#1C3022] text-[#F8F5F0] flex-col justify-between relative overflow-hidden font-sans" dir="rtl">
+        {/* Architectural ambient background glowing shapes */}
+        <div className="absolute -top-36 -right-36 w-[32rem] h-[32rem] bg-[#C5B198]/15 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="absolute top-1/2 -left-48 w-[38rem] h-[38rem] bg-[#284430] rounded-full blur-3xl pointer-events-none"></div>
+        <div className="absolute -bottom-36 right-1/4 w-[30rem] h-[30rem] bg-[#122116] rounded-full blur-2xl pointer-events-none"></div>
+
+        {/* Top Navigation Bar - Full Width for PC & iPad */}
+        <header className="w-full border-b border-[#284430]/80 bg-[#1C3022]/90 backdrop-blur-md px-6 sm:px-10 lg:px-16 py-4 flex items-center justify-between relative z-20">
+          <div className="flex items-center gap-3.5">
+            <div className="w-11 h-11 flex items-center justify-center rounded-2xl overflow-hidden shadow-md">
+              <Logo size="sm" showText={false} />
+            </div>
+            <div>
+              <h1 className="text-base sm:text-lg font-black tracking-wide text-[#F8F5F0]">
+                مؤسسة نماذج التميز
+              </h1>
+              <p className="text-[11px] text-[#C5B198] font-bold">
+                للمقاولات العامة والتطوير الإنشائي
+              </p>
+            </div>
           </div>
-        </div>
-      </motion.div>
+        </header>
 
-      {/* Footer */}
-      <div className="text-center text-[11px] text-[#F8F5F0]/60 pb-2 relative z-10">
-        جميع الحقوق محفوظة © {new Date().getFullYear()} نماذج التميز للمقاولات
+        {/* Main Body: 2-Column on Desktop & iPad */}
+        <main className="flex-1 w-full max-w-7xl mx-auto px-6 sm:px-10 lg:px-14 py-8 lg:py-12 flex items-center relative z-10">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-14 items-center w-full">
+            
+            {/* Right Column: Architectural & Brand Showcase */}
+            <div className="md:col-span-6 lg:col-span-7 space-y-6 lg:space-y-8 text-right">
+              
+              {/* Top Badge */}
+              <div className="inline-flex items-center gap-2 bg-[#284430] border border-[#C5B198]/40 text-[#C5B198] px-4 py-2 rounded-2xl text-xs font-black shadow-sm">
+                <Sparkles className="w-3.5 h-3.5 text-[#C5B198]" />
+                <span>المنصة الرقمية المتكاملة لإدارة المشاريع الإنشائية</span>
+              </div>
+
+              {/* Main Headline */}
+              <div className="space-y-3">
+                <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-[#F8F5F0] leading-tight sm:leading-snug">
+                  تابع مشروعك الإنشائي لحظة بلحظة وبكل شفافية
+                </h2>
+                <p className="text-sm sm:text-base text-[#EFE7DC]/80 leading-relaxed font-medium max-w-2xl">
+                  من المخططات الهندسية وتوقيع العقود الرقمية وحتى استلام المفتاح، نضع بين يديك تجربة متطورة لمتابعة نسب الإنجاز، سداد الدفعات، والتقارير الميدانية الموثقة.
+                </p>
+              </div>
+
+              {/* 4 Feature Cards Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4 pt-2">
+                
+                {/* Feature 1 */}
+                <div className="bg-[#243d2c]/70 border border-[#3b6147]/60 rounded-2xl p-4.5 space-y-2 backdrop-blur-sm hover:border-[#C5B198]/50 transition-colors">
+                  <div className="w-9 h-9 rounded-xl bg-[#C5B198]/20 text-[#C5B198] flex items-center justify-center">
+                    <HardHat className="w-5 h-5" />
+                  </div>
+                  <h3 className="text-sm font-black text-[#F8F5F0]">متابعة حية للإنجاز</h3>
+                  <p className="text-xs text-[#EFE7DC]/70 leading-relaxed">
+                    نسب إنجاز دقيقة، تقارير المهندس الميداني وصور الموقع المحدثة أسبوعياً لكل مرحلة.
+                  </p>
+                </div>
+
+                {/* Feature 2 */}
+                <div className="bg-[#243d2c]/70 border border-[#3b6147]/60 rounded-2xl p-4.5 space-y-2 backdrop-blur-sm hover:border-[#C5B198]/50 transition-colors">
+                  <div className="w-9 h-9 rounded-xl bg-[#C5B198]/20 text-[#C5B198] flex items-center justify-center">
+                    <CreditCard className="w-5 h-5" />
+                  </div>
+                  <h3 className="text-sm font-black text-[#F8F5F0]">سداد إلكتروني معتمد</h3>
+                  <p className="text-xs text-[#EFE7DC]/70 leading-relaxed">
+                    تسديد الدفعات التعاقدية بسهولة مع إصدار سندات قبض رسمية فورية معتمدة.
+                  </p>
+                </div>
+
+                {/* Feature 3 */}
+                <div className="bg-[#243d2c]/70 border border-[#3b6147]/60 rounded-2xl p-4.5 space-y-2 backdrop-blur-sm hover:border-[#C5B198]/50 transition-colors">
+                  <div className="w-9 h-9 rounded-xl bg-[#C5B198]/20 text-[#C5B198] flex items-center justify-center">
+                    <FileCheck className="w-5 h-5" />
+                  </div>
+                  <h3 className="text-sm font-black text-[#F8F5F0]">العقود والتوقيع الرقمي</h3>
+                  <p className="text-xs text-[#EFE7DC]/70 leading-relaxed">
+                    توثيق وتوقيع عقود المقاولات واعتماد المخططات الهندسية وسندات الدفعات بأمان.
+                  </p>
+                </div>
+
+                {/* Feature 4 */}
+                <div className="bg-[#243d2c]/70 border border-[#3b6147]/60 rounded-2xl p-4.5 space-y-2 backdrop-blur-sm hover:border-[#C5B198]/50 transition-colors">
+                  <div className="w-9 h-9 rounded-xl bg-[#C5B198]/20 text-[#C5B198] flex items-center justify-center">
+                    <Building2 className="w-5 h-5" />
+                  </div>
+                  <h3 className="text-sm font-black text-[#F8F5F0]">مزامنة فورية وتواصل مباشر</h3>
+                  <p className="text-xs text-[#EFE7DC]/70 leading-relaxed">
+                    ربط لحظي بين العميل والمكتب الفني والمشرف العام لضمان أعلى مستويات الجودة.
+                  </p>
+                </div>
+
+              </div>
+
+              {/* Trust Tags */}
+              <div className="flex flex-wrap items-center gap-3 pt-2 text-xs font-bold text-[#C5B198]">
+                <span className="flex items-center gap-1.5 bg-[#284430]/60 px-3 py-1.5 rounded-xl border border-[#3b6147]/40">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                  عقود موثقة وفق اشتراطات الكود السعودي
+                </span>
+                <span className="flex items-center gap-1.5 bg-[#284430]/60 px-3 py-1.5 rounded-xl border border-[#3b6147]/40">
+                  <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                  حماية وسرية تامة لبيانات المشاريع
+                </span>
+              </div>
+
+            </div>
+
+            {/* Left Column: Authentication Form Card */}
+            <div className="md:col-span-6 lg:col-span-5 flex justify-center w-full">
+              <motion.div 
+                layout
+                initial={{ opacity: 0, y: 25 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-white rounded-[2.5rem] p-7 sm:p-9 lg:p-10 shadow-2xl border border-[#C5B198]/40 relative z-10 w-full max-w-md lg:max-w-none text-[#192A1D] space-y-6"
+              >
+                <div className="text-center space-y-2">
+                  <div className="w-14 h-14 bg-[#EFE7DC] rounded-2xl flex items-center justify-center mx-auto mb-3 text-[#1C3022] shadow-inner">
+                    <ShieldCheck className="w-7 h-7" />
+                  </div>
+                  <h3 className="text-xl font-black text-[#1C3022]">تسجيل الدخول إلى حسابك</h3>
+                  <p className="text-slate-600 text-xs sm:text-sm font-medium leading-relaxed">
+                    سجّل دخولك بحساب Google للوصول المباشر لمشاريعك وعقودك وسندات السداد
+                  </p>
+                </div>
+
+                {/* Error Alert */}
+                {errorMessage && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: -5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="p-4 bg-red-50 border border-red-200 text-red-700 text-xs font-bold rounded-2xl flex items-start gap-3"
+                  >
+                    <AlertCircle className="w-4 h-4 shrink-0 text-red-600 mt-0.5" />
+                    <span className="leading-relaxed">{errorMessage}</span>
+                  </motion.div>
+                )}
+
+                {/* Google Sign-in Button */}
+                <div className="space-y-3 pt-2">
+                  <button
+                    onClick={handleGoogleSignIn}
+                    disabled={isLoading}
+                    className="w-full bg-[#1C3022] hover:bg-[#122116] text-[#F8F5F0] py-4 px-4 rounded-2xl font-black text-sm transition-all shadow-lg hover:shadow-xl active:scale-[0.98] flex items-center justify-center gap-3 disabled:opacity-60 disabled:cursor-not-allowed group"
+                  >
+                    {isLoading ? (
+                      <div className="flex items-center gap-2.5 text-[#F8F5F0]">
+                        <Loader2 className="w-5 h-5 animate-spin text-[#C5B198]" />
+                        <span>جاري تسجيل الدخول الآمن...</span>
+                      </div>
+                    ) : (
+                      <>
+                        {/* Official Google G SVG Icon with White Circle Frame */}
+                        <div className="w-6 h-6 rounded-full bg-white flex items-center justify-center shrink-0 p-1 shadow-sm">
+                          <svg className="w-full h-full" viewBox="0 0 24 24">
+                            <path
+                              fill="#4285F4"
+                              d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                            />
+                            <path
+                              fill="#34A853"
+                              d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                            />
+                            <path
+                              fill="#FBBC05"
+                              d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
+                            />
+                            <path
+                              fill="#EA4335"
+                              d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
+                            />
+                          </svg>
+                        </div>
+                        <span className="text-[#F8F5F0]">
+                          المتابعة السريعة بحساب Google
+                        </span>
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                {/* Instant Access Features Checklist */}
+                <div className="bg-[#FAF7F2] p-4 rounded-2xl border border-[#E8E2D8] space-y-2 text-xs text-slate-700">
+                  <div className="flex items-center gap-2 font-bold">
+                    <Check className="w-4 h-4 text-emerald-700 shrink-0" />
+                    <span>دخول فوري ومباشر دون الحاجة لحفظ كلمات مرور</span>
+                  </div>
+                  <div className="flex items-center gap-2 font-bold">
+                    <Check className="w-4 h-4 text-emerald-700 shrink-0" />
+                    <span>مزامنة تلقائية وسريعة مع كافة أجهزتك</span>
+                  </div>
+                  <div className="flex items-center gap-2 font-bold">
+                    <Check className="w-4 h-4 text-emerald-700 shrink-0" />
+                    <span>إشعارات فورية باعتماد المراحل وسندات القبض</span>
+                  </div>
+                </div>
+
+                {/* Security and Terms Notes */}
+                <div className="pt-1 text-center space-y-2.5">
+                  <p className="text-[11px] text-slate-500 leading-relaxed">
+                    بالتسجيل والمتابعة فإنك توافق على{' '}
+                    <button
+                      type="button"
+                      onClick={() => setShowTermsModal(true)}
+                      className="text-[#A99379] font-black underline hover:text-[#1C3022]"
+                    >
+                      شروط الخدمة وسياسة الخصوصية
+                    </button>
+                  </p>
+                  <div className="flex items-center justify-center gap-1.5 text-[10px] text-emerald-800 font-bold bg-emerald-50 py-2.5 px-3.5 rounded-xl border border-emerald-200/70">
+                    <Lock className="w-3.5 h-3.5 text-emerald-700 shrink-0" />
+                    <span>توثيق مشفر 256-Bit عبر Firebase Google Authentication</span>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+
+          </div>
+        </main>
+
+        {/* Full-Width Footer for PC & iPad */}
+        <footer className="w-full border-t border-[#284430]/80 bg-[#152419] px-6 sm:px-10 lg:px-16 py-4 flex items-center justify-center text-center text-xs text-[#F8F5F0]/60 relative z-20">
+          <div>
+            جميع الحقوق محفوظة © {new Date().getFullYear()} مؤسسة نماذج التميز للمقاولات العامة والتطوير الإنشائي
+          </div>
+        </footer>
       </div>
 
       {/* Terms & Conditions Modal */}
@@ -1008,29 +1413,35 @@ function AuthFlow({
           <motion.div 
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className="bg-white max-w-sm rounded-[2rem] p-6 shadow-2xl border border-[#E8E2D8] text-[#192A1D] space-y-4"
+            className="bg-white max-w-md w-full rounded-[2.5rem] p-7 shadow-2xl border border-[#E8E2D8] text-[#192A1D] space-y-5"
           >
-            <div className="flex justify-between items-center pb-2 border-b border-[#E8E2D8]">
-              <h3 className="text-sm font-black text-[#1C3022]">الشروط والأحكام</h3>
-              <button onClick={() => setShowTermsModal(false)} className="p-1 text-slate-400">
-                <X className="w-4 h-4" />
+            <div className="flex justify-between items-center pb-3 border-b border-[#E8E2D8]">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-[#EFE7DC] flex items-center justify-center text-[#1C3022]">
+                  <FileText className="w-4 h-4" />
+                </div>
+                <h3 className="text-base font-black text-[#1C3022]">الشروط والأحكام وسياسة الخصوصية</h3>
+              </div>
+              <button onClick={() => setShowTermsModal(false)} className="p-1 text-slate-400 hover:text-slate-600">
+                <X className="w-5 h-5" />
               </button>
             </div>
-            <div className="text-xs text-slate-600 space-y-2 max-h-60 overflow-y-auto leading-relaxed pr-1 font-medium">
-              <p>1. يعد تسجيل الدخول عبر حساب Google موافقة على ربط مشاريعك الهندسية وملفاتك بالبريد الإلكتروني المعتمد.</p>
-              <p>2. جميع الدفعات المسددة عبر التطبيق (Apple Pay / مدى) يتم توثيقها بسندات قبض إلكترونية معتمدة.</p>
-              <p>3. تحافظ مؤسسة نماذج التميز على سرية بيانات العملاء ومخططات البناء وفق الأنظمة المعمول بها في المملكة العربية السعودية.</p>
+            <div className="text-xs text-slate-600 space-y-3 max-h-72 overflow-y-auto leading-relaxed pr-1 font-medium">
+              <p>1. <strong>الربط السحابي:</strong> يعد تسجيل الدخول عبر حساب Google موافقة رسمية على ربط مشاريعك الهندسية وملفاتك وعروض الأسعار بالبريد الإلكتروني المعتمد.</p>
+              <p>2. <strong>سندات الدفعات:</strong> جميع الدفعات المسددة عبر التطبيق (Apple Pay / بطاقات مدى / فيزا) يتم توثيقها بسندات إلكترونية رسمية معتمدة ومحفوظة في حسابك.</p>
+              <p>3. <strong>سرية المخططات:</strong> تلتزم مؤسسة نماذج التميز بأعلى معايير الأمان لحماية بيانات العملاء ومخططات البناء والتقارير الهندسية وفق الأنظمة واللوائح المعمول بها في المملكة العربية السعودية.</p>
+              <p>4. <strong>التوقيع الرقمي:</strong> يُعتد بالتوقيع الرقمي المعتمد داخل التطبيق للعقود ومحاضر الاستلام الإنشائية.</p>
             </div>
             <button
               onClick={() => setShowTermsModal(false)}
-              className="w-full bg-[#1C3022] text-[#F8F5F0] py-3 rounded-xl font-bold text-xs hover:bg-[#122116]"
+              className="w-full bg-[#1C3022] text-[#F8F5F0] py-3.5 rounded-xl font-bold text-xs hover:bg-[#122116] transition-all shadow-md active:scale-[0.98]"
             >
               موافق وإغلاق
             </button>
           </motion.div>
         </div>
       )}
-    </div>
+    </>
   );
 }
 
@@ -1178,16 +1589,14 @@ function HomeView({
                         </div>
 
                         {quote.fileUrl && (
-                          <a
-                            href={quote.fileUrl}
-                            download={quote.fileName || `عرض_سعر_${quote.projectName}.pdf`}
-                            target="_blank"
-                            rel="noreferrer"
+                          <button
+                            type="button"
+                            onClick={() => downloadFile(quote.fileUrl!, quote.fileName || `عرض_سعر_${quote.projectName}.pdf`)}
                             className="bg-white hover:bg-[#EFE7DC] text-[#1C3022] px-3 py-2 rounded-xl text-xs font-black flex items-center gap-1.5 border border-[#E8E2D8] shadow-sm transition-all"
                           >
                             <Download className="w-3.5 h-3.5 text-[#A99379]" />
                             <span>تحميل مستند العرض ({quote.fileName || 'ملف PDF'})</span>
-                          </a>
+                          </button>
                         )}
                       </div>
 
@@ -1761,26 +2170,6 @@ function ProjectDetailView({
               لا توجد صور مضافة لهذه المرحلة بعد
             </div>
           )}
-        </div>
-      </div>
-
-      {/* Engineer & Contact */}
-      <div className="bg-white rounded-3xl p-5 border border-[#E8E2D8] shadow-sm space-y-3">
-        <div className="flex items-center justify-between">
-          <h3 className="font-black text-sm text-[#1C3022]">المهندس المشرف على الموقع</h3>
-          <span className="text-[10px] bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-md font-bold">معتمد</span>
-        </div>
-        <div className="p-3.5 bg-[#FAF7F2] rounded-2xl border border-[#E8E2D8] flex items-center justify-between">
-          <div>
-            <h4 className="text-xs font-black text-[#1C3022]">{project.supervisingEngineer.name}</h4>
-            <p className="text-[10px] text-slate-500 font-bold mt-0.5">{project.supervisingEngineer.title}</p>
-          </div>
-          <a 
-            href={`tel:${project.supervisingEngineer.phone}`}
-            className="w-9 h-9 rounded-xl bg-[#1C3022] text-[#F8F5F0] flex items-center justify-center shadow-sm"
-          >
-            <Phone className="w-4 h-4 text-[#C5B198]" />
-          </a>
         </div>
       </div>
     </div>

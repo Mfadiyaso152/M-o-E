@@ -83,6 +83,17 @@ export interface EngineerRequest {
   engineerName: string;
 }
 
+export interface ProjectDocument {
+  id: string;
+  name: string;
+  category: 'عقد معتمد' | 'سند قبض' | 'رخصة بناء' | 'مخطط معتمد' | 'مستند رسمي' | 'أخرى';
+  fileUrl: string;
+  fileName: string;
+  fileSize?: string;
+  uploadedAt: string;
+  uploadedBy: string;
+}
+
 export interface ProjectContract {
   id: string;
   title: string;
@@ -125,13 +136,14 @@ export interface Project {
   licenseNumber: string;
   landArea?: string;
   builtUpArea?: string;
-  supervisingEngineer: {
+  supervisingEngineer?: {
     name: string;
     phone: string;
     title: string;
   };
   phases: ConstructionPhase[];
   contracts: ProjectContract[];
+  documents?: ProjectDocument[];
   engineerRequests: EngineerRequest[];
   images: {
     before: string[];
@@ -165,6 +177,7 @@ export interface QuoteRequest {
   fileUrl?: string;
   fileName?: string;
   fileSize?: string;
+  documents?: ProjectDocument[];
   validUntil?: string;
   clientDecision?: 'accepted' | 'rejected' | 'accepted_with_modifications' | 'pending';
   clientModificationNote?: string;
@@ -178,6 +191,9 @@ export interface QuoteRequest {
   contractSignDate?: string;
   contractSignerName?: string;
   contractSignature?: string;
+  supervisorSignature?: string;
+  supervisorSignedDate?: string;
+  supervisorSignerName?: string;
   projectId?: string;
 }
 
