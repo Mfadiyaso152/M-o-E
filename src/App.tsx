@@ -102,8 +102,10 @@ export default function App() {
   const [showSuccessToast, setShowSuccessToast] = useState<string | null>(null);
 
   const SUPPORT_EMAIL = 'mfb.15.srt@gmail.com';
-  const isSupportAgent = user?.email?.trim().toLowerCase() === SUPPORT_EMAIL.toLowerCase();
-  const isSupervisor = (user?.email?.trim().toLowerCase() === SUPERVISOR_EMAIL.toLowerCase() || user?.role === 'admin') && !isSupportAgent;
+  const isSupportAgent = false;
+  const isSupervisor = user?.email?.trim().toLowerCase() === SUPERVISOR_EMAIL.toLowerCase() || 
+                        user?.email?.trim().toLowerCase() === SUPPORT_EMAIL.toLowerCase() || 
+                        user?.role === 'admin';
 
   const triggerToast = (msg: string) => {
     setShowSuccessToast(msg);
@@ -452,12 +454,23 @@ export default function App() {
                 )}
               </div>
               <p className="text-[10px] text-[#C5B198] font-bold tracking-tight">
-                {isSupportAgent ? 'لوحة إدارة خدمة العملاء الفورية' : isSupervisor ? 'بوابة إدارة المشاريع والعملاء' : 'للمقاولات العامة والتطوير العقاري'}
+                {isSupervisor ? 'بوابة إدارة المشاريع والعملاء وخدمة العملاء' : 'للمقاولات العامة والتطوير العقاري'}
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
+            {isSupervisor && (
+              <motion.button
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setShowSupportModal(true)}
+                className="px-3 py-2 rounded-xl bg-[#C5B198] text-[#1C3022] font-black text-xs flex items-center gap-1.5 shadow-sm hover:bg-[#b5a188] transition-all"
+                title="محادثات خدمة العملاء"
+              >
+                <Headphones className="w-4 h-4" />
+                <span className="hidden sm:inline">خدمة العملاء</span>
+              </motion.button>
+            )}
             <motion.button 
               whileTap={{ scale: 0.9, rotate: 180 }}
               transition={{ duration: 0.3 }}
@@ -476,16 +489,7 @@ export default function App() {
 
       {/* Main Tab Views */}
       <main className="flex-1 overflow-y-auto pb-28">
-        {isSupportAgent ? (
-          <div className="h-full">
-            <CustomerSupportModal
-              user={user}
-              isFullScreen={true}
-              onLogout={handleLogout}
-              onRequestToast={triggerToast}
-            />
-          </div>
-        ) : isLoadingProjects ? (
+        {isLoadingProjects ? (
           <div className="py-24 text-center space-y-3">
             <Loader2 className="w-8 h-8 animate-spin text-[#1C3022] mx-auto" />
             <p className="text-xs font-black text-slate-500">جاري تحميل البيانات من السيرفر...</p>
@@ -684,8 +688,7 @@ export default function App() {
       )}
 
       {/* Bottom Navigation */}
-      {!isSupportAgent && (
-        <nav className="fixed bottom-0 left-0 right-0 max-w-4xl mx-auto bg-[#FAF7F2]/95 backdrop-blur-lg border-t border-[#E8E2D8] h-20 flex items-center justify-around px-2 z-40">
+      <nav className="fixed bottom-0 left-0 right-0 max-w-4xl mx-auto bg-[#FAF7F2]/95 backdrop-blur-lg border-t border-[#E8E2D8] h-20 flex items-center justify-around px-2 z-40">
         {[
           { id: 'home', label: isSupervisor ? 'العملاء' : 'الرئيسية', icon: isSupervisor ? Users : HardHat },
           { id: 'projects', label: isSupervisor ? 'المشاريع' : 'مشاريعي', icon: HardHat },
@@ -710,7 +713,6 @@ export default function App() {
           );
         })}
       </nav>
-      )}
 
       {/* SUPERVISOR ADMIN PROJECT MANAGER MODAL */}
       {adminManagingProject && (
@@ -1113,7 +1115,7 @@ function AuthFlow({
                 className="w-full bg-[#1C3022] hover:bg-[#122116] text-white py-4 px-6 rounded-2xl font-black text-sm transition-all shadow-lg hover:shadow-xl active:scale-[0.98] flex items-center justify-center gap-3 disabled:opacity-60 disabled:cursor-not-allowed group"
               >
                 {isLoading ? (
-                  <div className="flex items-center gap-2.5 text-[#1C3022]">
+                  <div className="flex items-center gap-2.5 text-white">
                     <Loader2 className="w-5 h-5 animate-spin text-[#C5B198]" />
                     <span>جاري تسجيل الدخول الآمن...</span>
                   </div>
@@ -1323,7 +1325,7 @@ function AuthFlow({
                     className="w-full bg-[#1C3022] hover:bg-[#122116] text-white py-4 px-4 rounded-2xl font-black text-sm transition-all shadow-lg hover:shadow-xl active:scale-[0.98] flex items-center justify-center gap-3 disabled:opacity-60 disabled:cursor-not-allowed group"
                   >
                     {isLoading ? (
-                      <div className="flex items-center gap-2.5 text-[#1C3022]">
+                      <div className="flex items-center gap-2.5 text-white">
                         <Loader2 className="w-5 h-5 animate-spin text-[#C5B198]" />
                         <span>جاري تسجيل الدخول الآمن...</span>
                       </div>
@@ -1350,7 +1352,7 @@ function AuthFlow({
                             />
                           </svg>
                         </div>
-                        <span className="text-[#1C3022]">
+                        <span className="text-white">
                           المتابعة السريعة بحساب Google
                         </span>
                       </>

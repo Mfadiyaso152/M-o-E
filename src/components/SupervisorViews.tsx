@@ -606,42 +606,26 @@ function SupervisorSendQuoteModal({
     return [];
   });
 
-  const [newInstTitle, setNewInstTitle] = useState('');
-  const [newInstPercentage, setNewInstPercentage] = useState('');
-  const [newInstDueDate, setNewInstDueDate] = useState('');
-
   // Calculate sum of installments
   const totalInstallmentsSum = installments.reduce((sum, i) => sum + (i.amountNumber || 0), 0);
   const parsedQuoteAmount = parseFloat(quoteAmount.replace(/[^0-9.]/g, '')) || 0;
 
-  // Distribute total evenly
-  const handleDistributeEvenly = () => {
-    if (installments.length === 0 || parsedQuoteAmount === 0) return;
-    const share = Math.round(parsedQuoteAmount / installments.length);
-    const updated = installments.map(inst => ({
-      ...inst,
-      amountNumber: share,
-      amount: `${share.toLocaleString('ar-SA')} ر.س`
-    }));
-    setInstallments(updated);
-  };
 
-  const handleAddInstallmentRow = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newInstTitle.trim() || !newInstAmount.trim()) return;
-    const num = parseFloat(newInstAmount.replace(/[^0-9.]/g, '')) || 0;
+
+  const handleAddPresetInstallment = (pct: number) => {
+    const calculatedAmount = Math.round((parsedQuoteAmount * pct) / 100);
+    const ordinalNames = ['دفعة أولى', 'دفعة ثانية', 'دفعة ثالثة', 'دفعة رابعة', 'دفعة خامسة', 'دفعة سادسة', 'دفعة سابعة', 'دفعة ثامنة'];
+    const defaultTitle = ordinalNames[installments.length] || `دفعة رقم ${installments.length + 1}`;
+
     const newInst: Installment = {
       id: `INST-${Date.now().toString().slice(-4)}`,
-      title: newInstTitle.trim(),
-      amount: `${num.toLocaleString('ar-SA')} ر.س`,
-      amountNumber: num,
-      dueDate: newInstDueDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      title: defaultTitle,
+      amount: `${calculatedAmount.toLocaleString('ar-SA')} ر.س`,
+      amountNumber: calculatedAmount,
+      dueDate: new Date(Date.now() + (installments.length + 1) * 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
       status: 'pending'
     };
     setInstallments([...installments, newInst]);
-    setNewInstTitle('');
-    setNewInstAmount('');
-    setNewInstDueDate('');
   };
 
   const handleRemoveInstallment = (index: number) => {
@@ -776,13 +760,7 @@ function SupervisorSendQuoteModal({
                 <Wallet className="w-4 h-4 text-[#C5B198]" />
                 <h4 className="text-xs font-black text-[#1C3022]">نظام وجدول الدفعات المقترح ({installments.length} دفعات)</h4>
               </div>
-              <button
-                type="button"
-                onClick={handleDistributeEvenly}
-                className="text-[10px] font-black text-[#1C3022] bg-white hover:bg-[#e4dacb] px-2.5 py-1 rounded-lg transition-all"
-              >
-                توزيع بالتساوي على الدفعات
-              </button>
+
             </div>
 
             {/* Total check bar */}
@@ -860,31 +838,19 @@ function SupervisorSendQuoteModal({
 
             {/* Add New Installment Row */}
             <div className="pt-2 border-t border-[#E8E2D8] space-y-2">
-              <span className="text-[10px] font-black text-[#1C3022] block">+ إضافة دفعة جديدة للجدول:</span>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-1.5">
-                <input
-                  type="text"
-                  placeholder="مسمى الدفعة (مثل: دفعة الميدة)..."
-                  value={newInstTitle}
-                  onChange={e => setNewInstTitle(e.target.value)}
-                  className="sm:col-span-1 bg-white border border-[#E8E2D8] rounded-xl px-2.5 py-1.5 text-xs font-bold text-[#1C3022] outline-none"
-                />
-                <input
-                  type="text"
-                  placeholder="المبلغ (مثل: 50000)..."
-                  value={newInstAmount}
-                  onChange={e => setNewInstAmount(e.target.value)}
-                  className="bg-white border border-[#E8E2D8] rounded-xl px-2.5 py-1.5 text-xs font-bold text-[#1C3022] outline-none"
-                  dir="ltr"
-                />
-                <button
-                  type="button"
-                  onClick={handleAddInstallmentRow}
-                  className="bg-[#1C3022] text-white py-1.5 px-3 rounded-xl text-xs font-black hover:bg-[#122116] flex items-center justify-center gap-1"
-                >
-                  <Plus className="w-3.5 h-3.5 text-[#C5B198]" />
-                  <span>إضافة الدفعة</span>
-                </button>
+              <span className="text-[10px] font-black text-[#1C3022] block">+ اختر النسبة المئوية لإضافة دفعة جديدة (تسمية تلقائية):</span>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                {[10, 20, 40, 50].map((pct) => (
+                  <button
+                    key={pct}
+                    type="button"
+                    onClick={() => handleAddPresetInstallment(pct)}
+                    className="bg-[#FAF7F2] hover:bg-[#1C3022] hover:text-white border border-[#C5B198] text-[#1C3022] py-2 px-3 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1 shadow-sm group"
+                  >
+                    <Plus className="w-3.5 h-3.5 text-[#C5B198] group-hover:text-white" />
+                    <span>دفعة {pct}%</span>
+                  </button>
+                ))}
               </div>
             </div>
           </div>
@@ -1033,27 +999,31 @@ export function SupervisorProjectsView({
 
   const filteredClientObj = selectedClientFilter ? clients.find(c => c.id === selectedClientFilter) : null;
 
-  const handleSupervisorRequestCancellation = async () => {
+  const handleSupervisorDirectCancelProject = async () => {
     if (!cancellationTargetProject || !cancellationReason.trim() || !onUpdateProject) return;
     setIsSubmittingCancellation(true);
     try {
       const updatedProject: Project = {
         ...cancellationTargetProject,
+        status: 'ملغي',
+        deletedReason: cancellationReason.trim(),
+        deletedAt: new Date().toISOString(),
         cancellationRequest: {
           id: `CAN-${Date.now().toString().slice(-4)}`,
           requestedBy: 'supervisor',
           reason: cancellationReason.trim(),
           requestDate: new Date().toLocaleDateString('ar-SA'),
-          status: 'pending'
+          status: 'approved',
+          decisionDate: new Date().toLocaleDateString('ar-SA')
         }
       };
       await onUpdateProject(updatedProject);
-      if (onRequestToast) onRequestToast('تم إرسال طلب إلغاء المشروع للعميل للموافقة أو الرفض.');
+      if (onRequestToast) onRequestToast('تم إلغاء المشروع مباشرة وإرسال إشعار للعميل بسبب الإلغاء.');
       setCancellationTargetProject(null);
       setCancellationReason('');
     } catch (err) {
       console.error(err);
-      if (onRequestToast) onRequestToast('حدث خطأ أثناء إرسال طلب الإلغاء');
+      if (onRequestToast) onRequestToast('حدث خطأ أثناء إلغاء المشروع');
     } finally {
       setIsSubmittingCancellation(false);
     }
@@ -1343,7 +1313,7 @@ export function SupervisorProjectsView({
               <span>طلب إلغاء المشروع: {cancellationTargetProject.title}</span>
             </div>
             <p className="text-xs text-slate-600 font-medium leading-relaxed">
-              سيتم إرسال طلب إلغاء رسمي إلى العميل، ويشترط موافقة العميل لاعتماد إلغاء المشروع رسمياً.
+              سيتم إلغاء المشروع نهائياً مع إرسال رسالة توضيحية للعميل بسبب الإلغاء.
             </p>
             <div>
               <label className="block text-[11px] font-black text-[#1C3022] mb-1">سبب إلغاء المشروع *</label>
@@ -1352,7 +1322,7 @@ export function SupervisorProjectsView({
                 required
                 value={cancellationReason}
                 onChange={e => setCancellationReason(e.target.value)}
-                placeholder="اكتب سبب طلب الإلغاء بالتفصيل..."
+                placeholder="اكتب سبب إلغاء المشروع بالتفصيل..."
                 className="w-full bg-[#FAF7F2] border border-[#E8E2D8] rounded-xl p-3 text-xs font-medium outline-none focus:ring-2 focus:ring-red-400 resize-none"
               />
             </div>
@@ -1360,10 +1330,10 @@ export function SupervisorProjectsView({
               <button
                 type="button"
                 disabled={isSubmittingCancellation || !cancellationReason.trim()}
-                onClick={handleSupervisorRequestCancellation}
-                className="flex-1 bg-red-700 hover:bg-red-800 text-[#1C3022] py-2.5 rounded-xl text-xs font-black transition-all disabled:opacity-50"
+                onClick={handleSupervisorDirectCancelProject}
+                className="flex-1 bg-red-700 hover:bg-red-800 text-white py-2.5 rounded-xl text-xs font-black transition-all disabled:opacity-50 shadow-sm"
               >
-                {isSubmittingCancellation ? 'جاري الإرسال...' : 'إرسال طلب الإلغاء للعميل'}
+                {isSubmittingCancellation ? 'جاري الإلغاء...' : 'تأكيد وإلغاء المشروع'}
               </button>
               <button
                 type="button"

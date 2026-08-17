@@ -111,17 +111,18 @@ export function CustomerSupportModal({ user, onClose, onRequestToast, isFullScre
       dir="rtl"
     >
       {/* Header */}
-      <div className="bg-[#FAF7F2] text-[#1C3022] p-4 px-6 flex items-center justify-between shrink-0 border-b border-[#E8E2D8]">
+      <div className={`p-4 px-6 flex items-center justify-between shrink-0 border-b ${!isSupportAgent ? 'bg-[#1C3022] text-white border-[#2A3A2F]' : 'bg-[#FAF7F2] text-[#1C3022] border-[#E8E2D8]'}`}>
         <div className="flex items-center gap-3">
           {isSupportAgent && selectedClientId && (
             <button
               onClick={() => setSelectedClientId(null)}
-              className="w-8 h-8 rounded-full bg-[#EFE7DC] flex items-center justify-center text-[#C5B198] hover:bg-[#2A3A2F] transition-colors"
+              className="px-3 py-1.5 rounded-xl bg-[#1C3022] text-white text-xs font-black flex items-center gap-1.5 hover:bg-[#122116] transition-all shrink-0 shadow-sm"
             >
-              <ChevronRight className="w-5 h-5" />
+              <ChevronRight className="w-4 h-4" />
+              <span>قائمة العملاء</span>
             </button>
           )}
-          <div className="w-10 h-10 rounded-full bg-white border border-[#E8E2D8] flex items-center justify-center text-[#C5B198]">
+          <div className={`w-10 h-10 rounded-full flex items-center justify-center ${!isSupportAgent ? 'bg-white/10 text-[#C5B198]' : 'bg-white border border-[#E8E2D8] text-[#C5B198]'}`}>
             <Headphones className="w-5 h-5" />
           </div>
           <div>
@@ -129,10 +130,17 @@ export function CustomerSupportModal({ user, onClose, onRequestToast, isFullScre
               <span>{isSupportAgent && selectedClientId ? (allClientsMap.get(selectedClientId)?.name || 'محادثة عميل') : 'خدمة عملاء نماذج التميز'}</span>
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
             </h3>
-            <p className="text-[10px] text-slate-500 font-bold flex items-center gap-1 mt-0.5">
-              <Mail className="w-3 h-3 text-[#C5B198]" />
-              <span>{isSupportAgent && selectedClientId ? (allClientsMap.get(selectedClientId)?.email || 'عميل') : SUPPORT_EMAIL}</span>
-            </p>
+            {isSupportAgent && selectedClientId && (
+              <p className="text-[10px] text-slate-500 font-bold flex items-center gap-1 mt-0.5">
+                <Mail className="w-3 h-3 text-[#C5B198]" />
+                <span>{allClientsMap.get(selectedClientId)?.email || 'عميل'}</span>
+              </p>
+            )}
+            {!isSupportAgent && (
+              <p className="text-[10px] text-[#C5B198] font-bold mt-0.5">
+                نحن هنا لخدمتكم والإجابة على كافة استفساراتكم الهندسية
+              </p>
+            )}
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -147,7 +155,7 @@ export function CustomerSupportModal({ user, onClose, onRequestToast, isFullScre
           {onClose && (
             <button
               onClick={onClose}
-              className="w-9 h-9 rounded-full bg-white border border-[#E8E2D8] hover:bg-[#EFE7DC] flex items-center justify-center text-slate-600 hover:text-[#1C3022] transition-all"
+              className={`w-9 h-9 rounded-full flex items-center justify-center transition-all ${!isSupportAgent ? 'bg-white/10 text-white hover:bg-white/20' : 'bg-white border border-[#E8E2D8] text-slate-600 hover:text-[#1C3022]'}`}
             >
               <X className="w-5 h-5" />
             </button>
