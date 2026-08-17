@@ -256,7 +256,8 @@ export const ProjectService = {
         before: [],
         progress50: [],
         after: [],
-        plans: []
+        plans: [],
+        officialPapers: []
       },
       installments: projectData.installments || []
     };

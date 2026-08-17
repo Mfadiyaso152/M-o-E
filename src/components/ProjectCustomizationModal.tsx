@@ -32,7 +32,7 @@ export function ProjectCustomizationModal({ project, onClose, onUpdateProject, o
   const [activeTab, setActiveTab] = useState<TabType>('progress');
   
   // Gallery stage selector
-  const [galleryStage, setGalleryStage] = useState<'before' | 'progress50' | 'after' | 'plans'>('progress50');
+  const [galleryStage, setGalleryStage] = useState<'before' | 'progress50' | 'after' | 'plans' | 'officialPapers'>('progress50');
   const [previewImage, setPreviewImage] = useState<string | null>(null);
 
   // Contract viewer modal
@@ -42,19 +42,44 @@ export function ProjectCustomizationModal({ project, onClose, onUpdateProject, o
     before: 'قبل البدء',
     progress50: 'مرحلة 50%',
     after: 'بعد الإنجاز',
-    plans: 'المخططات الهندسية'
+    plans: 'المخططات الهندسية',
+    officialPapers: 'الأوراق الرسمية'
   };
 
-  const handleCancelProjectRequest = () => {
-    if (window.confirm('هل أنت متأكد من رغبتك في إلغاء هذا المشروع؟')) {
-      const updated: Project = {
-        ...project,
-        status: 'ملغي'
-      };
-      onUpdateProject(updated);
-      onRequestToast('تم إلغاء المشروع بنجاح');
-      onClose();
-    }
+  const handleRequestCancellation = () => {
+    const reason = prompt('يرجى كتابة سبب طلب إلغاء المشروع:');
+    if (!reason) return;
+    const updated: Project = {
+      ...project,
+      cancellationRequest: {
+        id: `CANC-${Date.now()}`,
+        requestedBy: 'client',
+        reason,
+        requestDate: new Date().toISOString().split('T')[0],
+        status: 'pending'
+      }
+    };
+    onUpdateProject(updated);
+    onRequestToast('تم إرسال طلب إلغاء المشروع للمشرف للموافقة');
+  };
+
+  const handleApproveCancellation = () => {
+    const updated: Project = {
+      ...project,
+      status: 'ملغي',
+      cancellationRequest: project.cancellationRequest ? { ...project.cancellationRequest, status: 'approved' } : undefined
+    };
+    onUpdateProject(updated);
+    onRequestToast('تمت الموافقة على إلغاء المشروع');
+  };
+
+  const handleRejectCancellation = () => {
+    const updated: Project = {
+      ...project,
+      cancellationRequest: project.cancellationRequest ? { ...project.cancellationRequest, status: 'rejected' } : undefined
+    };
+    onUpdateProject(updated);
+    onRequestToast('تم رفض طلب إلغاء المشروع');
   };
 
   return (
@@ -385,23 +410,54 @@ export function ProjectCustomizationModal({ project, onClose, onUpdateProject, o
                 </div>
               </div>
 
-              {/* Cancel Project Section */}
-              <div className="p-4 bg-red-50 border border-red-200 rounded-2xl space-y-2">
+              {/* Cancel Project Section with Mutual Approval */}
+              <div className="p-4 bg-red-50 border border-red-200 rounded-2xl space-y-3">
                 <h5 className="text-xs font-black text-red-950 flex items-center gap-1.5">
                   <Ban className="w-4 h-4 text-red-600" />
-                  <span>إلغاء المشروع</span>
+                  <span>طلب إلغاء المشروع</span>
                 </h5>
-                <p className="text-[10px] text-red-700">
-                  في حال رغبتك في إلغاء هذا المشروع، يمكنك الضغط أدناه لتسجيل الإلغاء فوراً.
+                <p className="text-[10px] text-red-700 leading-relaxed">
+                  حسب سياسة النظام، لا يمكن إلغاء المشروع نهائياً إلا بموافقة متبادلة بين العميل والمشرف العام.
                 </p>
-                <button
-                  type="button"
-                  onClick={handleCancelProjectRequest}
-                  className="w-full bg-red-600 hover:bg-red-700 text-white py-2.5 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 transition-all shadow-xs"
-                >
-                  <Ban className="w-3.5 h-3.5" />
-                  <span>تأكيد إلغاء المشروع</span>
-                </button>
+
+                {project.cancellationRequest && project.cancellationRequest.status === 'pending' ? (
+                  <div className="p-3 bg-white rounded-xl border border-red-200 space-y-2">
+                    <span className="text-[10px] font-black text-red-800 block">
+                      {project.cancellationRequest.requestedBy === 'supervisor' 
+                        ? 'طلب المشرف إلغاء هذا المشروع:' 
+                        : 'تم تقديم طلب إلغاء من قبلك وبانتظار موافقة المشرف العام:'}
+                    </span>
+                    <p className="text-[10px] text-slate-600 italic">"{project.cancellationRequest.reason}"</p>
+                    
+                    {project.cancellationRequest.requestedBy === 'supervisor' && (
+                      <div className="flex gap-2 pt-1">
+                        <button
+                          type="button"
+                          onClick={handleApproveCancellation}
+                          className="flex-1 bg-red-600 hover:bg-red-700 text-white py-2 rounded-xl text-xs font-black"
+                        >
+                          الموافقة على الإلغاء
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleRejectCancellation}
+                          className="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-800 py-2 rounded-xl text-xs font-bold"
+                        >
+                          رفض الطلب
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleRequestCancellation}
+                    className="w-full bg-red-600 hover:bg-red-700 text-white py-2.5 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 transition-all shadow-xs"
+                  >
+                    <Ban className="w-3.5 h-3.5" />
+                    <span>تقديم طلب إلغاء المشروع</span>
+                  </button>
+                )}
               </div>
             </div>
           )}

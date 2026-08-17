@@ -1,4 +1,4 @@
-export type ProjectStatus = 'قيد الانتظار' | 'بانتظار العقد' | 'بانتظار توقيع العميل' | 'قيد التنفيذ' | 'مكتمل' | 'ملغي';
+export type ProjectStatus = 'قيد الانتظار' | 'بانتظار العقد' | 'بانتظار توقيع العميل' | 'بانتظار السداد' | 'قيد التنفيذ' | 'مكتمل' | 'ملغي';
 export type QuoteStatus = 'طلب جديد' | 'تم إرسال العرض' | 'مقبول' | 'مرفوض' | 'بانتظار مراجعة التعديل' | 'تم اعتماد المشروع' | 'تم توقيع العقد';
 
 export interface Installment {
@@ -12,7 +12,7 @@ export interface Installment {
   clientApprovalDate?: string;
   paymentDate?: string;
   transactionRef?: string;
-  paymentMethod?: 'Apple Pay' | 'بطاقة مدى' | 'بطاقة ائتمانية' | 'تحويل بنكي';
+  paymentMethod?: 'تحويل بنكي';
   lastReminderSentDate?: string;
   reminderCount?: number;
   transferReceiptUrl?: string;
@@ -86,12 +86,19 @@ export interface EngineerRequest {
 export interface ProjectDocument {
   id: string;
   name: string;
-  category: 'عقد معتمد' | 'سند قبض' | 'رخصة بناء' | 'مخطط معتمد' | 'مستند رسمي' | 'أخرى';
+  category: 'عقد معتمد' | 'سند قبض' | 'رخصة بناء' | 'مخطط معتمد' | 'مستند رسمي' | 'أوراق رسمية' | 'أخرى';
   fileUrl: string;
   fileName: string;
   fileSize?: string;
   uploadedAt: string;
   uploadedBy: string;
+  requiresSignature?: boolean;
+  clientSigned?: boolean;
+  clientSignature?: string;
+  clientSignDate?: string;
+  supervisorSigned?: boolean;
+  supervisorSignature?: string;
+  supervisorSignDate?: string;
 }
 
 export interface ProjectContract {
@@ -150,6 +157,7 @@ export interface Project {
     progress50: string[];
     after: string[];
     plans: string[];
+    officialPapers: string[];
   };
   startDate: string;
   estimatedEndDate: string;
@@ -163,6 +171,17 @@ export interface Project {
     rating: number;
     comment: string;
   };
+}
+
+export interface SupportMessage {
+  id: string;
+  clientId: string;
+  clientName: string;
+  clientEmail: string;
+  senderRole: 'client' | 'support';
+  senderName: string;
+  message: string;
+  timestamp: string;
 }
 
 export interface QuoteRequest {

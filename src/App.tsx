@@ -45,7 +45,8 @@ import {
   BellRing,
   FileCheck,
   FileUp,
-  XCircle
+  XCircle,
+  Headphones
 } from 'lucide-react';
 
 // Types and Components
@@ -58,6 +59,7 @@ import { AdminProjectManagerModal } from './components/AdminProjectManagerModal'
 import { CreateProjectModal } from './components/CreateProjectModal';
 import { SupervisorClientsView, SupervisorProjectsView, SupervisorPaymentsView } from './components/SupervisorViews';
 import { ClientsDirectoryModal } from './components/ClientsDirectoryModal';
+import { CustomerSupportModal } from './components/CustomerSupportModal';
 import { UserService, ProjectService } from './services/dbService';
 import { CompletePhoneModal } from './components/CompletePhoneModal';
 import { downloadFile } from './utils/fileDownloader';
@@ -96,9 +98,12 @@ export default function App() {
   const [showQuoteForm, setShowQuoteForm] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState<{ installment: Installment, project: Project } | null>(null);
   const [showDeleteAccountModal, setShowDeleteAccountModal] = useState(false);
+  const [showSupportModal, setShowSupportModal] = useState(false);
   const [showSuccessToast, setShowSuccessToast] = useState<string | null>(null);
 
-  const isSupervisor = user?.email?.trim().toLowerCase() === SUPERVISOR_EMAIL.toLowerCase() || user?.role === 'admin';
+  const SUPPORT_EMAIL = 'mfb.15.srt@gmail.com';
+  const isSupportAgent = user?.email?.trim().toLowerCase() === SUPPORT_EMAIL.toLowerCase();
+  const isSupervisor = (user?.email?.trim().toLowerCase() === SUPERVISOR_EMAIL.toLowerCase() || user?.role === 'admin') && !isSupportAgent;
 
   const triggerToast = (msg: string) => {
     setShowSuccessToast(msg);
@@ -394,7 +399,7 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F5F3EF] flex flex-col text-[#192A1D] w-full max-w-4xl mx-auto shadow-2xl relative overflow-x-hidden font-sans" dir="rtl">
+    <div className="min-h-screen bg-[#0B1510] flex flex-col text-[#F8F5F0] w-full max-w-4xl mx-auto shadow-2xl relative overflow-x-hidden font-sans" dir="rtl">
       {/* Toast Notification */}
       <AnimatePresence>
         {showSuccessToast && (
@@ -432,6 +437,14 @@ export default function App() {
             <div>
               <div className="flex items-center gap-1.5">
                 <h1 className="text-base font-black tracking-wide text-[#F8F5F0]">نماذج التميز</h1>
+                <span className="bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[9px] font-black px-1.5 py-0.5 rounded-md tracking-wider">
+                  BETA
+                </span>
+                {isSupportAgent && (
+                  <span className="bg-[#C5B198] text-[#1C3022] text-[9px] font-black px-1.5 py-0.5 rounded shadow-sm">
+                    خدمة العملاء
+                  </span>
+                )}
                 {isSupervisor && (
                   <span className="bg-[#C5B198] text-[#1C3022] text-[9px] font-black px-1.5 py-0.5 rounded shadow-sm">
                     مشرف
@@ -439,7 +452,7 @@ export default function App() {
                 )}
               </div>
               <p className="text-[10px] text-[#C5B198] font-bold tracking-tight">
-                {isSupervisor ? 'بوابة إدارة المشاريع والعملاء' : 'للمقاولات العامة والتطوير العقاري'}
+                {isSupportAgent ? 'لوحة إدارة خدمة العملاء الفورية' : isSupervisor ? 'بوابة إدارة المشاريع والعملاء' : 'للمقاولات العامة والتطوير العقاري'}
               </p>
             </div>
           </div>
@@ -463,7 +476,16 @@ export default function App() {
 
       {/* Main Tab Views */}
       <main className="flex-1 overflow-y-auto pb-28">
-        {isLoadingProjects ? (
+        {isSupportAgent ? (
+          <div className="h-full">
+            <CustomerSupportModal
+              user={user}
+              isFullScreen={true}
+              onLogout={handleLogout}
+              onRequestToast={triggerToast}
+            />
+          </div>
+        ) : isLoadingProjects ? (
           <div className="py-24 text-center space-y-3">
             <Loader2 className="w-8 h-8 animate-spin text-[#1C3022] mx-auto" />
             <p className="text-xs font-black text-slate-500">جاري تحميل البيانات من السيرفر...</p>
@@ -605,6 +627,7 @@ export default function App() {
                       projects={projects}
                       clients={clients}
                       onManageProject={(p) => setAdminManagingProject(p)}
+                      onUpdateProject={handleUpdateProject}
                       onRequestToast={triggerToast}
                     />
                   ) : (
@@ -642,6 +665,7 @@ export default function App() {
                       setSelectedClientFilter(clientId);
                       setActiveTab('projects');
                     }}
+                    onOpenSupportModal={() => setShowSupportModal(true)}
                   />
                 )}
               </motion.div>
@@ -650,10 +674,20 @@ export default function App() {
         )}
       </main>
 
+      {/* CUSTOMER SUPPORT CHAT MODAL */}
+      {showSupportModal && user && (
+        <CustomerSupportModal
+          user={user}
+          onClose={() => setShowSupportModal(false)}
+          onRequestToast={triggerToast}
+        />
+      )}
+
       {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 max-w-4xl mx-auto bg-white/95 backdrop-blur-lg border-t border-[#E8E2D8] h-20 flex items-center justify-around px-2 z-40 shadow-lg">
+      {!isSupportAgent && (
+        <nav className="fixed bottom-0 left-0 right-0 max-w-4xl mx-auto bg-[#0B1510]/95 backdrop-blur-lg border-t border-[#2A3A2F] h-20 flex items-center justify-around px-2 z-40">
         {[
-          { id: 'home', label: isSupervisor ? 'العملاء' : 'الرئيسية', icon: isSupervisor ? Users : LayoutDashboard },
+          { id: 'home', label: isSupervisor ? 'العملاء' : 'الرئيسية', icon: isSupervisor ? Users : HardHat },
           { id: 'projects', label: isSupervisor ? 'المشاريع' : 'مشاريعي', icon: HardHat },
           { id: 'payments', label: 'الدفعات', icon: Wallet },
           { id: 'profile', label: 'حسابي', icon: UserIcon },
@@ -665,24 +699,18 @@ export default function App() {
               key={item.id}
               onClick={() => { setActiveTab(item.id as any); setSelectedProject(null); }}
               className={`flex flex-col items-center justify-center py-2 px-3 rounded-2xl transition-all relative ${
-                isActive ? 'text-[#1C3022]' : 'text-slate-400 hover:text-slate-600'
+                isActive ? 'text-[#D0A97E]' : 'text-[#5E7A6B] hover:text-[#8EAB9B]'
               }`}
             >
-              {isActive && (
-                <motion.div 
-                  layoutId="activePill"
-                  className="absolute inset-0 bg-[#EFE7DC] rounded-2xl -z-10"
-                  transition={{ type: "spring", stiffness: 350, damping: 30 }}
-                />
-              )}
-              <Icon className={`w-5 h-5 transition-transform ${isActive ? 'scale-110 text-[#1C3022]' : ''}`} />
-              <span className={`text-[11px] mt-1 ${isActive ? 'font-black text-[#1C3022]' : 'font-bold'}`}>
+              <Icon className={`w-6 h-6 mb-1 transition-transform ${isActive ? 'scale-110' : ''}`} />
+              <span className={`text-[10px] ${isActive ? 'font-black' : 'font-bold'}`}>
                 {item.label}
               </span>
             </button>
           );
         })}
       </nav>
+      )}
 
       {/* SUPERVISOR ADMIN PROJECT MANAGER MODAL */}
       {adminManagingProject && (
@@ -919,113 +947,90 @@ function AuthFlow({
   return (
     <>
       {/* ========================================================================= */}
-      {/* 1. MOBILE VIEW ONLY (hidden on md & lg screens) - Clean, focused & simple */}
+      {/* 1. MOBILE VIEW ONLY (hidden on md & lg screens) - Match Image 1 */}
       {/* ========================================================================= */}
-      <div className="md:hidden min-h-screen bg-[#1C3022] flex flex-col justify-between p-6 max-w-md mx-auto relative overflow-hidden font-sans" dir="rtl">
-        {/* Architectural Background Blobs */}
-        <div className="absolute -top-24 -right-24 w-80 h-80 bg-[#C5B198]/15 rounded-full blur-3xl pointer-events-none"></div>
-        <div className="absolute -bottom-24 -left-24 w-80 h-80 bg-[#284430] rounded-full blur-2xl pointer-events-none"></div>
+      <div className="md:hidden min-h-screen flex flex-col justify-between p-6 w-full mx-auto relative overflow-hidden font-sans" dir="rtl" style={{ background: 'linear-gradient(to bottom, #1B2923, #0F1A15)' }}>
+        
+        {/* Subtle Background Elements */}
+        <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 50% 30%, #C5B198 0%, transparent 60%)' }}></div>
+        <div className="absolute -top-32 -right-32 w-96 h-96 bg-[#C5B198]/5 rounded-full blur-3xl pointer-events-none"></div>
 
-        {/* Top Branding Section */}
-        <div className="pt-8 pb-4 text-center relative z-10">
-          <div className="mx-auto flex items-center justify-center mb-3 transition-transform">
+        {/* Top Section */}
+        <div className="pt-16 pb-8 text-center relative z-10 flex flex-col items-center">
+          <div className="mx-auto flex items-center justify-center mb-4 transition-transform">
             <Logo size="xl" showText={false} />
           </div>
-          <h1 className="text-2xl font-black text-[#F8F5F0] tracking-wide">نماذج التميز</h1>
-          <p className="text-xs text-[#C5B198] font-bold mt-1">للمقاولات العامة والتطوير الإنشائي</p>
+          <h1 className="text-2xl font-black text-[#F8F5F0] tracking-wide mb-1">نماذج التميز</h1>
+          <p className="text-[11px] text-[#C5B198] font-bold">للمقاولات العامة والتطوير الإنشائي</p>
         </div>
 
-        {/* Main Authentication Card */}
-        <motion.div 
-          layout
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-white rounded-[2.5rem] p-7 shadow-2xl border border-[#C5B198]/30 relative z-10 my-auto text-[#192A1D] space-y-6"
-        >
-          <div className="text-center space-y-1.5">
-            <div className="w-12 h-12 bg-[#EFE7DC] rounded-2xl flex items-center justify-center mx-auto mb-2 text-[#1C3022]">
-              <ShieldCheck className="w-6 h-6" />
-            </div>
-            <h2 className="text-lg font-black text-[#1C3022]">بوابة العملاء والمشاريع</h2>
-            <p className="text-slate-500 text-xs font-medium leading-relaxed">
-              سجّل دخولك بحساب Google لمتابعة مراحل البناء، الدفعات، والتقارير الهندسية
-            </p>
-          </div>
+        {/* Middle Section */}
+        <div className="flex-1 flex flex-col items-center justify-center relative z-10 space-y-3 mb-8">
+          <h3 className="text-sm text-[#F8F5F0] font-medium opacity-90">مرحباً بك في</h3>
+          <h2 className="text-3xl font-black text-[#F8F5F0] tracking-wide">نماذج التميز</h2>
+          <p className="text-center text-xs text-[#EFE7DC]/70 max-w-xs leading-relaxed mt-2 font-medium">
+            حلول هندسية مبتكرة لتنفيذ مشاريعك<br />بأعلى معايير الجودة والاحترافية
+          </p>
+        </div>
 
+        {/* Bottom Section */}
+        <div className="relative z-10 w-full max-w-sm mx-auto pb-6 space-y-8">
           {/* Error Alert */}
           {errorMessage && (
             <motion.div 
               initial={{ opacity: 0, y: -5 }}
               animate={{ opacity: 1, y: 0 }}
-              className="p-3.5 bg-red-50 border border-red-200 text-red-700 text-xs font-bold rounded-2xl flex items-start gap-2.5"
+              className="p-3.5 bg-red-900/40 border border-red-500/30 text-red-200 text-xs font-bold rounded-2xl flex items-start gap-2.5 mb-4"
             >
-              <AlertCircle className="w-4 h-4 shrink-0 text-red-600 mt-0.5" />
+              <AlertCircle className="w-4 h-4 shrink-0 text-red-400 mt-0.5" />
               <span className="leading-relaxed">{errorMessage}</span>
             </motion.div>
           )}
 
           {/* Google Sign-in Button */}
-          <div className="space-y-3 pt-2">
-            <button
-              onClick={handleGoogleSignIn}
-              disabled={isLoading}
-              className="w-full bg-white hover:bg-slate-50 text-slate-800 border-2 border-[#E8E2D8] hover:border-[#1C3022] py-4 px-4 rounded-2xl font-black text-sm transition-all shadow-sm hover:shadow-md active:scale-[0.98] flex items-center justify-center gap-3 disabled:opacity-60 disabled:cursor-not-allowed group"
-            >
-              {isLoading ? (
-                <div className="flex items-center gap-2 text-[#1C3022]">
-                  <Loader2 className="w-5 h-5 animate-spin text-[#C5B198]" />
-                  <span>جاري تسجيل الدخول الآمن...</span>
-                </div>
-              ) : (
-                <>
-                  <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">
-                    <path
-                      fill="#4285F4"
-                      d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                    />
-                    <path
-                      fill="#34A853"
-                      d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                    />
-                    <path
-                      fill="#FBBC05"
-                      d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
-                    />
-                    <path
-                      fill="#EA4335"
-                      d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
-                    />
+          <button
+            onClick={handleGoogleSignIn}
+            disabled={isLoading}
+            className="w-full bg-gradient-to-r from-[#D0A97E] to-[#BE966C] hover:from-[#C29B70] hover:to-[#B0885E] text-[#1C3022] py-4 px-6 rounded-2xl font-black text-[15px] transition-all shadow-lg active:scale-[0.98] flex items-center justify-center gap-3 disabled:opacity-60 disabled:cursor-not-allowed group"
+          >
+            {isLoading ? (
+              <div className="flex items-center gap-2 text-[#1C3022]">
+                <Loader2 className="w-5 h-5 animate-spin" />
+                <span>جاري تسجيل الدخول...</span>
+              </div>
+            ) : (
+              <>
+                <span>تسجيل الدخول بحساب Google</span>
+                <div className="w-7 h-7 bg-white rounded-full flex items-center justify-center shrink-0 p-1.5 shadow-sm ml-1">
+                  <svg className="w-full h-full" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
                   </svg>
-                  <span className="text-[#192A1D] group-hover:text-black">
-                    المتابعة بحساب Google
-                  </span>
-                </>
-              )}
-            </button>
-          </div>
+                </div>
+              </>
+            )}
+          </button>
 
           {/* Security and Terms Notes */}
-          <div className="pt-2 text-center space-y-2">
-            <p className="text-[11px] text-slate-500 leading-relaxed">
-              بالتسجيل والمتابعة فإنك توافق على{' '}
+          <div className="text-center space-y-6">
+            <div className="text-[11px] text-[#EFE7DC]/60 leading-relaxed font-medium">
+              <p>بالتسجيل، فإنك توافق على</p>
               <button
                 type="button"
                 onClick={() => setShowTermsModal(true)}
-                className="text-[#A99379] font-black underline hover:text-[#1C3022]"
+                className="text-[#D0A97E] font-bold hover:text-[#EFE7DC] mt-1 transition-colors"
               >
                 شروط الخدمة وسياسة الخصوصية
               </button>
-            </p>
-            <div className="flex items-center justify-center gap-1.5 text-[10px] text-emerald-800 font-bold bg-emerald-50 py-2 px-3 rounded-xl border border-emerald-200/60">
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-700 shrink-0" />
-              <span>توثيق مشفر عبر Firebase Google Authentication</span>
+            </div>
+            
+            <div className="flex items-center justify-center gap-2 text-[11px] text-[#D0A97E]/80 font-bold">
+              <ShieldCheck className="w-4 h-4 shrink-0" />
+              <span>توثيق آمن عبر Firebase</span>
             </div>
           </div>
-        </motion.div>
-
-        {/* Mobile Footer */}
-        <div className="text-center text-[11px] text-[#F8F5F0]/60 pb-2 relative z-10">
-          جميع الحقوق محفوظة © {new Date().getFullYear()} نماذج التميز للمقاولات
         </div>
       </div>
 
@@ -1413,28 +1418,28 @@ function AuthFlow({
           <motion.div 
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className="bg-white max-w-md w-full rounded-[2.5rem] p-7 shadow-2xl border border-[#E8E2D8] text-[#192A1D] space-y-5"
+            className="bg-[#122119] max-w-md w-full rounded-[2.5rem] p-8 shadow-2xl border border-[#2A3A2F] text-[#F8F5F0] space-y-6"
           >
-            <div className="flex justify-between items-center pb-3 border-b border-[#E8E2D8]">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-xl bg-[#EFE7DC] flex items-center justify-center text-[#1C3022]">
-                  <FileText className="w-4 h-4" />
+            <div className="flex justify-between items-center pb-4 border-b border-[#2A3A2F]">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-[#0B1510] border border-[#2A3A2F] flex items-center justify-center text-[#D0A97E]">
+                  <FileText className="w-5 h-5" />
                 </div>
-                <h3 className="text-base font-black text-[#1C3022]">الشروط والأحكام وسياسة الخصوصية</h3>
+                <h3 className="text-base font-black text-[#F8F5F0]">الشروط والأحكام</h3>
               </div>
-              <button onClick={() => setShowTermsModal(false)} className="p-1 text-slate-400 hover:text-slate-600">
-                <X className="w-5 h-5" />
+              <button onClick={() => setShowTermsModal(false)} className="p-2 bg-[#0B1510] text-[#F8F5F0]/50 hover:text-[#F8F5F0] hover:bg-[#1A2E23] rounded-full border border-[#2A3A2F] transition-colors">
+                <X className="w-4 h-4" />
               </button>
             </div>
-            <div className="text-xs text-slate-600 space-y-3 max-h-72 overflow-y-auto leading-relaxed pr-1 font-medium">
-              <p>1. <strong>الربط السحابي:</strong> يعد تسجيل الدخول عبر حساب Google موافقة رسمية على ربط مشاريعك الهندسية وملفاتك وعروض الأسعار بالبريد الإلكتروني المعتمد.</p>
-              <p>2. <strong>سندات الدفعات:</strong> جميع الدفعات المسددة عبر التطبيق (Apple Pay / بطاقات مدى / فيزا) يتم توثيقها بسندات إلكترونية رسمية معتمدة ومحفوظة في حسابك.</p>
-              <p>3. <strong>سرية المخططات:</strong> تلتزم مؤسسة نماذج التميز بأعلى معايير الأمان لحماية بيانات العملاء ومخططات البناء والتقارير الهندسية وفق الأنظمة واللوائح المعمول بها في المملكة العربية السعودية.</p>
-              <p>4. <strong>التوقيع الرقمي:</strong> يُعتد بالتوقيع الرقمي المعتمد داخل التطبيق للعقود ومحاضر الاستلام الإنشائية.</p>
+            <div className="text-xs text-[#F8F5F0]/70 space-y-4 max-h-72 overflow-y-auto leading-relaxed pr-1 font-bold">
+              <p>1. <strong className="text-[#D0A97E]">الربط السحابي:</strong> يعد تسجيل الدخول عبر حساب Google موافقة رسمية على ربط مشاريعك الهندسية وملفاتك وعروض الأسعار بالبريد الإلكتروني المعتمد.</p>
+              <p>2. <strong className="text-[#D0A97E]">سندات الدفعات:</strong> جميع الدفعات المسددة عبر التطبيق (Apple Pay / بطاقات مدى / فيزا) يتم توثيقها بسندات إلكترونية رسمية معتمدة ومحفوظة في حسابك.</p>
+              <p>3. <strong className="text-[#D0A97E]">سرية المخططات:</strong> تلتزم مؤسسة نماذج التميز بأعلى معايير الأمان لحماية بيانات العملاء ومخططات البناء والتقارير الهندسية وفق الأنظمة واللوائح المعمول بها في المملكة العربية السعودية.</p>
+              <p>4. <strong className="text-[#D0A97E]">التوقيع الرقمي:</strong> يُعتد بالتوقيع الرقمي المعتمد داخل التطبيق للعقود ومحاضر الاستلام الإنشائية.</p>
             </div>
             <button
               onClick={() => setShowTermsModal(false)}
-              className="w-full bg-[#1C3022] text-[#F8F5F0] py-3.5 rounded-xl font-bold text-xs hover:bg-[#122116] transition-all shadow-md active:scale-[0.98]"
+              className="w-full bg-[#D0A97E] text-[#1C3022] py-4 rounded-[1.5rem] font-black text-[15px] hover:bg-[#C29B70] transition-all shadow-md active:scale-[0.98]"
             >
               موافق وإغلاق
             </button>
@@ -1477,13 +1482,13 @@ function HomeView({
       {/* Welcome Banner */}
       <div className="flex items-center justify-between">
         <div>
-          <span className="text-[11px] font-black text-[#A99379] tracking-wider">مرحباً بك</span>
-          <h2 className="text-xl font-black text-[#1C3022]">{user.name}</h2>
-          <p className="text-slate-400 text-xs font-bold flex items-center gap-1 mt-0.5">
-            <Mail className="w-3 h-3 text-[#C5B198]" /> {user.email || user.phone}
+          <span className="text-[11px] font-black text-[#D0A97E] tracking-wider">مرحباً بك</span>
+          <h2 className="text-xl font-black text-[#F8F5F0]">{user.name}</h2>
+          <p className="text-[#F8F5F0]/60 text-xs font-bold flex items-center gap-1 mt-0.5">
+            <Mail className="w-3 h-3 text-[#D0A97E]" /> {user.email || user.phone}
           </p>
         </div>
-        <div className="w-12 h-12 rounded-2xl bg-[#EFE7DC] border border-[#C5B198]/40 flex items-center justify-center text-[#1C3022] shadow-sm overflow-hidden">
+        <div className="w-14 h-14 rounded-full bg-[#122119] border border-[#2A3A2F] flex items-center justify-center text-[#D0A97E] shadow-inner overflow-hidden">
           {user.photoURL ? (
             <img src={user.photoURL} alt={user.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
           ) : (
@@ -1494,27 +1499,27 @@ function HomeView({
 
       {/* 7-Day Overdue Payment Alert Banner */}
       {overdue7DaysItem && (
-        <div className="bg-red-50 border-2 border-red-200 rounded-3xl p-5 shadow-sm space-y-3">
+        <div className="bg-red-900/20 border border-red-500/30 rounded-[2rem] p-6 shadow-sm space-y-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-red-900 font-black text-xs">
-              <div className="w-7 h-7 rounded-xl bg-red-100 flex items-center justify-center text-red-700 shrink-0">
+            <div className="flex items-center gap-2 text-red-400 font-black text-xs">
+              <div className="w-8 h-8 rounded-full bg-red-950/50 flex items-center justify-center text-red-400 shrink-0 border border-red-500/20">
                 <AlertTriangle className="w-4 h-4" />
               </div>
-              <span>تنبيه سداد دفعة متأخرة (+{overdue7DaysItem.overdue.daysOverdue} يوم)</span>
+              <span>تنبيه سداد متأخر (+{overdue7DaysItem.overdue.daysOverdue} يوم)</span>
             </div>
-            <span className="text-[10px] font-black bg-red-200 text-red-900 px-2 py-0.5 rounded-full">
+            <span className="text-[10px] font-black bg-red-950/50 text-red-400 border border-red-500/30 px-3 py-1 rounded-full">
               عاجل
             </span>
           </div>
-          <p className="text-[11px] text-red-800 leading-relaxed font-medium">
-            نود تذكيركم بموعد سداد دفعة <strong>({overdue7DaysItem.installment.title})</strong> بقيمة <strong>{overdue7DaysItem.installment.amount}</strong> لمشروع <strong>{overdue7DaysItem.project.title}</strong> والمتأخرة عن تاريخ استحقاقها منذ أكثر من 7 أيام. يرجى المبادرة بالسداد عبر التطبيق لتجنب تأخير جدول الأعمال الإنشائية.
+          <p className="text-[11px] text-red-300 leading-relaxed font-bold">
+            نود تذكيركم بموعد سداد دفعة <strong>({overdue7DaysItem.installment.title})</strong> بقيمة <strong>{overdue7DaysItem.installment.amount}</strong> لمشروع <strong>{overdue7DaysItem.project.title}</strong>. يرجى المبادرة بالسداد عبر التطبيق لتجنب تأخير الأعمال الإنشائية.
           </p>
           <button
             onClick={onGoToPayments}
-            className="w-full bg-red-700 text-white py-2.5 rounded-xl font-black text-xs hover:bg-red-800 transition-all flex items-center justify-center gap-2 active:scale-[0.98] shadow-sm"
+            className="w-full bg-red-900/60 border border-red-500/40 text-red-100 py-3 rounded-xl font-black text-xs hover:bg-red-900/80 transition-all flex items-center justify-center gap-2 active:scale-[0.98]"
           >
-            <Smartphone className="w-3.5 h-3.5" />
-            <span>الانتقال لجدول الدفعات والسداد الآن</span>
+            <Smartphone className="w-4 h-4" />
+            <span>سداد الدفعة الآن</span>
           </button>
         </div>
       )}
@@ -1749,31 +1754,41 @@ function ProjectsListView({
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-black text-[#1C3022]">ملفات ومشاريع حسابك</h3>
-          <p className="text-xs text-slate-500">متابعة العقود، نسب الإنجاز وطلبات المشرف الموثقة</p>
+          <h3 className="text-lg font-black text-[#F8F5F0]">ملفات ومشاريع حسابك</h3>
+          <p className="text-xs text-[#F8F5F0]/60 mt-1">متابعة العقود، نسب الإنجاز والمستندات</p>
         </div>
-        <span className="px-3 py-1 bg-[#EFE7DC] text-[#1C3022] rounded-full text-xs font-black">
+        <span className="px-3 py-1 bg-[#122119] border border-[#2A3A2F] text-[#D0A97E] rounded-full text-xs font-black">
           {projects.length} مشاريع
         </span>
       </div>
 
       {projects.length === 0 ? (
-        <div className="bg-white rounded-3xl p-8 text-center border border-[#E8E2D8] space-y-4">
-          <div className="w-14 h-14 bg-[#FAF7F2] rounded-2xl flex items-center justify-center mx-auto text-[#A99379] border border-[#E8E2D8]">
-            <HardHat className="w-7 h-7" />
+        <div className="bg-[#122119] rounded-[2rem] p-10 text-center border border-[#2A3A2F] flex flex-col items-center justify-center min-h-[50vh] space-y-6">
+          <div className="mx-auto text-[#D0A97E] opacity-80 mb-2">
+            <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M4 22h14" />
+              <path d="M12 22V8" />
+              <path d="M8 8h8" />
+              <path d="M12 8l-4-4" />
+              <path d="M12 8l4-4" />
+              <path d="M7 4h10" />
+              <path d="M9 12h6" />
+              <path d="M9 16h6" />
+              <path d="M6 22v-4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v4" />
+            </svg>
           </div>
-          <div>
-            <h4 className="font-black text-sm text-[#1C3022]">لا توجد مشاريع مضافة لحسابك حالياً</h4>
-            <p className="text-xs text-slate-500 mt-1 max-w-xs mx-auto leading-relaxed">
-              يمكنك طلب عرض سعر جديد لبدء مشروعك الإنشائي، وسيتم إدراجه هنا فوراً ومزامنته مع المهندس المشرف.
+          <div className="space-y-3">
+            <h4 className="font-black text-lg text-[#F8F5F0]">لا توجد مشاريع حالياً</h4>
+            <p className="text-sm text-[#F8F5F0]/60 max-w-[200px] mx-auto leading-relaxed font-bold">
+              يمكنك طلب عرض سعر جديد لبدء مشروعك القادم
             </p>
           </div>
           <button
             onClick={onRequestQuote}
-            className="bg-[#1C3022] text-[#F8F5F0] px-5 py-3 rounded-2xl text-xs font-black inline-flex items-center gap-2 hover:bg-[#122116] shadow-sm"
+            className="w-full max-w-[240px] bg-[#D0A97E] text-[#1C3022] px-6 py-4 rounded-[1.5rem] text-sm font-black flex items-center justify-between hover:bg-[#C29B70] transition-all shadow-md active:scale-95 mt-4"
           >
-            <Plus className="w-4 h-4 stroke-[3]" />
-            <span>طلب عرض سعر مشروع جديد</span>
+            <span>طلب عرض سعر جديد</span>
+            <Plus className="w-5 h-5 stroke-[2.5]" />
           </button>
         </div>
       ) : (
@@ -1897,40 +1912,44 @@ function PaymentsView({
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-black text-[#1C3022]">الدفعات والمستحقات</h3>
-          <p className="text-xs text-slate-500">سداد إلكتروني معتمد مع إصدار سندات قبض رسمية</p>
+          <h3 className="text-lg font-black text-[#F8F5F0]">الدفعات والمستحقات</h3>
+          <p className="text-xs text-[#F8F5F0]/60 mt-1">سداد إلكتروني معتمد ومستندات قبض</p>
         </div>
-        <div className="w-9 h-9 rounded-xl bg-[#EFE7DC] flex items-center justify-center text-[#1C3022]">
-          <Wallet className="w-5 h-5 text-[#A99379]" />
+        <div className="w-10 h-10 rounded-xl bg-[#122119] border border-[#2A3A2F] flex items-center justify-center text-[#D0A97E] shadow-inner">
+          <Wallet className="w-5 h-5" />
         </div>
       </div>
 
       {/* Top Overdue Notice if exists */}
       {anyOverdue7Days && (
-        <div className="bg-red-50 border-2 border-red-200 rounded-3xl p-4 flex items-center gap-3">
-          <div className="w-9 h-9 rounded-2xl bg-red-100 flex items-center justify-center text-red-700 shrink-0">
+        <div className="bg-red-900/20 border border-red-500/30 rounded-[1.5rem] p-4 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-red-950/50 flex items-center justify-center text-red-400 shrink-0 border border-red-500/20">
             <AlertTriangle className="w-5 h-5" />
           </div>
           <div>
-            <h4 className="text-xs font-black text-red-900">تنبيه: لديك دفعات متأخرة عن موعدها</h4>
-            <p className="text-[11px] text-red-700 mt-0.5 font-medium">
-              تجاوزت بعض الدفعات موعد استحقاقها بأكثر من 7 أيام. يرجى السداد لتفادي تأخر مراحل البناء.
+            <h4 className="text-xs font-black text-red-400">تنبيه: لديك دفعات متأخرة</h4>
+            <p className="text-[11px] text-red-300 mt-1 font-bold">
+              تجاوزت بعض الدفعات موعدها بأكثر من 7 أيام. يرجى السداد.
             </p>
           </div>
         </div>
       )}
 
       {allInstallments.length === 0 ? (
-        <div className="bg-white rounded-3xl p-8 text-center border border-[#E8E2D8] space-y-3">
-          <CreditCard className="w-10 h-10 text-[#C5B198] mx-auto" />
-          <h4 className="font-black text-sm text-[#1C3022]">لا توجد دفعات مالية مستحقة حالياً</h4>
-          <p className="text-xs text-slate-500">سيتم إدراج جدول الدفعات فور توثيق عقد المشروع واعتماد خطة التنفيذ.</p>
+        <div className="bg-[#122119] rounded-[2rem] p-10 text-center border border-[#2A3A2F] space-y-4">
+          <div className="w-16 h-16 bg-[#0B1510] border border-[#2A3A2F] rounded-full flex items-center justify-center mx-auto text-[#D0A97E]">
+            <CreditCard className="w-8 h-8" />
+          </div>
+          <div>
+            <h4 className="font-black text-sm text-[#F8F5F0]">لا توجد دفعات مالية حالياً</h4>
+            <p className="text-xs text-[#F8F5F0]/60 mt-1.5 font-bold leading-relaxed max-w-[220px] mx-auto">سيتم إدراج جدول الدفعات فور توثيق عقد المشروع واعتماد خطة التنفيذ.</p>
+          </div>
         </div>
       ) : (
         projects.map(p => (
-          <div key={p.id} className="space-y-3">
-            <div className="flex items-center gap-2 text-xs font-black text-[#1C3022] bg-[#FAF7F2] px-3.5 py-2 rounded-xl border border-[#E8E2D8]">
-              <Building2 className="w-4 h-4 text-[#A99379]" />
+          <div key={p.id} className="space-y-4">
+            <div className="flex items-center gap-2 text-xs font-black text-[#D0A97E] bg-[#122119] px-4 py-2.5 rounded-xl border border-[#2A3A2F]">
+              <Building2 className="w-4 h-4 text-[#D0A97E]" />
               <span>مشروع: {p.title}</span>
             </div>
 
@@ -2029,11 +2048,11 @@ function PaymentsView({
                             onClick={() => onPay(p, i)} 
                             className={`px-4 py-2 rounded-xl text-xs font-black flex items-center gap-1.5 transition-all active:scale-[0.98] ${
                               isOverdue7 
-                                ? 'bg-red-700 hover:bg-red-800 text-white shadow-sm' 
-                                : 'bg-black hover:bg-neutral-800 text-white'
+                                ? 'bg-red-900/60 hover:bg-red-900/80 border border-red-500/40 text-red-100 shadow-sm' 
+                                : 'bg-[#D0A97E] hover:bg-[#C29B70] text-[#1C3022]'
                             }`}
                           >
-                            <Smartphone className="w-3.5 h-3.5 text-white" />
+                            <Smartphone className="w-4 h-4" />
                             <span>سداد الآن</span>
                           </button>
                         </div>
@@ -2079,72 +2098,73 @@ function ProjectDetailView({
       <div className="flex items-center justify-between">
         <button 
           onClick={onBack}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-[#E8E2D8] text-xs font-black text-[#1C3022] hover:bg-[#FAF7F2]"
+          className="flex items-center gap-2 px-4 py-2 rounded-[1rem] bg-[#122119] border border-[#2A3A2F] text-xs font-black text-[#F8F5F0] hover:bg-[#1A2E23] transition-colors"
         >
-          <ChevronRight className="w-4 h-4" />
+          <ChevronRight className="w-4 h-4 text-[#D0A97E]" />
           <span>رجوع للمشاريع</span>
         </button>
         <button
           onClick={onOpenCustomization}
-          className="px-3.5 py-1.5 bg-[#1C3022] text-[#F8F5F0] rounded-xl text-xs font-black flex items-center gap-1.5 hover:bg-[#122116]"
+          className="px-4 py-2 bg-[#D0A97E] text-[#1C3022] rounded-[1rem] text-xs font-black flex items-center gap-2 hover:bg-[#C29B70] transition-colors"
         >
-          <Sliders className="w-3.5 h-3.5 text-[#C5B198]" />
+          <Sliders className="w-4 h-4" />
           <span>تخصيص المشروع</span>
         </button>
       </div>
 
       {/* Project Title and Overview */}
-      <div className="bg-white rounded-3xl p-5 border border-[#E8E2D8] shadow-sm space-y-4">
+      <div className="bg-[#122119] rounded-[2rem] p-6 border border-[#2A3A2F] shadow-sm space-y-5">
         <div>
-          <h2 className="text-xl font-black text-[#1C3022]">{project.title}</h2>
-          <p className="text-xs text-slate-500 font-bold flex items-center gap-1 mt-1">
-            <MapPin className="w-3.5 h-3.5 text-[#A99379]" /> {project.location}
+          <h2 className="text-xl font-black text-[#F8F5F0]">{project.title}</h2>
+          <p className="text-xs text-[#F8F5F0]/60 font-bold flex items-center gap-1.5 mt-2">
+            <MapPin className="w-3.5 h-3.5 text-[#D0A97E]" /> {project.location}
           </p>
         </div>
 
         {/* Progress Display */}
-        <div className="bg-[#FAF7F2] p-4 rounded-2xl border border-[#E8E2D8] flex items-center justify-between">
+        <div className="bg-[#0B1510] p-5 rounded-[1.5rem] border border-[#2A3A2F] flex items-center justify-between">
           <div>
-            <span className="text-[10px] font-black text-[#A99379] block">نسبة الإنجاز الفعلية</span>
-            <span className="text-2xl font-black text-[#1C3022]">{project.progress}%</span>
+            <span className="text-[11px] font-black text-[#D0A97E] block mb-1">نسبة الإنجاز الفعلية</span>
+            <span className="text-3xl font-black text-[#F8F5F0]">{project.progress}%</span>
           </div>
-          <div className="w-14 h-14 relative flex items-center justify-center">
+          <div className="w-16 h-16 relative flex items-center justify-center">
             <svg className="w-full h-full transform -rotate-90">
-              <circle cx="28" cy="28" r="22" stroke="currentColor" strokeWidth="5" fill="transparent" className="text-[#E8E2D8]" />
+              <circle cx="32" cy="32" r="26" stroke="currentColor" strokeWidth="6" fill="transparent" className="text-[#1A2E23]" />
               <circle 
-                cx="28" 
-                cy="28" 
-                r="22" 
+                cx="32" 
+                cy="32" 
+                r="26" 
                 stroke="currentColor" 
-                strokeWidth="5" 
+                strokeWidth="6" 
                 fill="transparent" 
-                className="text-[#1C3022]" 
-                strokeDasharray={138.2} 
-                strokeDashoffset={138.2 - (138.2 * project.progress) / 100} 
+                className="text-[#D0A97E] drop-shadow-[0_0_8px_rgba(208,169,126,0.4)]" 
+                strokeDasharray={163.3} 
+                strokeDashoffset={163.3 - (163.3 * project.progress) / 100} 
+                strokeLinecap="round"
               />
             </svg>
-            <HardHat className="w-5 h-5 text-[#A99379] absolute" />
+            <HardHat className="w-6 h-6 text-[#D0A97E] absolute" />
           </div>
         </div>
       </div>
 
       {/* Project Stages Gallery */}
-      <div className="bg-white rounded-3xl p-5 border border-[#E8E2D8] shadow-sm space-y-4">
+      <div className="bg-[#122119] rounded-[2rem] p-6 border border-[#2A3A2F] shadow-sm space-y-5">
         <div className="flex items-center justify-between">
-          <h3 className="font-black text-sm text-[#1C3022]">صور ومخططات المشروع</h3>
-          <span className="text-[11px] text-[#A99379] font-bold">تحديثات ميدانية</span>
+          <h3 className="font-black text-sm text-[#F8F5F0]">صور ومخططات المشروع</h3>
+          <span className="text-[11px] text-[#D0A97E] font-bold">تحديثات ميدانية</span>
         </div>
 
         {/* Stage Selector Pills */}
-        <div className="flex gap-1.5 bg-[#FAF7F2] p-1.5 rounded-2xl border border-[#E8E2D8] overflow-x-auto">
+        <div className="flex gap-2 bg-[#0B1510] p-2 rounded-[1.5rem] border border-[#2A3A2F] overflow-x-auto no-scrollbar">
           {(['before', 'progress50', 'after', 'plans'] as const).map(stage => (
             <button
               key={stage}
               onClick={() => setActiveStage(stage)}
-              className={`flex-1 py-2 px-2.5 rounded-xl text-[11px] font-black whitespace-nowrap transition-all ${
+              className={`flex-1 py-2.5 px-3 rounded-xl text-[11px] font-black whitespace-nowrap transition-all ${
                 activeStage === stage 
-                  ? 'bg-[#1C3022] text-[#F8F5F0] shadow-sm' 
-                  : 'text-slate-500 hover:text-[#1C3022]'
+                  ? 'bg-[#D0A97E] text-[#1C3022] shadow-sm' 
+                  : 'text-[#F8F5F0]/50 hover:text-[#D0A97E] hover:bg-[#1A2E23]'
               }`}
             >
               {stageLabels[stage]}
@@ -2153,20 +2173,20 @@ function ProjectDetailView({
         </div>
 
         {/* Stage Images */}
-        <div className="grid grid-cols-2 gap-2.5">
+        <div className="grid grid-cols-2 gap-3">
           {project.images[activeStage]?.length > 0 ? (
             project.images[activeStage].map((imgUrl, idx) => (
-              <div key={idx} className="h-32 rounded-2xl overflow-hidden border border-[#E8E2D8] relative group bg-slate-100">
+              <div key={idx} className="h-36 rounded-[1.25rem] overflow-hidden border border-[#2A3A2F] relative group bg-[#0B1510]">
                 <img 
                   src={imgUrl} 
                   alt={`${project.title} - ${stageLabels[activeStage]}`} 
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   referrerPolicy="no-referrer"
                 />
               </div>
             ))
           ) : (
-            <div className="col-span-2 py-8 text-center text-xs text-slate-400 font-bold bg-[#FAF7F2] rounded-2xl border border-[#E8E2D8]">
+            <div className="col-span-2 py-10 text-center text-xs text-[#F8F5F0]/40 font-bold bg-[#0B1510] rounded-[1.5rem] border border-[#2A3A2F] border-dashed">
               لا توجد صور مضافة لهذه المرحلة بعد
             </div>
           )}
@@ -2187,7 +2207,8 @@ function ProfileView({
   onLogout,
   onRequestDeleteAccount,
   onUpdateUser,
-  onSelectClientProjects
+  onSelectClientProjects,
+  onOpenSupportModal
 }: {
   user: User;
   projects: Project[];
@@ -2197,6 +2218,7 @@ function ProfileView({
   onRequestDeleteAccount: () => void;
   onUpdateUser: (u: User) => void;
   onSelectClientProjects?: (clientId: string) => void;
+  onOpenSupportModal: () => void;
 }) {
   const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState(user.name);
@@ -2227,106 +2249,131 @@ function ProfileView({
 
   return (
     <div className="space-y-6" dir="rtl">
-      <div className="bg-white rounded-3xl p-6 border border-[#E8E2D8] shadow-sm text-center space-y-3">
-        <div className="w-20 h-20 bg-[#EFE7DC] rounded-full mx-auto flex items-center justify-center text-[#1C3022] border-2 border-[#C5B198]/40 shadow-inner overflow-hidden">
+      <div className="bg-[#F4EFE6] rounded-[2rem] p-6 border-none shadow-sm flex items-center gap-4">
+        <div className="w-[72px] h-[72px] bg-slate-200 rounded-full flex items-center justify-center text-slate-500 overflow-hidden shrink-0">
           {user.photoURL ? (
             <img src={user.photoURL} alt={user.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
           ) : (
-            <UserIcon className="w-10 h-10" />
+            <UserIcon className="w-8 h-8" />
           )}
         </div>
-        <div>
-          <div className="flex items-center justify-center gap-2">
+        <div className="flex-1 flex flex-col justify-center">
+          <div className="flex items-center gap-2">
             <h2 className="text-lg font-black text-[#1C3022]">{user.name}</h2>
+            <div className="w-5 h-5 bg-[#E8E2D8] rounded-full flex items-center justify-center text-[#1C3022]">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+            </div>
             {isSupervisor && (
               <span className="bg-[#1C3022] text-[#C5B198] text-[10px] font-black px-2 py-0.5 rounded-md">
-                مشرف عام
+                مشرف
               </span>
             )}
           </div>
-          <p className="text-xs text-slate-500 font-bold mt-1" dir="ltr">{user.email || user.phone || 'حساب موثق'}</p>
-          <div className="inline-flex items-center gap-1 mt-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 text-[10px] font-bold border border-emerald-200">
-            <ShieldCheck className="w-3 h-3 text-emerald-600" />
-            <span>{isSupervisor ? 'حساب الإدارة والتحكم الشامل' : 'حساب Google معتمد وموثق'}</span>
+          <p className="text-xs text-slate-500 font-bold mt-0.5" dir="ltr">{user.email || user.phone}</p>
+          <div className="inline-flex items-center gap-1.5 mt-2.5 px-3 py-1 rounded-full bg-black/5 text-[#1C3022] text-[11px] font-bold w-fit">
+            <span>حساب Google</span>
+            <ShieldCheck className="w-3.5 h-3.5" />
           </div>
         </div>
       </div>
 
       {/* Account Info Details */}
-      <div className="bg-white rounded-3xl p-5 border border-[#E8E2D8] shadow-sm space-y-4">
-        <div className="flex items-center justify-between pb-2 border-b border-[#F0EBE1]">
-          <h3 className="text-sm font-black text-[#1C3022]">بيانات الحساب والتوثيق</h3>
+      <div className="bg-[#122119] rounded-[2rem] p-6 border border-[#2A3A2F] shadow-sm space-y-4">
+        <div className="flex items-center justify-between pb-3 border-b border-[#2A3A2F]">
+          <h3 className="text-sm font-black text-[#F8F5F0]">بيانات الحساب</h3>
           <button
             onClick={() => setIsEditing(!isEditing)}
-            className="text-xs font-black text-[#A99379] hover:underline"
+            className="text-xs font-black text-[#D0A97E] hover:underline flex items-center gap-1"
           >
-            {isEditing ? 'إلغاء' : 'تعديل البيانات'}
+            {isEditing ? 'إلغاء' : 'تعديل البيانات 1'}
           </button>
         </div>
 
         {isEditing ? (
-          <form onSubmit={handleSave} className="space-y-3">
+          <form onSubmit={handleSave} className="space-y-4">
             <div>
-              <label className="block text-[11px] font-black text-slate-700 mb-1">الاسم الكامل</label>
+              <label className="block text-[11px] font-black text-[#D0A97E] mb-1.5">الاسم الكامل</label>
               <input
                 type="text"
                 value={name}
                 onChange={e => setName(e.target.value)}
                 required
-                className="w-full bg-[#FAF7F2] border border-[#E8E2D8] rounded-xl p-2.5 text-xs font-bold text-[#1C3022] outline-none"
+                className="w-full bg-[#0B1510] border border-[#2A3A2F] rounded-xl p-3 text-xs font-bold text-[#F8F5F0] outline-none focus:border-[#D0A97E]"
               />
             </div>
             <div>
-              <label className="block text-[11px] font-black text-slate-700 mb-1">البريد الإلكتروني</label>
+              <label className="block text-[11px] font-black text-[#D0A97E] mb-1.5">البريد الإلكتروني</label>
               <input
                 type="email"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 placeholder="example@mail.com"
-                className="w-full bg-[#FAF7F2] border border-[#E8E2D8] rounded-xl p-2.5 text-xs font-bold text-[#1C3022] outline-none"
+                className="w-full bg-[#0B1510] border border-[#2A3A2F] rounded-xl p-3 text-xs font-bold text-[#F8F5F0] outline-none focus:border-[#D0A97E]"
               />
             </div>
             <div>
-              <label className="block text-[11px] font-black text-slate-700 mb-1">رقم التواصل (اختياري)</label>
+              <label className="block text-[11px] font-black text-[#D0A97E] mb-1.5">رقم التواصل (اختياري)</label>
               <input
                 type="tel"
                 value={phone}
                 onChange={e => setPhone(e.target.value)}
                 placeholder="05XXXXXXXX"
-                className="w-full bg-[#FAF7F2] border border-[#E8E2D8] rounded-xl p-2.5 text-xs font-bold text-[#1C3022] outline-none"
+                className="w-full bg-[#0B1510] border border-[#2A3A2F] rounded-xl p-3 text-xs font-bold text-[#F8F5F0] outline-none focus:border-[#D0A97E]"
                 dir="ltr"
               />
             </div>
             <button
               type="submit"
               disabled={isSaving}
-              className="w-full bg-[#1C3022] text-white py-2.5 rounded-xl font-black text-xs hover:bg-[#122116] flex items-center justify-center gap-2"
+              className="w-full bg-[#D0A97E] text-[#1C3022] py-3.5 rounded-xl font-black text-xs hover:bg-[#C29B70] flex items-center justify-center gap-2 transition-colors"
             >
               {isSaving && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
               <span>حفظ التعديلات في السحابة</span>
             </button>
           </form>
         ) : (
-          <div className="space-y-2.5 text-xs">
-            <div className="flex justify-between py-1.5 border-b border-slate-50">
-              <span className="text-slate-400 font-bold">الاسم:</span>
-              <span className="font-black text-[#1C3022]">{user.name}</span>
+          <div className="space-y-4 text-sm font-bold">
+            <div className="flex justify-between py-2 border-b border-[#2A3A2F]">
+              <span className="text-[#D0A97E]">الاسم الكامل</span>
+              <span className="text-[#F8F5F0]">{user.name}</span>
             </div>
-            <div className="flex justify-between py-1.5 border-b border-slate-50">
-              <span className="text-slate-400 font-bold">البريد الإلكتروني:</span>
-              <span className="font-bold text-[#1C3022]">{user.email || 'غير مسجل'}</span>
+            <div className="flex justify-between py-2 border-b border-[#2A3A2F]">
+              <span className="text-[#D0A97E]">البريد الإلكتروني</span>
+              <span className="text-[#F8F5F0]">{user.email || 'غير مسجل'}</span>
             </div>
-            <div className="flex justify-between py-1.5 border-b border-slate-50">
-              <span className="text-slate-400 font-bold">رقم التواصل:</span>
-              <span className="font-bold text-[#1C3022]" dir="ltr">{user.phone || 'غير مسجل'}</span>
+            <div className="flex justify-between py-2 border-b border-[#2A3A2F]">
+              <span className="text-[#D0A97E]">رقم الجوال</span>
+              <span className="text-[#F8F5F0]" dir="ltr">{user.phone || 'غير مسجل'}</span>
             </div>
-            <div className="flex justify-between py-1.5">
-              <span className="text-slate-400 font-bold">نوع الحساب:</span>
-              <span className="font-black text-[#1C3022]">{isSupervisor ? 'مشرف عام النظام' : 'عميل'}</span>
+            <div className="flex justify-between py-2">
+              <span className="text-[#D0A97E]">نوع الحساب</span>
+              <span className="text-[#F8F5F0]">{isSupervisor ? 'مشرف عام النظام' : 'عميل'}</span>
             </div>
           </div>
         )}
       </div>
+
+      {/* Customer Support Direct Chat Button */}
+      {!isSupervisor && (
+        <button
+          type="button"
+          onClick={onOpenSupportModal}
+          className="w-full bg-[#1C3022] hover:bg-[#122116] text-[#F8F5F0] py-3 px-4 rounded-2xl font-black text-xs flex items-center justify-between shadow-sm transition-all active:scale-[0.98] border border-[#C5B198]/30 group"
+        >
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-[#C5B198] text-[#1C3022] flex items-center justify-center font-black shadow-sm group-hover:scale-105 transition-transform">
+              <Headphones className="w-4 h-4" />
+            </div>
+            <div className="text-right">
+              <span className="font-black text-xs text-[#F8F5F0] block">خدمة العملاء (محادثة فورية)</span>
+              <span className="text-[10px] text-[#C5B198] font-bold block">mfb.15.srt@gmail.com</span>
+            </div>
+          </div>
+          <div className="w-6 h-6 rounded-lg bg-white/10 flex items-center justify-center text-[#C5B198] group-hover:translate-x-[-2px] transition-transform">
+            <ChevronLeft className="w-3.5 h-3.5" />
+          </div>
+        </button>
+      )}
 
       {/* Supervisor: Clean and Compact Clients Directory Button */}
       {isSupervisor && (

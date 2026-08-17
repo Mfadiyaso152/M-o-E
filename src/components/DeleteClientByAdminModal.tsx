@@ -68,7 +68,7 @@ export function DeleteClientByAdminModal({
         initial={{ y: '100%', opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         exit={{ y: '100%', opacity: 0 }}
-        className="bg-white w-full max-w-md rounded-t-[2.5rem] sm:rounded-[2.5rem] p-6 shadow-2xl border-t sm:border border-red-200 text-[#192A1D] space-y-4 max-h-[92vh] overflow-y-auto"
+        className="bg-[#122119] w-full max-w-md rounded-t-[2.5rem] sm:rounded-[2.5rem] p-6 shadow-2xl border-t sm:border border-red-200 text-[#F8F5F0] space-y-4 max-h-[92vh] overflow-y-auto"
       >
         <div className="w-12 h-1.5 bg-[#E8E2D8] rounded-full mx-auto mb-2 sm:hidden"></div>
 
@@ -80,24 +80,24 @@ export function DeleteClientByAdminModal({
               </div>
               <div>
                 <h3 className="text-sm font-black">حذف حساب العميل نهائياً</h3>
-                <p className="text-[10px] text-slate-400 font-bold">لوحة تحكم المشرف العام</p>
+                <p className="text-[10px] text-[#F8F5F0]/50 font-bold">لوحة تحكم المشرف العام</p>
               </div>
             </div>
-            <button type="button" onClick={onClose} className="p-1 text-slate-400 hover:text-slate-600">
+            <button type="button" onClick={onClose} className="p-1 text-[#F8F5F0]/50 hover:text-[#F8F5F0]/70">
               <X className="w-5 h-5" />
             </button>
           </div>
 
           {/* Client Info Banner */}
           <div className="p-3.5 bg-red-50/70 border border-red-200 rounded-2xl flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-white border border-red-200 flex items-center justify-center font-black text-xs text-red-800 shrink-0">
+            <div className="w-10 h-10 rounded-xl bg-[#122119] border border-red-200 flex items-center justify-center font-black text-xs text-red-800 shrink-0">
               {client.name.charAt(0)}
             </div>
             <div className="overflow-hidden flex-1">
               <h4 className="text-xs font-black text-red-950 truncate">{client.name}</h4>
               <p className="text-[10px] text-red-800 truncate" dir="ltr">{client.email || client.phone || 'حساب مستخدم'}</p>
             </div>
-            <span className="text-[10px] font-bold bg-white px-2 py-1 rounded-lg border border-red-200 text-red-700 shrink-0">
+            <span className="text-[10px] font-bold bg-[#122119] px-2 py-1 rounded-lg border border-red-200 text-red-700 shrink-0">
               {clientProjects.length} مشاريع
             </span>
           </div>
@@ -108,14 +108,14 @@ export function DeleteClientByAdminModal({
                 <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
                 <span>تنبيه: هذا العميل مرتبط بـ {clientProjects.length} مشاريع</span>
               </div>
-              <p className="text-[10px] text-slate-600 leading-relaxed">
+              <p className="text-[10px] text-[#F8F5F0]/70 leading-relaxed">
                 تأكيد الحذف سيقوم بمسح الحساب والمشاريع وعروض الأسعار التابعة له نهائياً من قاعدة البيانات.
               </p>
             </div>
           )}
 
           <div className="space-y-1.5">
-            <label className="block text-xs font-black text-[#1C3022]">
+            <label className="block text-xs font-black text-[#F8F5F0]">
               سبب الحذف (اختياري / لتسجيل الإجراء)
             </label>
             
@@ -131,8 +131,8 @@ export function DeleteClientByAdminModal({
                   }}
                   className={`text-[10px] font-black px-2.5 py-1.5 rounded-xl border transition-all ${
                     (customReason === reason || (!customReason && selectedPreset === reason))
-                      ? 'bg-red-600 text-white border-red-600'
-                      : 'bg-[#FAF7F2] text-slate-700 border-[#E8E2D8] hover:border-red-300'
+                      ? 'bg-red-600 text-[#1C3022] border-red-600'
+                      : 'bg-[#0B1510] text-slate-700 border-[#2A3A2F] hover:border-red-300'
                   }`}
                 >
                   {reason}
@@ -146,7 +146,7 @@ export function DeleteClientByAdminModal({
               value={customReason}
               onChange={e => setCustomReason(e.target.value)}
               placeholder="اكتب ملاحظة أو سبب الحذف..."
-              className="w-full mt-1.5 bg-[#FAF7F2] border border-[#E8E2D8] focus:border-red-400 rounded-2xl p-3 text-xs font-bold text-[#1C3022] outline-none resize-none"
+              className="w-full mt-1.5 bg-[#0B1510] border border-[#2A3A2F] focus:border-red-400 rounded-2xl p-3 text-xs font-bold text-[#F8F5F0] outline-none resize-none"
             />
           </div>
 
@@ -155,7 +155,7 @@ export function DeleteClientByAdminModal({
             <button
               type="submit"
               disabled={isDeleting}
-              className="flex-1 bg-red-600 text-white py-3.5 rounded-2xl font-black text-xs hover:bg-red-700 transition-all flex items-center justify-center gap-2 shadow-md active:scale-[0.98] disabled:opacity-50"
+              className="flex-1 bg-red-600 text-[#1C3022] py-3.5 rounded-2xl font-black text-xs hover:bg-red-700 transition-all flex items-center justify-center gap-2 shadow-md active:scale-[0.98] disabled:opacity-50"
             >
               {isDeleting ? (
                 <>

@@ -234,17 +234,17 @@ export function ContractSignatureModal({
         initial={{ scale: 0.94, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.94, opacity: 0 }}
-        className="bg-white w-full max-w-2xl rounded-[2.5rem] p-6 sm:p-8 shadow-2xl border border-[#E8E2D8] text-[#192A1D] space-y-5 max-h-[92vh] overflow-y-auto"
+        className="bg-[#122119] w-full max-w-2xl rounded-[2.5rem] p-6 sm:p-8 shadow-2xl border border-[#2A3A2F] text-[#F8F5F0] space-y-5 max-h-[92vh] overflow-y-auto"
       >
         {/* Header */}
         <div className="flex justify-between items-center pb-3.5 border-b border-[#F0EBE1]">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-[#1C3022] text-[#C5B198] flex items-center justify-center font-black shadow-md">
+            <div className="w-10 h-10 rounded-2xl bg-[#1C3022] text-[#D0A97E] flex items-center justify-center font-black shadow-md">
               <FileCheck className="w-5 h-5" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-base font-black text-[#1C3022]">العقد الإلكتروني والمصادقة الرقمية</h3>
+                <h3 className="text-base font-black text-[#F8F5F0]">العقد الإلكتروني والمصادقة الرقمية</h3>
                 {isFullyCertified && (
                   <span className="bg-emerald-100 text-emerald-900 border border-emerald-300 text-[10px] font-black px-2 py-0.5 rounded-full flex items-center gap-1">
                     <ShieldCheck className="w-3 h-3 text-emerald-700" />
@@ -252,23 +252,23 @@ export function ContractSignatureModal({
                   </span>
                 )}
               </div>
-              <p className="text-[11px] text-slate-500 font-bold">{project.title} - رقم العقد: {contract?.contractNumber || 'CNT-2026-001'}</p>
+              <p className="text-[11px] text-[#F8F5F0]/60 font-bold">{project.title} - رقم العقد: {contract?.contractNumber || 'CNT-2026-001'}</p>
             </div>
           </div>
-          <button onClick={onClose} className="p-1.5 text-slate-400 hover:text-slate-600 rounded-xl hover:bg-slate-100 transition-all">
+          <button onClick={onClose} className="p-1.5 text-[#F8F5F0]/50 hover:text-[#F8F5F0]/70 rounded-xl hover:bg-slate-100 transition-all">
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Contract Summary Box */}
-        <div className="p-5 bg-[#FAF7F2] rounded-3xl border border-[#E8E2D8] space-y-4">
+        <div className="p-5 bg-[#0B1510] rounded-3xl border border-[#2A3A2F] space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
-              <span className="text-[10px] font-black text-[#A99379] block">قيمة العقد المعتمدة</span>
-              <span className="text-lg font-black text-[#1C3022]">{contract?.totalValue || contractValue}</span>
+              <span className="text-[10px] font-black text-[#D0A97E] block">قيمة العقد المعتمدة</span>
+              <span className="text-lg font-black text-[#F8F5F0]">{contract?.totalValue || contractValue}</span>
             </div>
             <div className="text-left">
-              <span className="text-[10px] font-black text-slate-400 block">حالة العقد</span>
+              <span className="text-[10px] font-black text-[#F8F5F0]/50 block">حالة العقد</span>
               <span className={`text-xs font-black px-3 py-1 rounded-xl inline-block ${
                 isFullyCertified ? 'bg-emerald-100 text-emerald-900 border border-emerald-200' :
                 hasSupervisorSigned ? 'bg-blue-100 text-blue-900 border border-blue-200' :
@@ -282,12 +282,12 @@ export function ContractSignatureModal({
           </div>
 
           {/* Terms */}
-          <div className="pt-3 border-t border-[#E8E2D8] space-y-2">
-            <span className="text-xs font-black text-[#1C3022] block">بنود وشروط التعاقد والضمان:</span>
+          <div className="pt-3 border-t border-[#2A3A2F] space-y-2">
+            <span className="text-xs font-black text-[#F8F5F0] block">بنود وشروط التعاقد والضمان:</span>
             <ul className="space-y-1.5 text-xs text-slate-700">
               {contractTerms.map((term, i) => (
                 <li key={i} className="flex items-start gap-2">
-                  <div className="w-4 h-4 rounded-full bg-[#EFE7DC] text-[#1C3022] flex items-center justify-center text-[10px] font-black shrink-0 mt-0.5">
+                  <div className="w-4 h-4 rounded-full bg-[#122119] text-[#F8F5F0] flex items-center justify-center text-[10px] font-black shrink-0 mt-0.5">
                     {i + 1}
                   </div>
                   <span className="leading-relaxed">{term}</span>
@@ -297,11 +297,11 @@ export function ContractSignatureModal({
           </div>
 
           {/* Dual Signatures Preview Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3 border-t border-[#E8E2D8]">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3 border-t border-[#2A3A2F]">
             {/* 1. Supervisor Seal Card */}
-            <div className={`p-4 rounded-2xl border ${hasSupervisorSigned ? 'bg-white border-emerald-200 shadow-sm' : 'bg-amber-50/50 border-amber-200'}`}>
+            <div className={`p-4 rounded-2xl border ${hasSupervisorSigned ? 'bg-[#122119] border-emerald-200 shadow-sm' : 'bg-amber-50/50 border-amber-200'}`}>
               <div className="flex items-center justify-between mb-2">
-                <span className="text-[11px] font-black text-[#1C3022]">الطرف الأول (المشرف الهندسي)</span>
+                <span className="text-[11px] font-black text-[#F8F5F0]">الطرف الأول (المشرف الهندسي)</span>
                 {hasSupervisorSigned ? (
                   <span className="text-[9px] font-black bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-md flex items-center gap-1">
                     <Check className="w-2.5 h-2.5" /> تم التوقيع
@@ -315,7 +315,7 @@ export function ContractSignatureModal({
               <p className="text-xs font-bold text-slate-700">
                 {contract?.supervisorSignerName || 'م. فهد بن عبدالله المقرن'}
               </p>
-              <p className="text-[10px] text-slate-400 mt-0.5">
+              <p className="text-[10px] text-[#F8F5F0]/50 mt-0.5">
                 {contract?.supervisorSignedDate ? `التاريخ: ${contract.supervisorSignedDate}` : 'مؤسسة نماذج التميز للمقاولات'}
               </p>
               {contract?.supervisorSignature && (
@@ -327,9 +327,9 @@ export function ContractSignatureModal({
             </div>
 
             {/* 2. Client Seal Card */}
-            <div className={`p-4 rounded-2xl border ${hasClientSigned ? 'bg-white border-emerald-200 shadow-sm' : 'bg-slate-50 border-slate-200'}`}>
+            <div className={`p-4 rounded-2xl border ${hasClientSigned ? 'bg-[#122119] border-emerald-200 shadow-sm' : 'bg-slate-50 border-slate-200'}`}>
               <div className="flex items-center justify-between mb-2">
-                <span className="text-[11px] font-black text-[#1C3022]">الطرف الثاني (العميل صاحب المشروع)</span>
+                <span className="text-[11px] font-black text-[#F8F5F0]">الطرف الثاني (العميل صاحب المشروع)</span>
                 {hasClientSigned ? (
                   <span className="text-[9px] font-black bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-md flex items-center gap-1">
                     <Check className="w-2.5 h-2.5" /> تم التوقيع
@@ -343,7 +343,7 @@ export function ContractSignatureModal({
               <p className="text-xs font-bold text-slate-700">
                 {contract?.clientSignerName || (isSupervisorUser ? 'اسم العميل' : currentUser.name)}
               </p>
-              <p className="text-[10px] text-slate-400 mt-0.5">
+              <p className="text-[10px] text-[#F8F5F0]/50 mt-0.5">
                 {contract?.clientSignedDate ? `التاريخ: ${contract.clientSignedDate}` : 'المصادقة بالهوية الوطنية'}
               </p>
               {contract?.clientSignature && (
@@ -369,7 +369,7 @@ export function ContractSignatureModal({
             <button
               type="button"
               onClick={onClose}
-              className="bg-emerald-800 text-white px-6 py-2.5 rounded-xl text-xs font-black hover:bg-emerald-900 shadow-md"
+              className="bg-emerald-800 text-[#1C3022] px-6 py-2.5 rounded-xl text-xs font-black hover:bg-emerald-900 shadow-md"
             >
               إغلاق
             </button>
@@ -377,16 +377,16 @@ export function ContractSignatureModal({
         ) : (
           /* SIGNATURE FORM */
           <form onSubmit={handleSignContract} className="space-y-4">
-            <div className="bg-[#FAF7F2] p-3.5 rounded-2xl border border-[#E8E2D8] flex items-center justify-between">
-              <span className="text-xs font-black text-[#1C3022]">
+            <div className="bg-[#0B1510] p-3.5 rounded-2xl border border-[#2A3A2F] flex items-center justify-between">
+              <span className="text-xs font-black text-[#F8F5F0]">
                 {isSupervisorUser ? 'توقيع المشرف العام المعتمد' : 'توقيع العميل الإلكتروني'}
               </span>
-              <div className="flex gap-1.5 bg-white p-1 rounded-xl border border-[#E8E2D8]">
+              <div className="flex gap-1.5 bg-[#122119] p-1 rounded-xl border border-[#2A3A2F]">
                 <button
                   type="button"
                   onClick={() => setSignatureMode('draw')}
                   className={`px-3 py-1 rounded-lg text-xs font-black transition-all ${
-                    signatureMode === 'draw' ? 'bg-[#1C3022] text-[#F8F5F0]' : 'text-slate-500'
+                    signatureMode === 'draw' ? 'bg-[#1C3022] text-[#F8F5F0]' : 'text-[#F8F5F0]/60'
                   }`}
                 >
                   رسم باليد
@@ -395,7 +395,7 @@ export function ContractSignatureModal({
                   type="button"
                   onClick={() => setSignatureMode('type')}
                   className={`px-3 py-1 rounded-lg text-xs font-black transition-all ${
-                    signatureMode === 'type' ? 'bg-[#1C3022] text-[#F8F5F0]' : 'text-slate-500'
+                    signatureMode === 'type' ? 'bg-[#1C3022] text-[#F8F5F0]' : 'text-[#F8F5F0]/60'
                   }`}
                 >
                   كتابة الاسم
@@ -405,26 +405,26 @@ export function ContractSignatureModal({
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-black text-[#1C3022] mb-1">الاسم الكامل لصاحب التوقيع *</label>
+                <label className="block text-xs font-black text-[#F8F5F0] mb-1">الاسم الكامل لصاحب التوقيع *</label>
                 <input
                   type="text"
                   required
                   value={signerName}
                   onChange={e => setSignerName(e.target.value)}
                   placeholder="الاسم الثلاثي أو الرباعي"
-                  className="w-full bg-[#FAF7F2] border border-[#E8E2D8] rounded-xl px-3.5 py-2.5 text-xs font-bold text-[#1C3022] outline-none focus:ring-2 focus:ring-[#C5B198]"
+                  className="w-full bg-[#0B1510] border border-[#2A3A2F] rounded-xl px-3.5 py-2.5 text-xs font-bold text-[#F8F5F0] outline-none focus:ring-2 focus:ring-[#C5B198]"
                 />
               </div>
 
               {!isSupervisorUser && (
                 <div>
-                  <label className="block text-xs font-black text-[#1C3022] mb-1">رقم الهوية الوطنية / السجل (اختياري)</label>
+                  <label className="block text-xs font-black text-[#F8F5F0] mb-1">رقم الهوية الوطنية / السجل (اختياري)</label>
                   <input
                     type="text"
                     value={nationalId}
                     onChange={e => setNationalId(e.target.value)}
                     placeholder="10xxxxxxxx"
-                    className="w-full bg-[#FAF7F2] border border-[#E8E2D8] rounded-xl px-3.5 py-2.5 text-xs font-bold text-[#1C3022] outline-none focus:ring-2 focus:ring-[#C5B198]"
+                    className="w-full bg-[#0B1510] border border-[#2A3A2F] rounded-xl px-3.5 py-2.5 text-xs font-bold text-[#F8F5F0] outline-none focus:ring-2 focus:ring-[#C5B198]"
                     dir="ltr"
                   />
                 </div>
@@ -435,7 +435,7 @@ export function ContractSignatureModal({
             {signatureMode === 'draw' ? (
               <div>
                 <div className="flex justify-between items-center mb-1">
-                  <label className="text-xs font-black text-[#1C3022]">ارسم توقيعك في المساحة أدناه *</label>
+                  <label className="text-xs font-black text-[#F8F5F0]">ارسم توقيعك في المساحة أدناه *</label>
                   <button
                     type="button"
                     onClick={clearCanvas}
@@ -445,7 +445,7 @@ export function ContractSignatureModal({
                     <span>مسح وإعادة الرسم</span>
                   </button>
                 </div>
-                <div className="border-2 border-dashed border-[#C5B198] rounded-2xl bg-white p-1 overflow-hidden shadow-inner">
+                <div className="border-2 border-dashed border-[#C5B198] rounded-2xl bg-[#122119] p-1 overflow-hidden shadow-inner">
                   <canvas
                     ref={canvasRef}
                     width={560}
@@ -463,7 +463,7 @@ export function ContractSignatureModal({
               </div>
             ) : (
               <div>
-                <label className="block text-xs font-black text-[#1C3022] mb-1">التوقيع النصي المعتمد *</label>
+                <label className="block text-xs font-black text-[#F8F5F0] mb-1">التوقيع النصي المعتمد *</label>
                 <div className="relative">
                   <input
                     type="text"
@@ -471,20 +471,20 @@ export function ContractSignatureModal({
                     value={typedSignature}
                     onChange={e => setTypedSignature(e.target.value)}
                     placeholder="اكتب اسمك كتوقيع إلكتروني معتمد"
-                    className="w-full bg-[#FAF7F2] border border-[#E8E2D8] rounded-xl px-3.5 py-2.5 text-sm font-black text-[#1C3022] italic outline-none focus:ring-2 focus:ring-[#C5B198]"
+                    className="w-full bg-[#0B1510] border border-[#2A3A2F] rounded-xl px-3.5 py-2.5 text-sm font-black text-[#F8F5F0] italic outline-none focus:ring-2 focus:ring-[#C5B198]"
                   />
-                  <PenTool className="w-4 h-4 text-[#A99379] absolute left-3 top-3 pointer-events-none" />
+                  <PenTool className="w-4 h-4 text-[#D0A97E] absolute left-3 top-3 pointer-events-none" />
                 </div>
               </div>
             )}
 
-            <label className="flex items-start gap-2.5 cursor-pointer p-3.5 bg-[#FAF7F2] rounded-2xl border border-[#E8E2D8] text-xs font-bold text-[#1C3022]">
+            <label className="flex items-start gap-2.5 cursor-pointer p-3.5 bg-[#0B1510] rounded-2xl border border-[#2A3A2F] text-xs font-bold text-[#F8F5F0]">
               <input
                 type="checkbox"
                 required
                 checked={agreeToTerms}
                 onChange={e => setAgreeToTerms(e.target.checked)}
-                className="mt-0.5 w-4 h-4 rounded text-[#1C3022] focus:ring-[#1C3022]"
+                className="mt-0.5 w-4 h-4 rounded text-[#F8F5F0] focus:ring-[#1C3022]"
               />
               <span className="leading-relaxed">
                 {isSupervisorUser
@@ -500,12 +500,12 @@ export function ContractSignatureModal({
             >
               {isSubmitting ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin text-[#C5B198]" />
+                  <Loader2 className="w-4 h-4 animate-spin text-[#D0A97E]" />
                   <span>جاري توثيق التوقيع الإلكتروني...</span>
                 </>
               ) : (
                 <>
-                  <FileCheck className="w-4 h-4 text-[#C5B198]" />
+                  <FileCheck className="w-4 h-4 text-[#D0A97E]" />
                   <span>
                     {isSupervisorUser
                       ? 'توقيع العقد من المشرف وإرساله للعميل'

@@ -206,7 +206,8 @@ export function CreateProjectModal({
         before: [],
         progress50: [],
         after: [],
-        plans: []
+        plans: [],
+        officialPapers: []
       },
       installments: finalInstallments
     };

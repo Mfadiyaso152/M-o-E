@@ -23,14 +23,14 @@ export function DeletedAccountScreen({ user, onLogout, onReRegister }: Props) {
           <Logo size="md" showText={false} />
         </div>
         <h1 className="text-xl font-black text-[#F8F5F0]">نماذج التميز للمقاولات</h1>
-        <p className="text-xs text-[#C5B198] font-bold mt-0.5">بوابة إدارة المشاريع والعملاء</p>
+        <p className="text-xs text-[#D0A97E] font-bold mt-0.5">بوابة إدارة المشاريع والعملاء</p>
       </div>
 
       {/* Main Notification Card */}
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="bg-white rounded-[2.5rem] p-7 shadow-2xl border border-red-200 relative z-10 my-auto text-[#192A1D] space-y-4"
+        className="bg-[#122119] rounded-[2.5rem] p-7 shadow-2xl border border-red-200 relative z-10 my-auto text-[#F8F5F0] space-y-4"
       >
         <div className="w-16 h-16 bg-red-100 rounded-3xl flex items-center justify-center mx-auto text-red-600 shadow-inner">
           <ShieldAlert className="w-8 h-8" />
@@ -38,7 +38,7 @@ export function DeletedAccountScreen({ user, onLogout, onReRegister }: Props) {
 
         <div className="text-center space-y-1">
           <h2 className="text-lg font-black text-red-950">تم حذف حسابك</h2>
-          <p className="text-xs text-slate-500 font-bold">
+          <p className="text-xs text-[#F8F5F0]/60 font-bold">
             تم إيقاف وحذف هذا الحساب من قِبل إدارة نماذج التميز
           </p>
         </div>
@@ -70,9 +70,9 @@ export function DeletedAccountScreen({ user, onLogout, onReRegister }: Props) {
           {/* Logout Button */}
           <button
             onClick={onLogout}
-            className="w-full bg-white border border-[#E8E2D8] text-slate-700 py-3 rounded-2xl font-black text-xs hover:bg-[#FAF7F2] transition-all flex items-center justify-center gap-2 active:scale-[0.98]"
+            className="w-full bg-[#122119] border border-[#2A3A2F] text-slate-700 py-3 rounded-2xl font-black text-xs hover:bg-[#0B1510] transition-all flex items-center justify-center gap-2 active:scale-[0.98]"
           >
-            <LogOut className="w-4 h-4 text-slate-500" />
+            <LogOut className="w-4 h-4 text-[#F8F5F0]/60" />
             <span>تسجيل الخروج والعودة</span>
           </button>
         </div>

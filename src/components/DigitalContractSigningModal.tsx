@@ -207,23 +207,23 @@ export function DigitalContractSigningModal({
         animate={{ scale: 1, opacity: 1, y: 0 }}
         exit={{ scale: 0.94, opacity: 0, y: 15 }}
         transition={{ duration: 0.25, ease: 'easeOut' }}
-        className="bg-white rounded-3xl max-w-lg w-full max-h-[90vh] flex flex-col text-[#192A1D] border border-[#C5B198] shadow-2xl overflow-hidden touch-auto"
+        className="bg-[#122119] rounded-3xl max-w-lg w-full max-h-[90vh] flex flex-col text-[#F8F5F0] border border-[#C5B198] shadow-2xl overflow-hidden touch-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div className="bg-[#1C3022] text-[#F8F5F0] p-4 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-2xl bg-[#C5B198] text-[#1C3022] flex items-center justify-center font-black">
+            <div className="w-9 h-9 rounded-2xl bg-[#C5B198] text-[#F8F5F0] flex items-center justify-center font-black">
               <FileCheck className="w-5 h-5" />
             </div>
             <div>
               <h3 className="text-sm font-black">توقيع وتوثيق عقد المقاولة إلكترونياً</h3>
-              <p className="text-[10px] text-[#C5B198]">رقم العقد: {contractNumber}</p>
+              <p className="text-[10px] text-[#D0A97E]">رقم العقد: {contractNumber}</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white"
+            className="w-8 h-8 rounded-full bg-[#122119]/10 hover:bg-[#122119]/20 flex items-center justify-center text-[#1C3022]"
           >
             <X className="w-4 h-4" />
           </button>
@@ -232,56 +232,56 @@ export function DigitalContractSigningModal({
         {/* Scrollable Content */}
         <form onSubmit={handleConfirmSign} className="p-4 sm:p-5 space-y-3.5 overflow-y-auto flex-1 overscroll-contain">
           {/* Summary Box */}
-          <div className="bg-[#FAF7F2] p-3.5 rounded-2xl border border-[#E8E2D8] space-y-2 text-xs">
+          <div className="bg-[#0B1510] p-3.5 rounded-2xl border border-[#2A3A2F] space-y-2 text-xs">
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <span className="text-[10px] font-bold text-slate-400 block">طرف العقد الأول (المقاول):</span>
-                <span className="font-black text-[#1C3022]">شركة نماذج التميز للمقاولات</span>
+                <span className="text-[10px] font-bold text-[#F8F5F0]/50 block">طرف العقد الأول (المقاول):</span>
+                <span className="font-black text-[#F8F5F0]">شركة نماذج التميز للمقاولات</span>
               </div>
               <div>
-                <span className="text-[10px] font-bold text-slate-400 block">طرف العقد الثاني:</span>
-                <span className="font-black text-[#1C3022]">{quote?.clientName || user.name}</span>
+                <span className="text-[10px] font-bold text-[#F8F5F0]/50 block">طرف العقد الثاني:</span>
+                <span className="font-black text-[#F8F5F0]">{quote?.clientName || user.name}</span>
               </div>
               <div>
-                <span className="text-[10px] font-bold text-slate-400 block">المشروع:</span>
-                <span className="font-black text-[#1C3022] truncate block">{projectTitle}</span>
+                <span className="text-[10px] font-bold text-[#F8F5F0]/50 block">المشروع:</span>
+                <span className="font-black text-[#F8F5F0] truncate block">{projectTitle}</span>
               </div>
               <div>
-                <span className="text-[10px] font-bold text-slate-400 block">إجمالي القيمة:</span>
+                <span className="text-[10px] font-bold text-[#F8F5F0]/50 block">إجمالي القيمة:</span>
                 <span className="font-black text-emerald-800">{totalValue}</span>
               </div>
             </div>
           </div>
 
           {/* Attached Contract File Section */}
-          <div className="bg-[#FAF7F2] p-3 rounded-2xl border border-[#E8E2D8] space-y-2">
+          <div className="bg-[#0B1510] p-3 rounded-2xl border border-[#2A3A2F] space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-black text-[#1C3022] flex items-center gap-1.5">
-                <Paperclip className="w-3.5 h-3.5 text-[#A99379]" />
+              <span className="text-xs font-black text-[#F8F5F0] flex items-center gap-1.5">
+                <Paperclip className="w-3.5 h-3.5 text-[#D0A97E]" />
                 <span>مستند وملف العقد المعتمد</span>
               </span>
               {contractDoc && (
                 <button
                   type="button"
                   onClick={() => downloadFile(contractDoc.fileUrl, contractDoc.fileName || 'عقد_المقاولة.pdf')}
-                  className="text-[10px] font-black text-[#1C3022] bg-white px-2 py-1 rounded-lg border border-[#E8E2D8] hover:bg-slate-50 flex items-center gap-1"
+                  className="text-[10px] font-black text-[#F8F5F0] bg-[#122119] px-2 py-1 rounded-lg border border-[#2A3A2F] hover:bg-slate-50 flex items-center gap-1"
                 >
-                  <Download className="w-3 h-3 text-[#A99379]" />
+                  <Download className="w-3 h-3 text-[#D0A97E]" />
                   <span>تحميل العقد</span>
                 </button>
               )}
             </div>
 
             {contractDoc ? (
-              <div className="p-2 bg-white rounded-xl border border-[#E8E2D8] flex items-center justify-between text-xs">
-                <span className="font-bold text-[#1C3022] truncate max-w-[200px]">{contractDoc.fileName || contractDoc.name}</span>
+              <div className="p-2 bg-[#122119] rounded-xl border border-[#2A3A2F] flex items-center justify-between text-xs">
+                <span className="font-bold text-[#F8F5F0] truncate max-w-[200px]">{contractDoc.fileName || contractDoc.name}</span>
                 <span className="text-[10px] text-emerald-800 font-bold bg-emerald-50 px-2 py-0.5 rounded-md">مرفق وجاهز</span>
               </div>
             ) : (
-              <label className="border-2 border-dashed border-[#C5B198] bg-white p-3 rounded-xl flex flex-col items-center justify-center cursor-pointer hover:bg-slate-50 transition-all text-center">
-                <UploadCloud className="w-5 h-5 text-[#A99379] mb-1" />
-                <span className="text-xs font-black text-[#1C3022]">إرفاق ملف العقد من جهازك (PDF / صور)</span>
-                <span className="text-[10px] text-slate-400">انقر هنا لاختيار الملف من الهاتف أو الكمبيوتر</span>
+              <label className="border-2 border-dashed border-[#C5B198] bg-[#122119] p-3 rounded-xl flex flex-col items-center justify-center cursor-pointer hover:bg-slate-50 transition-all text-center">
+                <UploadCloud className="w-5 h-5 text-[#D0A97E] mb-1" />
+                <span className="text-xs font-black text-[#F8F5F0]">إرفاق ملف العقد من جهازك (PDF / صور)</span>
+                <span className="text-[10px] text-[#F8F5F0]/50">انقر هنا لاختيار الملف من الهاتف أو الكمبيوتر</span>
                 <input
                   type="file"
                   accept=".pdf,.doc,.docx,image/*"
@@ -295,13 +295,13 @@ export function DigitalContractSigningModal({
           {/* Signer Information & Mode */}
           <div className="space-y-2.5">
             <div>
-              <label className="text-xs font-black text-[#1C3022] block mb-1">الاسم الكامل للموقع *</label>
+              <label className="text-xs font-black text-[#F8F5F0] block mb-1">الاسم الكامل للموقع *</label>
               <input
                 type="text"
                 required
                 value={signerName}
                 onChange={e => setSignerName(e.target.value)}
-                className="w-full bg-[#FAF7F2] border border-[#E8E2D8] rounded-xl px-3 py-2 text-xs font-bold text-[#1C3022] outline-none"
+                className="w-full bg-[#0B1510] border border-[#2A3A2F] rounded-xl px-3 py-2 text-xs font-bold text-[#F8F5F0] outline-none"
               />
             </div>
 
@@ -313,7 +313,7 @@ export function DigitalContractSigningModal({
                 className={`flex-1 py-1.5 rounded-xl text-xs font-black transition-all ${
                   signatureMode === 'draw'
                     ? 'bg-[#1C3022] text-[#F8F5F0]'
-                    : 'bg-[#FAF7F2] text-slate-600 border border-[#E8E2D8]'
+                    : 'bg-[#0B1510] text-[#F8F5F0]/70 border border-[#2A3A2F]'
                 }`}
               >
                 توقيع يدوي (رسم)
@@ -324,7 +324,7 @@ export function DigitalContractSigningModal({
                 className={`flex-1 py-1.5 rounded-xl text-xs font-black transition-all ${
                   signatureMode === 'type'
                     ? 'bg-[#1C3022] text-[#F8F5F0]'
-                    : 'bg-[#FAF7F2] text-slate-600 border border-[#E8E2D8]'
+                    : 'bg-[#0B1510] text-[#F8F5F0]/70 border border-[#2A3A2F]'
                 }`}
               >
                 ختم إلكتروني موثق
@@ -334,7 +334,7 @@ export function DigitalContractSigningModal({
             {/* Interactive Canvas Drawing Pad */}
             {signatureMode === 'draw' ? (
               <div className="space-y-1">
-                <div className="flex justify-between items-center text-[10px] text-slate-500 font-bold">
+                <div className="flex justify-between items-center text-[10px] text-[#F8F5F0]/60 font-bold">
                   <span>ارسم توقيعك في المربع أدناه:</span>
                   <button
                     type="button"
@@ -345,7 +345,7 @@ export function DigitalContractSigningModal({
                     <span>مسح</span>
                   </button>
                 </div>
-                <div className="border border-[#C5B198] rounded-2xl bg-[#FAF7F2] overflow-hidden relative touch-none">
+                <div className="border border-[#C5B198] rounded-2xl bg-[#0B1510] overflow-hidden relative touch-none">
                   <canvas
                     ref={canvasRef}
                     width={400}
@@ -367,15 +367,11 @@ export function DigitalContractSigningModal({
                 </div>
               </div>
             ) : (
-              <div className="p-3 bg-[#FAF7F2] rounded-2xl border border-[#C5B198] flex items-center justify-between">
+              <div className="p-3 bg-[#0B1510] rounded-2xl border border-[#C5B198] flex items-center justify-between">
                 <div>
-                  <span className="text-[10px] text-slate-500 font-bold block">الختم الرقمي المعتمد:</span>
-                  <span className="text-xs font-black text-[#1C3022]">{signerName || user.name}</span>
+                  <span className="text-[10px] text-[#F8F5F0]/60 font-bold block">التوقيع الرقمي المعتمد:</span>
+                  <span className="text-xs font-black text-[#F8F5F0]">{signerName || user.name}</span>
                   <span className="text-[9px] text-emerald-800 font-bold block mt-0.5">موثق ومسجل إلكترونياً</span>
-                </div>
-                <div className="w-12 h-12 rounded-full border-2 border-dashed border-[#1C3022] flex flex-col items-center justify-center text-[7px] font-black text-[#1C3022] rotate-[-8deg] bg-white">
-                  <span>معتمد</span>
-                  <span>{new Date().getFullYear()}</span>
                 </div>
               </div>
             )}
@@ -383,13 +379,13 @@ export function DigitalContractSigningModal({
 
           {/* Terms Agreement Checkbox */}
           <div>
-            <label className="flex items-start gap-2 cursor-pointer select-none bg-[#FAF7F2] p-2.5 rounded-2xl border border-[#E8E2D8]">
+            <label className="flex items-start gap-2 cursor-pointer select-none bg-[#0B1510] p-2.5 rounded-2xl border border-[#2A3A2F]">
               <input
                 type="checkbox"
                 required
                 checked={agreedToTerms}
                 onChange={e => setAgreedToTerms(e.target.checked)}
-                className="mt-0.5 w-4 h-4 rounded text-[#1C3022] accent-[#1C3022]"
+                className="mt-0.5 w-4 h-4 rounded text-[#F8F5F0] accent-[#1C3022]"
               />
               <span className="text-xs font-bold text-slate-700 leading-relaxed">
                 أوافق على توقيع واعتماد العقد وجدول الدفعات ونقل المشروع للتنفيذ.
@@ -406,12 +402,12 @@ export function DigitalContractSigningModal({
             >
               {isSubmitting ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin text-[#C5B198]" />
+                  <Loader2 className="w-4 h-4 animate-spin text-[#D0A97E]" />
                   <span>جاري الاعتماد...</span>
                 </>
               ) : (
                 <>
-                  <FileCheck className="w-4 h-4 text-[#C5B198]" />
+                  <FileCheck className="w-4 h-4 text-[#D0A97E]" />
                   <span>توقيع واعتماد العقد</span>
                 </>
               )}

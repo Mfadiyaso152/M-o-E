@@ -18,7 +18,9 @@ import {
   where, 
   getDocs, 
   onSnapshot,
-  deleteDoc
+  deleteDoc,
+  addDoc,
+  orderBy
 } from "firebase/firestore";
 import firebaseConfigJson from "../firebase-applet-config.json";
 
@@ -53,7 +55,9 @@ export {
   where, 
   getDocs, 
   onSnapshot,
-  deleteDoc
+  deleteDoc,
+  addDoc,
+  orderBy
 };
 export type { FirebaseUser };
 
