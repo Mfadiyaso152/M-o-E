@@ -101,7 +101,7 @@ export function ProjectCustomizationModal({ project, onClose, onUpdateProject, o
               <Building2 className="w-5 h-5" />
             </div>
             <div>
-              <span className="text-[10px] font-black text-[#A99379] block">لوحة متابعة المشروع</span>
+              <span className="text-[10px] font-black text-[#C5B198] block">لوحة متابعة المشروع</span>
               <h3 className="text-base font-black text-[#1C3022] truncate max-w-[230px]">{project.title}</h3>
             </div>
           </div>
@@ -129,11 +129,11 @@ export function ProjectCustomizationModal({ project, onClose, onUpdateProject, o
                 onClick={() => setActiveTab(tab.id as TabType)}
                 className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-black whitespace-nowrap transition-all flex-1 justify-center ${
                   isActive 
-                    ? 'bg-[#1C3022] text-[#F8F5F0] shadow-sm' 
+                    ? 'bg-[#1C3022] text-white shadow-sm' 
                     : 'text-slate-500 hover:text-[#1C3022] hover:bg-[#EFE7DC]/60'
                 }`}
               >
-                <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-[#C5B198]' : 'text-slate-400'}`} />
+                <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-[#1C3022]' : 'text-slate-400'}`} />
                 <span>{tab.label}</span>
               </button>
             );
@@ -147,14 +147,14 @@ export function ProjectCustomizationModal({ project, onClose, onUpdateProject, o
           {activeTab === 'progress' && (
             <div className="space-y-4">
               {/* Overall Progress Banner */}
-              <div className="bg-[#1C3022] text-[#F8F5F0] p-5 rounded-3xl border border-[#284430] flex items-center justify-between relative overflow-hidden">
+              <div className="bg-[#1C3022] text-white p-5 rounded-3xl border border-[#284430] flex items-center justify-between relative overflow-hidden">
                 <div className="relative z-10">
-                  <span className="text-[11px] font-black text-[#C5B198]">مستوى الإنجاز التراكمي الإجمالي</span>
+                  <span className="text-[11px] font-black text-[#1C3022]">مستوى الإنجاز التراكمي الإجمالي</span>
                   <div className="flex items-baseline gap-2 mt-1">
                     <span className="text-3xl font-black">{project.progress}%</span>
                     <span className="text-xs text-[#EFE7DC]/80 font-bold">من كامل بنود العقد</span>
                   </div>
-                  <span className="inline-block mt-2 px-3 py-0.5 rounded-full bg-[#C5B198]/20 text-[#C5B198] text-[10px] font-black border border-[#C5B198]/30">
+                  <span className="inline-block mt-2 px-3 py-0.5 rounded-full bg-[#C5B198]/20 text-[#1C3022] text-[10px] font-black border border-[#C5B198]/30">
                     الحالة: {project.status}
                   </span>
                 </div>
@@ -175,7 +175,7 @@ export function ProjectCustomizationModal({ project, onClose, onUpdateProject, o
                       strokeLinecap="round" 
                     />
                   </svg>
-                  <Percent className="w-5 h-5 text-[#C5B198] absolute" />
+                  <Percent className="w-5 h-5 text-[#1C3022] absolute" />
                 </div>
               </div>
 
@@ -237,7 +237,7 @@ export function ProjectCustomizationModal({ project, onClose, onUpdateProject, o
             <div className="space-y-4">
               <div className="p-3.5 bg-[#FAF7F2] rounded-2xl border border-[#E8E2D8] flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <ShieldCheck className="w-5 h-5 text-[#A99379]" />
+                  <ShieldCheck className="w-5 h-5 text-[#C5B198]" />
                   <div>
                     <h4 className="text-xs font-black text-[#1C3022]">العقود والمستندات والسندات المعتمدة</h4>
                     <p className="text-[10px] text-slate-500">يمكنك معاينة وتحميل كافة العقود والسندات المرفقة</p>
@@ -256,10 +256,10 @@ export function ProjectCustomizationModal({ project, onClose, onUpdateProject, o
                     >
                       <div className="flex items-center gap-2.5 min-w-0">
                         <div className="w-9 h-9 rounded-xl bg-[#FAF7F2] border border-[#E8E2D8] flex items-center justify-center text-[#1C3022] shrink-0">
-                          <FileText className="w-4 h-4 text-[#A99379]" />
+                          <FileText className="w-4 h-4 text-[#C5B198]" />
                         </div>
                         <div className="min-w-0">
-                          <span className="text-[9px] font-black text-[#A99379] block">{doc.category}</span>
+                          <span className="text-[9px] font-black text-[#C5B198] block">{doc.category}</span>
                           <h5 className="text-xs font-black text-[#1C3022] truncate">{doc.name}</h5>
                           <span className="text-[10px] text-slate-400 block mt-0.5">
                             {doc.uploadedAt} {doc.fileSize ? `| ${doc.fileSize}` : ''}
@@ -270,9 +270,9 @@ export function ProjectCustomizationModal({ project, onClose, onUpdateProject, o
                       <button
                         type="button"
                         onClick={() => downloadFile(doc.fileUrl, doc.fileName || `${doc.name}.pdf`)}
-                        className="bg-[#1C3022] hover:bg-[#122116] text-[#F8F5F0] px-3 py-1.5 rounded-xl text-xs font-black flex items-center gap-1 shadow-xs shrink-0"
+                        className="bg-[#1C3022] hover:bg-[#122116] text-[#1C3022] px-3 py-1.5 rounded-xl text-xs font-black flex items-center gap-1 shadow-xs shrink-0"
                       >
-                        <Download className="w-3.5 h-3.5 text-[#C5B198]" />
+                        <Download className="w-3.5 h-3.5 text-[#1C3022]" />
                         <span>تحميل</span>
                       </button>
                     </div>
@@ -290,7 +290,7 @@ export function ProjectCustomizationModal({ project, onClose, onUpdateProject, o
                     >
                       <div className="flex justify-between items-start">
                         <div>
-                          <span className="text-[10px] font-bold text-[#A99379] block">رقم العقد: {contract.contractNumber}</span>
+                          <span className="text-[10px] font-bold text-[#C5B198] block">رقم العقد: {contract.contractNumber}</span>
                           <h4 className="text-xs font-black text-[#1C3022] mt-0.5">{contract.title}</h4>
                         </div>
                         <span className="text-[10px] font-black text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-200">
@@ -312,9 +312,9 @@ export function ProjectCustomizationModal({ project, onClose, onUpdateProject, o
                       <div className="pt-2 border-t border-[#F5EFE6] flex gap-2">
                         <button 
                           onClick={() => setSelectedContract(contract)}
-                          className="flex-1 bg-[#1C3022] text-[#F8F5F0] py-2 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 hover:bg-[#122116] transition-all"
+                          className="flex-1 bg-[#1C3022] text-white py-2 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 hover:bg-[#122116] transition-all"
                         >
-                          <FileCheck className="w-3.5 h-3.5 text-[#C5B198]" />
+                          <FileCheck className="w-3.5 h-3.5 text-[#1C3022]" />
                           <span>معاينة العقد الرقمي</span>
                         </button>
                         <button 
@@ -349,7 +349,7 @@ export function ProjectCustomizationModal({ project, onClose, onUpdateProject, o
                       onClick={() => setGalleryStage(key)}
                       className={`px-3 py-1.5 rounded-xl text-xs font-black whitespace-nowrap transition-all ${
                         isActive 
-                          ? 'bg-[#1C3022] text-[#F8F5F0]' 
+                          ? 'bg-[#1C3022] text-white' 
                           : 'bg-[#FAF7F2] text-slate-500 border border-[#E8E2D8] hover:bg-[#EFE7DC]'
                       }`}
                     >

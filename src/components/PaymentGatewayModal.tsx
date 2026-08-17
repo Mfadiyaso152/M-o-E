@@ -241,7 +241,7 @@ export function PaymentGatewayModal({ project, installment, onClose, onSuccess }
                   <CreditCard className="w-5 h-5 text-[#1C3022]" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-black text-[#F8F5F0]">سداد دفعة المشروع الإنشائي</h3>
+                  <h3 className="text-sm font-black text-[#1C3022]">سداد دفعة المشروع الإنشائي</h3>
                   <p className="text-[10px] text-slate-400 font-bold">مؤسسة نماذج التميز للمقاولات العامة</p>
                 </div>
               </div>
@@ -273,7 +273,7 @@ export function PaymentGatewayModal({ project, installment, onClose, onSuccess }
                 onClick={() => setMethod('bank_transfer')}
                 className={`py-2.5 px-2 rounded-xl font-black text-[11px] flex items-center justify-center gap-1.5 transition-all ${
                   method === 'bank_transfer' 
-                    ? 'bg-[#1C3022] text-[#F8F5F0] shadow-sm' 
+                    ? 'bg-[#1C3022] text-white shadow-sm' 
                     : 'text-slate-600 hover:text-[#1C3022]'
                 }`}
               >
@@ -312,18 +312,18 @@ export function PaymentGatewayModal({ project, installment, onClose, onSuccess }
             {method === 'bank_transfer' && (
               <div className="space-y-4 pt-1">
                 {/* Official Institution Bank Account Card */}
-                <div className="bg-[#1C3022] text-[#F8F5F0] p-4 sm:p-5 rounded-2xl border border-[#284430] space-y-3 shadow-md relative overflow-hidden">
+                <div className="bg-[#1C3022] text-white p-4 sm:p-5 rounded-2xl border border-[#284430] space-y-3 shadow-md relative overflow-hidden">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <div className="w-8 h-8 rounded-xl bg-[#C5B198] text-[#1C3022] flex items-center justify-center font-black">
                         <Building2 className="w-4 h-4" />
                       </div>
                       <div>
-                        <span className="text-[10px] text-[#D0A97E] font-bold block">الحساب البنكي المعتمد للمؤسسة</span>
+                        <span className="text-[10px] text-[#C5B198] font-bold block">الحساب البنكي المعتمد للمؤسسة</span>
                         <h4 className="text-xs font-black">{INSTITUTION_BANK_INFO.bankName}</h4>
                       </div>
                     </div>
-                    <span className="text-[9px] bg-[#C5B198]/20 text-[#D0A97E] border border-[#C5B198]/30 px-2 py-0.5 rounded-md font-bold">
+                    <span className="text-[9px] bg-[#C5B198]/20 text-[#C5B198] border border-[#C5B198]/30 px-2 py-0.5 rounded-md font-bold">
                       حساب تجاري رسمي
                     </span>
                   </div>
@@ -332,14 +332,14 @@ export function PaymentGatewayModal({ project, installment, onClose, onSuccess }
                     {/* Account Name */}
                     <div className="bg-black/25 p-2.5 rounded-xl text-xs space-y-0.5">
                       <span className="text-[10px] text-[#EFE7DC]/70 block font-medium">اسم المستفيد / المؤسسة:</span>
-                      <span className="font-black text-[#F8F5F0] block">{INSTITUTION_BANK_INFO.accountName}</span>
+                      <span className="font-black text-[#1C3022] block">{INSTITUTION_BANK_INFO.accountName}</span>
                     </div>
 
                     {/* IBAN */}
                     <div className="bg-black/25 p-2.5 rounded-xl flex items-center justify-between gap-2">
                       <div className="overflow-hidden">
                         <span className="text-[10px] text-[#EFE7DC]/70 block font-medium">رقم الآيبان (IBAN):</span>
-                        <span className="font-mono font-black text-xs sm:text-sm text-[#D0A97E] block tracking-wider" dir="ltr">
+                        <span className="font-mono font-black text-xs sm:text-sm text-[#C5B198] block tracking-wider" dir="ltr">
                           {INSTITUTION_BANK_INFO.iban}
                         </span>
                       </div>
@@ -366,19 +366,19 @@ export function PaymentGatewayModal({ project, installment, onClose, onSuccess }
                     <div className="bg-black/25 p-2.5 rounded-xl flex items-center justify-between gap-2">
                       <div>
                         <span className="text-[10px] text-[#EFE7DC]/70 block font-medium">رقم الحساب:</span>
-                        <span className="font-mono font-bold text-xs text-[#F8F5F0]" dir="ltr">
+                        <span className="font-mono font-bold text-xs text-[#1C3022]" dir="ltr">
                           {INSTITUTION_BANK_INFO.accountNumber}
                         </span>
                       </div>
                       <button
                         type="button"
                         onClick={() => handleCopy(INSTITUTION_BANK_INFO.accountNumber, 'acc')}
-                        className="bg-white/10 hover:bg-white/20 text-[#F8F5F0] px-2.5 py-1 rounded-lg text-[10px] font-bold flex items-center gap-1 shrink-0"
+                        className="bg-white/10 hover:bg-white/20 text-[#1C3022] px-2.5 py-1 rounded-lg text-[10px] font-bold flex items-center gap-1 shrink-0"
                       >
                         {copiedField === 'acc' ? (
                           <Check className="w-3 h-3 text-emerald-400" />
                         ) : (
-                          <Copy className="w-3 h-3 text-[#D0A97E]" />
+                          <Copy className="w-3 h-3 text-[#C5B198]" />
                         )}
                         <span>نسخ الحساب</span>
                       </button>
@@ -453,9 +453,9 @@ export function PaymentGatewayModal({ project, installment, onClose, onSuccess }
                   {/* Submit Button */}
                   <button
                     type="submit"
-                    className="w-full bg-[#1C3022] text-[#F8F5F0] py-3.5 rounded-2xl font-black text-xs hover:bg-[#122116] transition-all shadow-md active:scale-[0.98] flex items-center justify-center gap-2 mt-2"
+                    className="w-full bg-[#1C3022] text-white py-3.5 rounded-2xl font-black text-xs hover:bg-[#122116] transition-all shadow-md active:scale-[0.98] flex items-center justify-center gap-2 mt-2"
                   >
-                    <Send className="w-4 h-4 text-[#D0A97E]" />
+                    <Send className="w-4 h-4 text-[#C5B198]" />
                     <span>تأكيد إرسال التحويل وإشعار المشرف للمراجعة</span>
                   </button>
                 </form>
@@ -561,9 +561,9 @@ export function PaymentGatewayModal({ project, installment, onClose, onSuccess }
 
                 <button
                   type="submit"
-                  className="w-full bg-[#1C3022] text-[#F8F5F0] py-3.5 rounded-2xl font-black text-xs hover:bg-[#122116] transition-all shadow-md active:scale-[0.98] flex items-center justify-center gap-2 mt-2"
+                  className="w-full bg-[#1C3022] text-white py-3.5 rounded-2xl font-black text-xs hover:bg-[#122116] transition-all shadow-md active:scale-[0.98] flex items-center justify-center gap-2 mt-2"
                 >
-                  <Lock className="w-4 h-4 text-[#D0A97E]" />
+                  <Lock className="w-4 h-4 text-[#C5B198]" />
                   <span>دفع {installment.amount} بأمان</span>
                 </button>
               </form>
@@ -633,7 +633,7 @@ export function PaymentGatewayModal({ project, installment, onClose, onSuccess }
               <div className="w-12 h-12 rounded-2xl bg-[#EFE7DC] text-[#1C3022] flex items-center justify-center mx-auto mb-2">
                 <Lock className="w-6 h-6" />
               </div>
-              <h3 className="text-sm font-black text-[#F8F5F0]">التحقق الآمن (3D Secure)</h3>
+              <h3 className="text-sm font-black text-[#1C3022]">التحقق الآمن (3D Secure)</h3>
               <p className="text-xs text-slate-500 mt-1">
                 أدخل رمز الأمان المرسل من البنك إلى هاتفك الجوال المسجل
               </p>
@@ -664,7 +664,7 @@ export function PaymentGatewayModal({ project, installment, onClose, onSuccess }
 
             <button
               type="submit"
-              className="w-full bg-[#1C3022] text-[#F8F5F0] py-3.5 rounded-2xl font-black text-xs hover:bg-[#122116] transition-all shadow-md active:scale-[0.98]"
+              className="w-full bg-[#1C3022] text-white py-3.5 rounded-2xl font-black text-xs hover:bg-[#122116] transition-all shadow-md active:scale-[0.98]"
             >
               تأكيد السداد والخصم
             </button>
@@ -710,7 +710,7 @@ export function PaymentGatewayModal({ project, installment, onClose, onSuccess }
             <button
               type="button"
               onClick={onClose}
-              className="w-full bg-[#1C3022] text-[#F8F5F0] py-3.5 rounded-2xl font-black text-xs hover:bg-[#122116] transition-all shadow-md"
+              className="w-full bg-[#1C3022] text-white py-3.5 rounded-2xl font-black text-xs hover:bg-[#122116] transition-all shadow-md"
             >
               حسناً، العودة للتطبيق
             </button>
@@ -756,7 +756,7 @@ export function PaymentGatewayModal({ project, installment, onClose, onSuccess }
             <button
               type="button"
               onClick={onClose}
-              className="w-full bg-[#1C3022] text-[#F8F5F0] py-3.5 rounded-2xl font-black text-xs hover:bg-[#122116] transition-all shadow-md"
+              className="w-full bg-[#1C3022] text-white py-3.5 rounded-2xl font-black text-xs hover:bg-[#122116] transition-all shadow-md"
             >
               إغلاق والعودة للتطبيق
             </button>

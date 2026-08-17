@@ -79,7 +79,7 @@ export const ClientsDirectoryModal: React.FC<ClientsDirectoryModalProps> = ({
           onClick={(e) => e.stopPropagation()}
         >
           {/* Modal Header */}
-          <div className="bg-[#1C3022] px-5 py-4 text-[#F8F5F0] flex items-center justify-between shrink-0">
+          <div className="bg-[#1C3022] px-5 py-4 text-[#1C3022] flex items-center justify-between shrink-0">
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-xl bg-[#C5B198] text-[#1C3022] flex items-center justify-center font-black shadow-md">
                 <Users className="w-4 h-4" />
@@ -89,7 +89,7 @@ export const ClientsDirectoryModal: React.FC<ClientsDirectoryModalProps> = ({
 
             <button
               onClick={onClose}
-              className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-[#F8F5F0] flex items-center justify-center transition-all active:scale-95"
+              className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-[#1C3022] flex items-center justify-center transition-all active:scale-95"
             >
               <X className="w-3.5 h-3.5" />
             </button>
@@ -241,7 +241,7 @@ export const ClientsDirectoryModal: React.FC<ClientsDirectoryModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="bg-[#1C3022] text-[#F8F5F0] hover:bg-[#122116] px-5 py-1.5 rounded-xl text-xs font-black transition-all active:scale-95"
+              className="bg-[#1C3022] text-white hover:bg-[#122116] px-5 py-1.5 rounded-xl text-xs font-black transition-all active:scale-95"
             >
               إغلاق
             </button>

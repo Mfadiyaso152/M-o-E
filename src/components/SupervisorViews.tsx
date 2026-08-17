@@ -41,6 +41,7 @@ import {
 import { User, Project, QuoteRequest, ProjectStatus, Installment, getInstallmentOverdueStatus } from '../types';
 import { ProjectService } from '../services/dbService';
 import { DeleteClientByAdminModal } from './DeleteClientByAdminModal';
+import { DeleteProjectByAdminModal } from './DeleteProjectByAdminModal';
 import { downloadFile } from '../utils/fileDownloader';
 import { DigitalContractSigningModal } from './DigitalContractSigningModal';
 
@@ -142,9 +143,7 @@ export function SupervisorClientsView({
         }
       ],
       documents: signatureData.contractDocument ? [signatureData.contractDocument] : [],
-      phases: [
-        { id: '1', title: 'المرحلة الإنشائية الأولى', status: 'قيد الانتظار', progress: 0 }
-      ],
+      phases: [],
       images: { before: [], progress50: [], after: [], plans: [], officialPapers: [] },
       engineerRequests: []
     };
@@ -167,23 +166,23 @@ export function SupervisorClientsView({
       {/* Top Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-black text-[#F8F5F0]">دليل العملاء والطلبات</h3>
-          <p className="text-xs text-[#F8F5F0]/60 font-bold">إدارة حسابات العملاء ومتابعة طلبات عروض الأسعار</p>
+          <h3 className="text-lg font-black text-[#1C3022]">دليل العملاء والطلبات</h3>
+          <p className="text-xs text-slate-500 font-bold">إدارة حسابات العملاء ومتابعة طلبات عروض الأسعار</p>
         </div>
-        <div className="flex items-center gap-1.5 bg-[#122119] border border-[#2A3A2F] px-3.5 py-2 rounded-2xl text-xs font-black text-[#F8F5F0] shadow-sm">
-          <Users className="w-4 h-4 text-[#D0A97E]" />
+        <div className="flex items-center gap-1.5 bg-white border border-[#E8E2D8] px-3.5 py-2 rounded-2xl text-xs font-black text-[#1C3022] shadow-sm">
+          <Users className="w-4 h-4 text-[#C5B198]" />
           <span>{clients.length} عملاء</span>
         </div>
       </div>
 
       {/* View Selector Tabs: Clients vs Quotes */}
-      <div className="flex gap-1.5 p-1 bg-[#122119] rounded-2xl border border-[#2A3A2F] shadow-sm">
+      <div className="flex gap-1.5 p-1 bg-white rounded-2xl border border-[#E8E2D8] shadow-sm">
         <button
           onClick={() => setActiveTab('clients')}
           className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 transition-all ${
             activeTab === 'clients'
-              ? 'bg-[#1C3022] text-[#F8F5F0] shadow-sm'
-              : 'text-[#F8F5F0]/60 hover:text-[#F8F5F0]'
+              ? 'bg-[#1C3022] text-white shadow-sm'
+              : 'text-slate-500 hover:text-[#1C3022]'
           }`}
         >
           <Users className="w-3.5 h-3.5" />
@@ -193,8 +192,8 @@ export function SupervisorClientsView({
           onClick={() => setActiveTab('quotes')}
           className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 transition-all ${
             activeTab === 'quotes'
-              ? 'bg-[#1C3022] text-[#F8F5F0] shadow-sm'
-              : 'text-[#F8F5F0]/60 hover:text-[#F8F5F0]'
+              ? 'bg-[#1C3022] text-white shadow-sm'
+              : 'text-slate-500 hover:text-[#1C3022]'
           }`}
         >
           <FileText className="w-3.5 h-3.5" />
@@ -207,21 +206,21 @@ export function SupervisorClientsView({
         <div className="space-y-4">
           {/* Search bar */}
           <div className="relative">
-            <Search className="w-4 h-4 text-[#F8F5F0]/50 absolute right-3.5 top-3.5" />
+            <Search className="w-4 h-4 text-slate-400 absolute right-3.5 top-3.5" />
             <input
               type="text"
               placeholder="بحث عن عميل بالاسم أو البريد الإلكتروني..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              className="w-full bg-[#122119] border border-[#2A3A2F] rounded-2xl pr-10 pl-4 py-3 text-xs font-bold text-[#F8F5F0] outline-none shadow-sm focus:ring-2 focus:ring-[#C5B198]"
+              className="w-full bg-white border border-[#E8E2D8] rounded-2xl pr-10 pl-4 py-3 text-xs font-bold text-[#1C3022] outline-none shadow-sm focus:ring-2 focus:ring-[#C5B198]"
             />
           </div>
 
           {filteredClients.length === 0 ? (
-            <div className="bg-[#122119] rounded-3xl p-8 text-center border border-[#2A3A2F] space-y-2">
+            <div className="bg-white rounded-3xl p-8 text-center border border-[#E8E2D8] space-y-2">
               <Users className="w-10 h-10 text-slate-300 mx-auto" />
-              <h4 className="text-xs font-black text-[#F8F5F0]">لم يتم العثور على عملاء</h4>
-              <p className="text-[11px] text-[#F8F5F0]/50">سيظهر العملاء هنا تلقائياً عند تسجيلهم بحسابات Google</p>
+              <h4 className="text-xs font-black text-[#1C3022]">لم يتم العثور على عملاء</h4>
+              <p className="text-[11px] text-slate-400">سيظهر العملاء هنا تلقائياً عند تسجيلهم بحسابات Google</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -234,22 +233,22 @@ export function SupervisorClientsView({
                 return (
                   <div
                     key={client.id}
-                    className={`bg-[#122119] rounded-3xl p-4 border shadow-sm hover:shadow-md transition-all space-y-3 ${
-                      hasOverduePayment ? 'border-red-300 ring-1 ring-red-100' : 'border-[#2A3A2F]'
+                    className={`bg-white rounded-3xl p-4 border shadow-sm hover:shadow-md transition-all space-y-3 ${
+                      hasOverduePayment ? 'border-red-300 ring-1 ring-red-100' : 'border-[#E8E2D8]'
                     }`}
                   >
                     <div className="flex items-center justify-between gap-2">
                       <div className="flex items-center gap-3">
-                        <div className="w-11 h-11 rounded-2xl bg-[#122119] border border-[#C5B198]/40 flex items-center justify-center text-[#F8F5F0] overflow-hidden shrink-0">
+                        <div className="w-11 h-11 rounded-2xl bg-white border border-[#C5B198]/40 flex items-center justify-center text-[#1C3022] overflow-hidden shrink-0">
                           {client.photoURL ? (
                             <img src={client.photoURL} alt={client.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                           ) : (
-                            <span className="font-black text-sm text-[#F8F5F0]">{client.name.charAt(0)}</span>
+                            <span className="font-black text-sm text-[#1C3022]">{client.name.charAt(0)}</span>
                           )}
                         </div>
                         <div>
                           <div className="flex items-center gap-2">
-                            <h4 className="text-xs font-black text-[#F8F5F0]">{client.name}</h4>
+                            <h4 className="text-xs font-black text-[#1C3022]">{client.name}</h4>
                             {client.email?.toLowerCase() === 'mfb.15.f@gmail.com' && (
                               <span className="text-[9px] bg-amber-100 text-amber-900 px-1.5 py-0.5 rounded font-black">
                                 المشرف العام
@@ -262,7 +261,7 @@ export function SupervisorClientsView({
                               </span>
                             )}
                           </div>
-                          <p className="text-[11px] text-[#F8F5F0]/50 font-bold" dir="ltr">
+                          <p className="text-[11px] text-slate-400 font-bold" dir="ltr">
                             {client.email || client.phone || 'حساب Google'}
                           </p>
                         </div>
@@ -274,10 +273,10 @@ export function SupervisorClientsView({
                         <button
                           type="button"
                           onClick={() => onSelectClientForProjects(client.id)}
-                          className="w-8 h-8 rounded-xl bg-[#0B1510] hover:bg-[#122119] text-[#F8F5F0] flex items-center justify-center border border-[#2A3A2F] transition-all shadow-sm active:scale-95 hover:border-[#C5B198]"
+                          className="w-8 h-8 rounded-xl bg-[#FAF7F2] hover:bg-white text-[#1C3022] flex items-center justify-center border border-[#E8E2D8] transition-all shadow-sm active:scale-95 hover:border-[#C5B198]"
                           title="استعراض مشاريع العميل"
                         >
-                          <Eye className="w-4 h-4 text-[#F8F5F0]" />
+                          <Eye className="w-4 h-4 text-[#1C3022]" />
                         </button>
 
                         {/* Delete client icon button (icon-only) */}
@@ -323,10 +322,10 @@ export function SupervisorClientsView({
       {activeTab === 'quotes' && (
         <div className="space-y-3">
           {quotes.length === 0 ? (
-            <div className="bg-[#122119] rounded-3xl p-8 text-center border border-[#2A3A2F] space-y-2">
+            <div className="bg-white rounded-3xl p-8 text-center border border-[#E8E2D8] space-y-2">
               <FileText className="w-10 h-10 text-slate-300 mx-auto" />
-              <h4 className="text-xs font-black text-[#F8F5F0]">لا توجد طلبات عروض أسعار جديدة</h4>
-              <p className="text-[11px] text-[#F8F5F0]/50">أي طلب يقدمه العميل لدراسة مشروع جديد سيظهر هنا للمشرف لإرسال عرض السعر ونظام الدفعات والملف المرفق</p>
+              <h4 className="text-xs font-black text-[#1C3022]">لا توجد طلبات عروض أسعار جديدة</h4>
+              <p className="text-[11px] text-slate-400">أي طلب يقدمه العميل لدراسة مشروع جديد سيظهر هنا للمشرف لإرسال عرض السعر ونظام الدفعات والملف المرفق</p>
             </div>
           ) : (
             quotes.map(quote => {
@@ -334,13 +333,13 @@ export function SupervisorClientsView({
               const isCounterOffer = quote.clientDecision === 'accepted_with_modifications' || quote.status === 'بانتظار مراجعة التعديل';
 
               return (
-                <div key={quote.id} className="bg-[#122119] rounded-3xl p-4 border border-[#2A3A2F] shadow-sm space-y-3">
+                <div key={quote.id} className="bg-white rounded-3xl p-4 border border-[#E8E2D8] shadow-sm space-y-3">
                   <div className="flex justify-between items-start">
                     <div>
-                      <span className="text-[10px] font-bold text-[#D0A97E]">طلب رقم: #{quote.id}</span>
-                      <h4 className="text-xs font-black text-[#F8F5F0] mt-0.5">{quote.projectName}</h4>
-                      <p className="text-[11px] text-[#F8F5F0]/70 mt-1 leading-relaxed">{quote.description}</p>
-                      <span className="text-[10px] text-[#F8F5F0]/50 font-bold block mt-1">العميل: {quote.clientName} | تاريخ الطلب: {quote.date}</span>
+                      <span className="text-[10px] font-bold text-[#C5B198]">طلب رقم: #{quote.id}</span>
+                      <h4 className="text-xs font-black text-[#1C3022] mt-0.5">{quote.projectName}</h4>
+                      <p className="text-[11px] text-slate-600 mt-1 leading-relaxed">{quote.description}</p>
+                      <span className="text-[10px] text-slate-400 font-bold block mt-1">العميل: {quote.clientName} | تاريخ الطلب: {quote.date}</span>
                     </div>
                     <div className="text-left shrink-0">
                       <span className={`text-[10px] font-black px-2.5 py-1 rounded-xl block ${
@@ -348,13 +347,13 @@ export function SupervisorClientsView({
                         quote.status === 'تم إرسال العرض' ? 'bg-blue-100 text-blue-900 border border-blue-200' :
                         quote.status === 'بانتظار مراجعة التعديل' ? 'bg-orange-100 text-orange-900 border border-orange-200' :
                         quote.status === 'مقبول' || quote.status === 'تم اعتماد المشروع' ? 'bg-emerald-100 text-emerald-900 border border-emerald-200' : 
-                        quote.status === 'تم توقيع العقد' ? 'bg-emerald-900 text-[#D0A97E]' :
+                        quote.status === 'تم توقيع العقد' ? 'bg-emerald-900 text-[#C5B198]' :
                         quote.status === 'مرفوض' ? 'bg-red-100 text-red-900 border border-red-200' : 'bg-slate-100 text-slate-700'
                       }`}>
                         {quote.status}
                       </span>
                       {quote.quoteAmount && (
-                        <span className="text-[11px] font-black text-[#F8F5F0] block mt-1">
+                        <span className="text-[11px] font-black text-[#1C3022] block mt-1">
                           {quote.quoteAmount}
                         </span>
                       )}
@@ -363,19 +362,19 @@ export function SupervisorClientsView({
 
                   {/* Proposal Details Banner if sent */}
                   {hasProposal && (
-                    <div className="p-3.5 bg-[#0B1510] rounded-2xl border border-[#2A3A2F] text-xs space-y-2.5">
+                    <div className="p-3.5 bg-[#FAF7F2] rounded-2xl border border-[#E8E2D8] text-xs space-y-2.5">
                       <div className="flex items-center justify-between">
                         <div>
-                          <span className="text-[10px] font-bold text-[#F8F5F0]/50 block">إجمالي العرض المقترح:</span>
-                          <span className="font-black text-[#F8F5F0]">{quote.quoteAmount || 'حسب المواصفات'}</span>
+                          <span className="text-[10px] font-bold text-slate-400 block">إجمالي العرض المقترح:</span>
+                          <span className="font-black text-[#1C3022]">{quote.quoteAmount || 'حسب المواصفات'}</span>
                         </div>
                         {quote.fileUrl && (
                           <button
                             type="button"
                             onClick={() => downloadFile(quote.fileUrl!, quote.fileName || `عرض_سعر_${quote.projectName}.pdf`)}
-                            className="text-[11px] text-[#F8F5F0] font-black hover:underline flex items-center gap-1 bg-[#122119] px-2.5 py-1.5 rounded-xl border border-[#2A3A2F] shadow-sm"
+                            className="text-[11px] text-[#1C3022] font-black hover:underline flex items-center gap-1 bg-white px-2.5 py-1.5 rounded-xl border border-[#E8E2D8] shadow-sm"
                           >
-                            <Download className="w-3.5 h-3.5 text-[#D0A97E]" />
+                            <Download className="w-3.5 h-3.5 text-[#C5B198]" />
                             <span>تحميل ({quote.fileName || 'ملف العرض'})</span>
                           </button>
                         )}
@@ -383,20 +382,20 @@ export function SupervisorClientsView({
 
                       {/* Installments preview if configured */}
                       {quote.installments && quote.installments.length > 0 && (
-                        <div className="pt-2 border-t border-[#2A3A2F] space-y-1">
-                          <span className="text-[10px] font-black text-[#F8F5F0] flex items-center gap-1">
-                            <Wallet className="w-3 h-3 text-[#D0A97E]" />
+                        <div className="pt-2 border-t border-[#E8E2D8] space-y-1">
+                          <span className="text-[10px] font-black text-[#1C3022] flex items-center gap-1">
+                            <Wallet className="w-3 h-3 text-[#C5B198]" />
                             <span>نظام الدفعات المقترح ({quote.installments.length} دفعات):</span>
                           </span>
                           <div className="grid grid-cols-2 gap-1.5 pt-1">
                             {quote.installments.slice(0, 4).map((inst, i) => (
-                              <div key={i} className="bg-[#122119] p-2 rounded-xl border border-[#2A3A2F] text-[10px]">
-                                <span className="font-black text-[#F8F5F0] block truncate">{inst.title}</span>
+                              <div key={i} className="bg-white p-2 rounded-xl border border-[#E8E2D8] text-[10px]">
+                                <span className="font-black text-[#1C3022] block truncate">{inst.title}</span>
                                 <span className="text-emerald-800 font-bold">{inst.amount}</span>
                               </div>
                             ))}
                             {quote.installments.length > 4 && (
-                              <div className="bg-[#122119] p-2 rounded-xl border border-[#2A3A2F] text-[10px] flex items-center justify-center font-bold text-[#F8F5F0]/60">
+                              <div className="bg-white p-2 rounded-xl border border-[#E8E2D8] text-[10px] flex items-center justify-center font-bold text-slate-500">
                                 + {quote.installments.length - 4} دفعات أخرى
                               </div>
                             )}
@@ -405,7 +404,7 @@ export function SupervisorClientsView({
                       )}
 
                       {quote.adminNote && (
-                        <p className="text-[11px] text-[#F8F5F0]/70 font-medium pt-1 border-t border-[#2A3A2F]">
+                        <p className="text-[11px] text-slate-600 font-medium pt-1 border-t border-[#E8E2D8]">
                           <strong>ملاحظات المشرف:</strong> {quote.adminNote}
                         </p>
                       )}
@@ -430,9 +429,9 @@ export function SupervisorClientsView({
                       <button
                         type="button"
                         onClick={() => setQuoteForContractSigning(quote)}
-                        className="w-full bg-[#1C3022] text-[#F8F5F0] hover:bg-[#122116] py-2.5 rounded-xl text-xs font-black flex items-center justify-center gap-2 shadow-md transition-all active:scale-[0.98]"
+                        className="w-full bg-[#1C3022] text-white hover:bg-[#122116] py-2.5 rounded-xl text-xs font-black flex items-center justify-center gap-2 shadow-md transition-all active:scale-[0.98]"
                       >
-                        <FileCheck className="w-4 h-4 text-[#D0A97E]" />
+                        <FileCheck className="w-4 h-4 text-[#C5B198]" />
                         <span>إرفاق العقد والتوقيع الإلكتروني واعتماد المشروع</span>
                       </button>
                     </div>
@@ -446,9 +445,9 @@ export function SupervisorClientsView({
                         <span>طلب العميل: قبول مع تعديل بالتسعير</span>
                       </div>
                       {quote.clientModificationNote && (
-                        <div className="p-2.5 bg-[#122119] rounded-xl border border-amber-200 text-xs text-slate-700 font-medium">
+                        <div className="p-2.5 bg-white rounded-xl border border-amber-200 text-xs text-slate-700 font-medium">
                           <strong>ملاحظات واقتراح العميل للتسعير:</strong>
-                          <p className="mt-1 text-[#F8F5F0] font-bold">{quote.clientModificationNote}</p>
+                          <p className="mt-1 text-[#1C3022] font-bold">{quote.clientModificationNote}</p>
                         </div>
                       )}
                       <div className="flex flex-wrap gap-2 pt-1">
@@ -463,7 +462,7 @@ export function SupervisorClientsView({
                         <button
                           type="button"
                           onClick={() => setSelectedQuoteForProposal(quote)}
-                          className="bg-[#122119] hover:bg-amber-100 text-amber-900 border border-amber-300 px-3 py-1.5 rounded-xl text-xs font-black flex items-center gap-1"
+                          className="bg-white hover:bg-amber-100 text-amber-900 border border-amber-300 px-3 py-1.5 rounded-xl text-xs font-black flex items-center gap-1"
                         >
                           <FileUp className="w-3.5 h-3.5 text-amber-700" />
                           <span>تعديل عرض السعر والدفعات</span>
@@ -471,7 +470,7 @@ export function SupervisorClientsView({
                         <button
                           type="button"
                           onClick={() => handleUpdateQuoteStatus(quote, 'مرفوض')}
-                          className="bg-[#122119] hover:bg-red-50 text-red-700 border border-red-200 px-2.5 py-1.5 rounded-xl text-xs font-bold"
+                          className="bg-white hover:bg-red-50 text-red-700 border border-red-200 px-2.5 py-1.5 rounded-xl text-xs font-bold"
                         >
                           رفض التعديل
                         </button>
@@ -481,8 +480,8 @@ export function SupervisorClientsView({
 
                   {/* Standard Client Decision Status */}
                   {!isCounterOffer && quote.clientDecision && (
-                    <div className="p-2.5 bg-[#0B1510] rounded-xl border border-[#2A3A2F] flex items-center gap-2 text-xs">
-                      <span className="font-bold text-[#F8F5F0]/60">قرار العميل:</span>
+                    <div className="p-2.5 bg-[#FAF7F2] rounded-xl border border-[#E8E2D8] flex items-center gap-2 text-xs">
+                      <span className="font-bold text-slate-500">قرار العميل:</span>
                       {quote.clientDecision === 'accepted' ? (
                         <span className="font-black text-emerald-800 flex items-center gap-1">
                           <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700" />
@@ -502,7 +501,7 @@ export function SupervisorClientsView({
                     <button
                       type="button"
                       onClick={() => setSelectedQuoteForProposal(quote)}
-                      className="bg-[#C5B198] text-[#F8F5F0] hover:bg-[#b8a287] px-4 py-2.5 rounded-xl text-xs font-black flex items-center gap-2 shadow-sm transition-all active:scale-[0.98]"
+                      className="bg-[#C5B198] text-[#1C3022] hover:bg-[#b8a287] px-4 py-2.5 rounded-xl text-xs font-black flex items-center gap-2 shadow-sm transition-all active:scale-[0.98]"
                     >
                       <FileUp className="w-4 h-4" />
                       <span>{hasProposal ? 'تعديل/إعادة إرسال عرض السعر والدفعات' : 'إرسال عرض سعر وملف'}</span>
@@ -604,45 +603,11 @@ function SupervisorSendQuoteModal({
     if (quote.installments && quote.installments.length > 0) {
       return quote.installments;
     }
-    // Default standard construction installments
-    return [
-      {
-        id: `INST-1`,
-        title: 'الدفعة الأولى (مقدم التعاقد وإصدار التراخيص)',
-        amount: '50,000 ر.س',
-        amountNumber: 50000,
-        dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        status: 'pending'
-      },
-      {
-        id: `INST-2`,
-        title: 'الدفعة الثانية (أعمال الحفر والأساسات والقواعد)',
-        amount: '100,000 ر.س',
-        amountNumber: 100000,
-        dueDate: new Date(Date.now() + 45 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        status: 'pending'
-      },
-      {
-        id: `INST-3`,
-        title: 'الدفعة الثالثة (الهيكل الإنشائي العظم والأسقف)',
-        amount: '150,000 ر.س',
-        amountNumber: 150000,
-        dueDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        status: 'pending'
-      },
-      {
-        id: `INST-4`,
-        title: 'الدفعة الرابعة (التمديدات والتشطيبات والتسليم)',
-        amount: '150,000 ر.س',
-        amountNumber: 150000,
-        dueDate: new Date(Date.now() + 150 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        status: 'pending'
-      }
-    ];
+    return [];
   });
 
   const [newInstTitle, setNewInstTitle] = useState('');
-  const [newInstAmount, setNewInstAmount] = useState('');
+  const [newInstPercentage, setNewInstPercentage] = useState('');
   const [newInstDueDate, setNewInstDueDate] = useState('');
 
   // Calculate sum of installments
@@ -759,22 +724,22 @@ function SupervisorSendQuoteModal({
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
-        className="bg-[#122119] w-full max-w-xl rounded-[2.5rem] shadow-2xl border border-[#2A3A2F] overflow-hidden flex flex-col max-h-[92vh] text-[#F8F5F0]"
+        className="bg-white w-full max-w-xl rounded-[2.5rem] shadow-2xl border border-[#E8E2D8] overflow-hidden flex flex-col max-h-[92vh] text-[#1C3022]"
       >
         {/* Modal Header */}
-        <div className="bg-[#1C3022] text-[#F8F5F0] p-5 flex items-center justify-between shrink-0">
+        <div className="bg-[#1C3022] text-white p-5 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-2xl bg-[#C5B198] text-[#F8F5F0] flex items-center justify-center font-black">
+            <div className="w-10 h-10 rounded-2xl bg-[#C5B198] text-[#1C3022] flex items-center justify-center font-black">
               <FileUp className="w-5 h-5" />
             </div>
             <div>
               <h3 className="text-sm sm:text-base font-black">إرسال عرض سعر ونظام الدفعات وملف المشروع</h3>
-              <p className="text-[10px] text-[#D0A97E]">للعميل: {quote.clientName} - {quote.projectName}</p>
+              <p className="text-[10px] text-[#C5B198]">للعميل: {quote.clientName} - {quote.projectName}</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-[#122119]/10 hover:bg-[#122119]/20 flex items-center justify-center text-[#1C3022]"
+            className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-[#1C3022]"
           >
             <X className="w-4 h-4" />
           </button>
@@ -783,15 +748,15 @@ function SupervisorSendQuoteModal({
         {/* Modal Body */}
         <form onSubmit={handleSend} className="p-5 sm:p-6 space-y-5 overflow-y-auto flex-1">
           {/* Project Summary Box */}
-          <div className="bg-[#0B1510] p-4 rounded-2xl border border-[#2A3A2F] space-y-1.5">
-            <span className="text-[10px] font-black text-[#D0A97E]">طلب العميل:</span>
-            <h4 className="text-xs font-black text-[#F8F5F0]">{quote.projectName}</h4>
-            <p className="text-[11px] text-[#F8F5F0]/70 leading-relaxed">{quote.description}</p>
+          <div className="bg-[#FAF7F2] p-4 rounded-2xl border border-[#E8E2D8] space-y-1.5">
+            <span className="text-[10px] font-black text-[#C5B198]">طلب العميل:</span>
+            <h4 className="text-xs font-black text-[#1C3022]">{quote.projectName}</h4>
+            <p className="text-[11px] text-slate-600 leading-relaxed">{quote.description}</p>
           </div>
 
           {/* Amount input */}
           <div className="space-y-1">
-            <label className="text-xs font-black text-[#F8F5F0] block">
+            <label className="text-xs font-black text-[#1C3022] block">
               إجمالي قيمة العقد وعرض السعر *
             </label>
             <input
@@ -800,29 +765,29 @@ function SupervisorSendQuoteModal({
               placeholder="مثال: 450,000 ر.س"
               value={quoteAmount}
               onChange={e => setQuoteAmount(e.target.value)}
-              className="w-full bg-[#0B1510] border border-[#2A3A2F] rounded-2xl px-4 py-3 text-xs font-bold text-[#F8F5F0] outline-none focus:ring-2 focus:ring-[#C5B198]"
+              className="w-full bg-[#FAF7F2] border border-[#E8E2D8] rounded-2xl px-4 py-3 text-xs font-bold text-[#1C3022] outline-none focus:ring-2 focus:ring-[#C5B198]"
             />
           </div>
 
           {/* INSTALLMENT SYSTEM BUILDER (نظام الدفعات) */}
-          <div className="space-y-3 p-4 bg-[#0B1510] rounded-2xl border border-[#2A3A2F]">
+          <div className="space-y-3 p-4 bg-[#FAF7F2] rounded-2xl border border-[#E8E2D8]">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5">
-                <Wallet className="w-4 h-4 text-[#D0A97E]" />
-                <h4 className="text-xs font-black text-[#F8F5F0]">نظام وجدول الدفعات المقترح ({installments.length} دفعات)</h4>
+                <Wallet className="w-4 h-4 text-[#C5B198]" />
+                <h4 className="text-xs font-black text-[#1C3022]">نظام وجدول الدفعات المقترح ({installments.length} دفعات)</h4>
               </div>
               <button
                 type="button"
                 onClick={handleDistributeEvenly}
-                className="text-[10px] font-black text-[#F8F5F0] bg-[#122119] hover:bg-[#e4dacb] px-2.5 py-1 rounded-lg transition-all"
+                className="text-[10px] font-black text-[#1C3022] bg-white hover:bg-[#e4dacb] px-2.5 py-1 rounded-lg transition-all"
               >
                 توزيع بالتساوي على الدفعات
               </button>
             </div>
 
             {/* Total check bar */}
-            <div className="p-2.5 bg-[#122119] rounded-xl border border-[#2A3A2F] flex items-center justify-between text-[11px]">
-              <span className="text-[#F8F5F0]/60 font-bold">مجموع مبالغ الدفعات:</span>
+            <div className="p-2.5 bg-white rounded-xl border border-[#E8E2D8] flex items-center justify-between text-[11px]">
+              <span className="text-slate-500 font-bold">مجموع مبالغ الدفعات:</span>
               <span className={`font-black ${
                 Math.abs(totalInstallmentsSum - parsedQuoteAmount) < 100 ? 'text-emerald-800' : 'text-amber-800'
               }`}>
@@ -835,11 +800,11 @@ function SupervisorSendQuoteModal({
               {installments.map((inst, idx) => (
                 <div
                   key={inst.id || idx}
-                  className="p-3 bg-[#122119] rounded-xl border border-[#2A3A2F] space-y-2 shadow-xs"
+                  className="p-3 bg-white rounded-xl border border-[#E8E2D8] space-y-2 shadow-xs"
                 >
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2 flex-1">
-                      <span className="w-5 h-5 rounded-full bg-[#1C3022] text-[#D0A97E] text-[10px] font-black flex items-center justify-center shrink-0">
+                      <span className="w-5 h-5 rounded-full bg-[#1C3022] text-[#C5B198] text-[10px] font-black flex items-center justify-center shrink-0">
                         {idx + 1}
                       </span>
                       <input
@@ -850,7 +815,7 @@ function SupervisorSendQuoteModal({
                           updated[idx] = { ...updated[idx], title: e.target.value };
                           setInstallments(updated);
                         }}
-                        className="w-full bg-transparent text-xs font-bold text-[#F8F5F0] outline-none border-b border-transparent focus:border-[#C5B198]"
+                        className="w-full bg-transparent text-xs font-bold text-[#1C3022] outline-none border-b border-transparent focus:border-[#C5B198]"
                         placeholder="عنوان الدفعة..."
                       />
                     </div>
@@ -866,17 +831,17 @@ function SupervisorSendQuoteModal({
 
                   <div className="grid grid-cols-2 gap-2 pt-1 border-t border-[#F0EBE1]">
                     <div>
-                      <span className="text-[9px] text-[#F8F5F0]/50 font-bold block mb-0.5">المبلغ (ر.س):</span>
+                      <span className="text-[9px] text-slate-400 font-bold block mb-0.5">المبلغ (ر.س):</span>
                       <input
                         type="text"
                         value={inst.amountNumber || ''}
                         onChange={e => handleUpdateInstallmentAmount(idx, e.target.value)}
-                        className="w-full bg-[#0B1510] border border-[#2A3A2F] rounded-lg px-2 py-1 text-xs font-bold text-[#F8F5F0] outline-none"
+                        className="w-full bg-[#FAF7F2] border border-[#E8E2D8] rounded-lg px-2 py-1 text-xs font-bold text-[#1C3022] outline-none"
                         dir="ltr"
                       />
                     </div>
                     <div>
-                      <span className="text-[9px] text-[#F8F5F0]/50 font-bold block mb-0.5">تاريخ الاستحقاق التقريبي:</span>
+                      <span className="text-[9px] text-slate-400 font-bold block mb-0.5">تاريخ الاستحقاق التقريبي:</span>
                       <input
                         type="date"
                         value={inst.dueDate}
@@ -885,7 +850,7 @@ function SupervisorSendQuoteModal({
                           updated[idx] = { ...updated[idx], dueDate: e.target.value };
                           setInstallments(updated);
                         }}
-                        className="w-full bg-[#0B1510] border border-[#2A3A2F] rounded-lg px-2 py-1 text-xs font-bold text-[#F8F5F0] outline-none"
+                        className="w-full bg-[#FAF7F2] border border-[#E8E2D8] rounded-lg px-2 py-1 text-xs font-bold text-[#1C3022] outline-none"
                       />
                     </div>
                   </div>
@@ -894,30 +859,30 @@ function SupervisorSendQuoteModal({
             </div>
 
             {/* Add New Installment Row */}
-            <div className="pt-2 border-t border-[#2A3A2F] space-y-2">
-              <span className="text-[10px] font-black text-[#F8F5F0] block">+ إضافة دفعة جديدة للجدول:</span>
+            <div className="pt-2 border-t border-[#E8E2D8] space-y-2">
+              <span className="text-[10px] font-black text-[#1C3022] block">+ إضافة دفعة جديدة للجدول:</span>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-1.5">
                 <input
                   type="text"
                   placeholder="مسمى الدفعة (مثل: دفعة الميدة)..."
                   value={newInstTitle}
                   onChange={e => setNewInstTitle(e.target.value)}
-                  className="sm:col-span-1 bg-[#122119] border border-[#2A3A2F] rounded-xl px-2.5 py-1.5 text-xs font-bold text-[#F8F5F0] outline-none"
+                  className="sm:col-span-1 bg-white border border-[#E8E2D8] rounded-xl px-2.5 py-1.5 text-xs font-bold text-[#1C3022] outline-none"
                 />
                 <input
                   type="text"
                   placeholder="المبلغ (مثل: 50000)..."
                   value={newInstAmount}
                   onChange={e => setNewInstAmount(e.target.value)}
-                  className="bg-[#122119] border border-[#2A3A2F] rounded-xl px-2.5 py-1.5 text-xs font-bold text-[#F8F5F0] outline-none"
+                  className="bg-white border border-[#E8E2D8] rounded-xl px-2.5 py-1.5 text-xs font-bold text-[#1C3022] outline-none"
                   dir="ltr"
                 />
                 <button
                   type="button"
                   onClick={handleAddInstallmentRow}
-                  className="bg-[#1C3022] text-[#F8F5F0] py-1.5 px-3 rounded-xl text-xs font-black hover:bg-[#122116] flex items-center justify-center gap-1"
+                  className="bg-[#1C3022] text-white py-1.5 px-3 rounded-xl text-xs font-black hover:bg-[#122116] flex items-center justify-center gap-1"
                 >
-                  <Plus className="w-3.5 h-3.5 text-[#D0A97E]" />
+                  <Plus className="w-3.5 h-3.5 text-[#C5B198]" />
                   <span>إضافة الدفعة</span>
                 </button>
               </div>
@@ -926,11 +891,11 @@ function SupervisorSendQuoteModal({
 
           {/* File Picker from Computer */}
           <div className="space-y-1.5">
-            <label className="text-xs font-black text-[#F8F5F0] block">
+            <label className="text-xs font-black text-[#1C3022] block">
               إرفاق ملف ومستند عرض السعر من الجهاز (PDF / Word / صور) *
             </label>
             
-            <div className="border-2 border-dashed border-[#C5B198] bg-[#0B1510]/60 hover:bg-[#0B1510] rounded-2xl p-4 text-center transition-all relative">
+            <div className="border-2 border-dashed border-[#C5B198] bg-[#FAF7F2]/60 hover:bg-[#FAF7F2] rounded-2xl p-4 text-center transition-all relative">
               <input
                 type="file"
                 accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
@@ -938,12 +903,12 @@ function SupervisorSendQuoteModal({
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
               />
               <div className="space-y-1.5 flex flex-col items-center justify-center pointer-events-none">
-                <div className="w-10 h-10 rounded-2xl bg-[#122119] text-[#F8F5F0] flex items-center justify-center">
-                  <Upload className="w-5 h-5 text-[#D0A97E]" />
+                <div className="w-10 h-10 rounded-2xl bg-white text-[#1C3022] flex items-center justify-center">
+                  <Upload className="w-5 h-5 text-[#C5B198]" />
                 </div>
                 <div>
-                  <p className="text-xs font-black text-[#F8F5F0]">انقر لاختيار ملف من جهازك أو اسحب الملف هنا</p>
-                  <p className="text-[10px] text-[#F8F5F0]/50">يدعم ملفات PDF، جداول الكميات، المستندات الرسمية (حتى 15MB)</p>
+                  <p className="text-xs font-black text-[#1C3022]">انقر لاختيار ملف من جهازك أو اسحب الملف هنا</p>
+                  <p className="text-[10px] text-slate-400">يدعم ملفات PDF، جداول الكميات، المستندات الرسمية (حتى 15MB)</p>
                 </div>
               </div>
             </div>
@@ -972,7 +937,7 @@ function SupervisorSendQuoteModal({
 
           {/* Admin Notes */}
           <div className="space-y-1">
-            <label className="text-xs font-black text-[#F8F5F0] block">
+            <label className="text-xs font-black text-[#1C3022] block">
               ملاحظات للمشروع وشروط العرض
             </label>
             <textarea
@@ -980,7 +945,7 @@ function SupervisorSendQuoteModal({
               value={adminNote}
               onChange={e => setAdminNote(e.target.value)}
               placeholder="اكتب أي توضيحات هندسية، مدة صلاحية العرض، أو شروط الدفع..."
-              className="w-full bg-[#0B1510] border border-[#2A3A2F] rounded-2xl p-3 text-xs font-medium text-[#F8F5F0] outline-none focus:ring-2 focus:ring-[#C5B198]"
+              className="w-full bg-[#FAF7F2] border border-[#E8E2D8] rounded-2xl p-3 text-xs font-medium text-[#1C3022] outline-none focus:ring-2 focus:ring-[#C5B198]"
             />
           </div>
 
@@ -989,16 +954,16 @@ function SupervisorSendQuoteModal({
             <button
               type="submit"
               disabled={isSubmitting}
-              className="flex-1 bg-[#1C3022] text-[#F8F5F0] hover:bg-[#122116] py-3.5 rounded-2xl text-xs font-black flex items-center justify-center gap-2 shadow-lg transition-all active:scale-[0.98] disabled:opacity-50"
+              className="flex-1 bg-[#1C3022] text-white hover:bg-[#122116] py-3.5 rounded-2xl text-xs font-black flex items-center justify-center gap-2 shadow-lg transition-all active:scale-[0.98] disabled:opacity-50"
             >
               {isSubmitting ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin text-[#D0A97E]" />
+                  <Loader2 className="w-4 h-4 animate-spin text-[#C5B198]" />
                   <span>جاري الإرسال للعميل...</span>
                 </>
               ) : (
                 <>
-                  <Send className="w-4 h-4 text-[#D0A97E]" />
+                  <Send className="w-4 h-4 text-[#C5B198]" />
                   <span>إرسال عرض السعر ونظام الدفعات والملف</span>
                 </>
               )}
@@ -1052,6 +1017,7 @@ export function SupervisorProjectsView({
 
   // Filter projects ONLY by search query and optional client filter (No status filter pills)
   const filteredProjects = projects.filter(p => {
+    if (p.isDeleted) return false;
     if (selectedClientFilter && p.clientId !== selectedClientFilter) return false;
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
@@ -1131,21 +1097,21 @@ export function SupervisorProjectsView({
       {/* Header & Add Project Button */}
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-black text-[#F8F5F0]">إدارة المشاريع العامة</h3>
-          <p className="text-xs text-[#F8F5F0]/60">تحديث نسب الإنجاز والمراحل لجميع العملاء</p>
+          <h3 className="text-lg font-black text-[#1C3022]">إدارة المشاريع العامة</h3>
+          <p className="text-xs text-slate-500">تحديث نسب الإنجاز والمراحل لجميع العملاء</p>
         </div>
         <button
           onClick={onCreateNewProject}
-          className="bg-[#1C3022] text-[#F8F5F0] px-3.5 py-2 rounded-2xl text-xs font-black flex items-center gap-1.5 hover:bg-[#122116] shadow-sm active:scale-[0.98]"
+          className="bg-[#1C3022] text-white px-3.5 py-2 rounded-2xl text-xs font-black flex items-center gap-1.5 hover:bg-[#122116] shadow-sm active:scale-[0.98]"
         >
-          <Plus className="w-3.5 h-3.5 text-[#D0A97E]" />
+          <Plus className="w-3.5 h-3.5 text-[#C5B198]" />
           <span>إضافة مشروع</span>
         </button>
       </div>
 
       {/* Active Client Filter Banner */}
       {filteredClientObj && (
-        <div className="bg-[#122119] p-3 rounded-2xl border border-[#C5B198]/50 flex items-center justify-between text-xs font-bold text-[#F8F5F0]">
+        <div className="bg-white p-3 rounded-2xl border border-[#C5B198]/50 flex items-center justify-between text-xs font-bold text-[#1C3022]">
           <span>تصفية حسب العميل: {filteredClientObj.name}</span>
           <button
             onClick={onClearClientFilter}
@@ -1158,22 +1124,22 @@ export function SupervisorProjectsView({
 
       {/* Search Bar Only (Filter pills removed per user instruction) */}
       <div className="relative">
-        <Search className="w-4 h-4 text-[#F8F5F0]/50 absolute right-3.5 top-3.5" />
+        <Search className="w-4 h-4 text-slate-400 absolute right-3.5 top-3.5" />
         <input
           type="text"
           placeholder="بحث باسم المشروع، الموقع أو العميل..."
           value={searchQuery}
           onChange={e => setSearchQuery(e.target.value)}
-          className="w-full bg-[#122119] border border-[#2A3A2F] rounded-2xl pr-10 pl-4 py-3 text-xs font-bold text-[#F8F5F0] outline-none shadow-sm focus:ring-2 focus:ring-[#C5B198]"
+          className="w-full bg-white border border-[#E8E2D8] rounded-2xl pr-10 pl-4 py-3 text-xs font-bold text-[#1C3022] outline-none shadow-sm focus:ring-2 focus:ring-[#C5B198]"
         />
       </div>
 
       {/* Projects List */}
       {filteredProjects.length === 0 ? (
-        <div className="bg-[#122119] rounded-3xl p-8 text-center border border-[#2A3A2F] space-y-3">
+        <div className="bg-white rounded-3xl p-8 text-center border border-[#E8E2D8] space-y-3">
           <HardHat className="w-10 h-10 text-slate-300 mx-auto" />
-          <h4 className="font-black text-sm text-[#F8F5F0]">لا توجد مشاريع مسجلة</h4>
-          <p className="text-xs text-[#F8F5F0]/60">يمكنك إنشاء مشروع جديد وتعيينه لأي عميل من زر الإضافة أعلاه.</p>
+          <h4 className="font-black text-sm text-[#1C3022]">لا توجد مشاريع مسجلة</h4>
+          <p className="text-xs text-slate-500">يمكنك إنشاء مشروع جديد وتعيينه لأي عميل من زر الإضافة أعلاه.</p>
         </div>
       ) : (
         <div className="space-y-4">
@@ -1191,9 +1157,9 @@ export function SupervisorProjectsView({
             return (
               <div
                 key={project.id}
-                className={`bg-[#122119] rounded-3xl border shadow-sm hover:shadow-md transition-all overflow-hidden ${
+                className={`bg-white rounded-3xl border shadow-sm hover:shadow-md transition-all overflow-hidden ${
                   project.status === 'ملغي' ? 'border-red-200 bg-red-50/20' :
-                  hasOverdue7Days ? 'border-red-300 ring-1 ring-red-100' : 'border-[#2A3A2F]'
+                  hasOverdue7Days ? 'border-red-300 ring-1 ring-red-100' : 'border-[#E8E2D8]'
                 }`}
               >
                 {/* Top Info Banner */}
@@ -1201,16 +1167,16 @@ export function SupervisorProjectsView({
                   <div className="flex justify-between items-start">
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-black bg-[#122119] text-[#F8F5F0] px-2 py-0.5 rounded-md">
+                        <span className="text-[10px] font-black bg-white text-[#1C3022] px-2 py-0.5 rounded-md">
                           كود: {project.id}
                         </span>
-                        <span className="text-[10px] font-bold text-[#F8F5F0]/60">
+                        <span className="text-[10px] font-bold text-slate-500">
                           العميل: {client?.name || 'عميل مسجل'}
                         </span>
                       </div>
-                      <h4 className="text-base font-black text-[#F8F5F0] mt-1">{project.title}</h4>
-                      <p className="text-xs text-[#F8F5F0]/60 font-bold flex items-center gap-1 mt-0.5">
-                        <MapPin className="w-3.5 h-3.5 text-[#D0A97E]" /> {project.location}
+                      <h4 className="text-base font-black text-[#1C3022] mt-1">{project.title}</h4>
+                      <p className="text-xs text-slate-500 font-bold flex items-center gap-1 mt-0.5">
+                        <MapPin className="w-3.5 h-3.5 text-[#C5B198]" /> {project.location}
                       </p>
                     </div>
 
@@ -1244,7 +1210,7 @@ export function SupervisorProjectsView({
                         <AlertTriangle className="w-4 h-4 text-red-700 shrink-0" />
                         <span>طلب إلغاء من العميل ({project.cancellationRequest?.requestDate})</span>
                       </div>
-                      <p className="text-[11px] text-red-800 bg-[#122119] p-2.5 rounded-xl border border-red-100 font-medium">
+                      <p className="text-[11px] text-red-800 bg-white p-2.5 rounded-xl border border-red-100 font-medium">
                         <strong>سبب الإلغاء المطلوب من العميل:</strong> {project.cancellationRequest?.reason}
                       </p>
                       <div className="flex gap-2 pt-1">
@@ -1258,7 +1224,7 @@ export function SupervisorProjectsView({
                         <button
                           type="button"
                           onClick={() => handleRespondToClientCancellation(project, 'reject')}
-                          className="px-4 bg-[#122119] text-slate-700 border border-slate-300 py-2 rounded-xl text-xs font-bold hover:bg-slate-50 transition-all"
+                          className="px-4 bg-white text-slate-700 border border-slate-300 py-2 rounded-xl text-xs font-bold hover:bg-slate-50 transition-all"
                         >
                           رفض الإلغاء
                         </button>
@@ -1279,10 +1245,10 @@ export function SupervisorProjectsView({
                   {/* Dual Metric Cards: Progress % & Payment % */}
                   <div className="grid grid-cols-2 gap-2 pt-1">
                     {/* Project Progress */}
-                    <div className="bg-[#0B1510] p-3 rounded-2xl border border-[#2A3A2F] space-y-1.5">
+                    <div className="bg-[#FAF7F2] p-3 rounded-2xl border border-[#E8E2D8] space-y-1.5">
                       <div className="flex justify-between items-center text-[10px] font-bold">
-                        <span className="text-[#F8F5F0]/60">نسبة اكتمال المشروع</span>
-                        <span className="text-[#F8F5F0] font-black text-xs">{project.progress}%</span>
+                        <span className="text-slate-500">نسبة اكتمال المشروع</span>
+                        <span className="text-[#1C3022] font-black text-xs">{project.progress}%</span>
                       </div>
                       <div className="w-full h-2 bg-[#E8E2D8] rounded-full overflow-hidden">
                         <div
@@ -1293,9 +1259,9 @@ export function SupervisorProjectsView({
                     </div>
 
                     {/* Payments Status */}
-                    <div className="bg-[#0B1510] p-3 rounded-2xl border border-[#2A3A2F] space-y-1.5">
+                    <div className="bg-[#FAF7F2] p-3 rounded-2xl border border-[#E8E2D8] space-y-1.5">
                       <div className="flex justify-between items-center text-[10px] font-bold">
-                        <span className="text-[#F8F5F0]/60">سداد الدفعات</span>
+                        <span className="text-slate-500">سداد الدفعات</span>
                         <span className="text-emerald-800 font-black text-xs">{payPercent}%</span>
                       </div>
                       <div className="w-full h-2 bg-[#E8E2D8] rounded-full overflow-hidden">
@@ -1304,7 +1270,7 @@ export function SupervisorProjectsView({
                           style={{ width: `${payPercent}%` }}
                         ></div>
                       </div>
-                      <div className="text-[9px] text-[#F8F5F0]/50 font-bold text-left">
+                      <div className="text-[9px] text-slate-400 font-bold text-left">
                         {paidInst}/{totalInst} دفعات مسددة
                       </div>
                     </div>
@@ -1315,9 +1281,9 @@ export function SupervisorProjectsView({
                     <button
                       type="button"
                       onClick={() => onManageProject(project)}
-                      className="flex-1 min-w-[130px] bg-[#1C3022] text-[#F8F5F0] py-2.5 px-3 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 hover:bg-[#122116] shadow-sm active:scale-[0.98] transition-all"
+                      className="flex-1 min-w-[130px] bg-[#1C3022] text-white py-2.5 px-3 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 hover:bg-[#122116] shadow-sm active:scale-[0.98] transition-all"
                     >
-                      <Sliders className="w-3.5 h-3.5 text-[#D0A97E]" />
+                      <Sliders className="w-3.5 h-3.5 text-[#C5B198]" />
                       <span>إدارة وتعديل المشروع</span>
                     </button>
 
@@ -1327,7 +1293,7 @@ export function SupervisorProjectsView({
                         onClick={() => onSignContract(project)}
                         className={`py-2.5 px-3 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 transition-all shadow-sm ${
                           hasSupervisorSigned 
-                            ? 'bg-[#122119] text-[#F8F5F0] hover:bg-[#E5DBCF]' 
+                            ? 'bg-white text-[#1C3022] hover:bg-[#E5DBCF]' 
                             : 'bg-amber-600 hover:bg-amber-700 text-[#1C3022] animate-pulse'
                         }`}
                       >
@@ -1339,10 +1305,10 @@ export function SupervisorProjectsView({
                     <button
                       type="button"
                       onClick={() => onPreviewProject(project)}
-                      className="px-3 py-2.5 bg-[#0B1510] text-[#F8F5F0] rounded-xl text-xs font-black flex items-center justify-center gap-1 border border-[#2A3A2F] hover:bg-[#122119] transition-all"
+                      className="px-3 py-2.5 bg-[#FAF7F2] text-[#1C3022] rounded-xl text-xs font-black flex items-center justify-center gap-1 border border-[#E8E2D8] hover:bg-white transition-all"
                     >
                       <span>التفاصيل</span>
-                      <ChevronLeft className="w-3.5 h-3.5 text-[#D0A97E]" />
+                      <ChevronLeft className="w-3.5 h-3.5 text-[#C5B198]" />
                     </button>
 
                     {/* Supervisor Request Cancellation Button */}
@@ -1370,24 +1336,24 @@ export function SupervisorProjectsView({
           <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className="bg-[#122119] rounded-3xl p-6 max-w-sm w-full space-y-4 border border-red-200 shadow-2xl"
+            className="bg-white rounded-3xl p-6 max-w-sm w-full space-y-4 border border-red-200 shadow-2xl"
           >
             <div className="flex items-center gap-2 text-red-900 pb-2 border-b border-slate-100 font-black text-sm">
               <AlertTriangle className="w-5 h-5 text-red-600 shrink-0" />
               <span>طلب إلغاء المشروع: {cancellationTargetProject.title}</span>
             </div>
-            <p className="text-xs text-[#F8F5F0]/70 font-medium leading-relaxed">
+            <p className="text-xs text-slate-600 font-medium leading-relaxed">
               سيتم إرسال طلب إلغاء رسمي إلى العميل، ويشترط موافقة العميل لاعتماد إلغاء المشروع رسمياً.
             </p>
             <div>
-              <label className="block text-[11px] font-black text-[#F8F5F0] mb-1">سبب إلغاء المشروع *</label>
+              <label className="block text-[11px] font-black text-[#1C3022] mb-1">سبب إلغاء المشروع *</label>
               <textarea
                 rows={3}
                 required
                 value={cancellationReason}
                 onChange={e => setCancellationReason(e.target.value)}
                 placeholder="اكتب سبب طلب الإلغاء بالتفصيل..."
-                className="w-full bg-[#0B1510] border border-[#2A3A2F] rounded-xl p-3 text-xs font-medium outline-none focus:ring-2 focus:ring-red-400 resize-none"
+                className="w-full bg-[#FAF7F2] border border-[#E8E2D8] rounded-xl p-3 text-xs font-medium outline-none focus:ring-2 focus:ring-red-400 resize-none"
               />
             </div>
             <div className="flex gap-2 pt-2">
@@ -1525,11 +1491,11 @@ export function SupervisorPaymentsView({
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-black text-[#F8F5F0]">التحصيل والتدفقات المالية</h3>
-          <p className="text-xs text-[#F8F5F0]/60">إجمالي مستحقات ومسددات عقود المقاولات</p>
+          <h3 className="text-lg font-black text-[#1C3022]">التحصيل والتدفقات المالية</h3>
+          <p className="text-xs text-slate-500">إجمالي مستحقات ومسددات عقود المقاولات</p>
         </div>
-        <div className="w-9 h-9 rounded-xl bg-[#122119] flex items-center justify-center text-[#F8F5F0]">
-          <Wallet className="w-5 h-5 text-[#D0A97E]" />
+        <div className="w-9 h-9 rounded-xl bg-white flex items-center justify-center text-[#1C3022]">
+          <Wallet className="w-5 h-5 text-[#C5B198]" />
         </div>
       </div>
 
@@ -1561,25 +1527,25 @@ export function SupervisorPaymentsView({
 
       {/* Financial Summary Cards */}
       <div className="grid grid-cols-2 gap-2.5">
-        <div className="bg-[#1C3022] text-[#F8F5F0] p-4 rounded-3xl border border-[#284430] space-y-1">
-          <span className="text-[10px] font-black text-[#D0A97E]">إجمالي المبالغ المحصلة</span>
+        <div className="bg-[#1C3022] text-white p-4 rounded-3xl border border-[#284430] space-y-1">
+          <span className="text-[10px] font-black text-[#C5B198]">إجمالي المبالغ المحصلة</span>
           <h4 className="text-lg font-black">{paidFinancial.toLocaleString('ar-SA')} ر.س</h4>
           <span className="text-[9px] text-[#EFE7DC]/80 font-bold block">من أصل {totalFinancial.toLocaleString('ar-SA')} ر.س</span>
         </div>
 
-        <div className="bg-[#122119] p-4 rounded-3xl border border-[#2A3A2F] space-y-1 shadow-sm">
+        <div className="bg-white p-4 rounded-3xl border border-[#E8E2D8] space-y-1 shadow-sm">
           <span className="text-[10px] font-black text-amber-700">المبالغ المتبقية</span>
-          <h4 className="text-lg font-black text-[#F8F5F0]">{pendingFinancial.toLocaleString('ar-SA')} ر.س</h4>
-          <span className="text-[9px] text-[#F8F5F0]/50 font-bold block">{allInstallments.filter(i => i.installment.status !== 'paid').length} دفعات غير مسددة</span>
+          <h4 className="text-lg font-black text-[#1C3022]">{pendingFinancial.toLocaleString('ar-SA')} ر.س</h4>
+          <span className="text-[9px] text-slate-400 font-bold block">{allInstallments.filter(i => i.installment.status !== 'paid').length} دفعات غير مسددة</span>
         </div>
       </div>
 
       {/* Installments Table/List */}
       <div className="space-y-3">
-        <h4 className="text-xs font-black text-[#F8F5F0]">كافة الدفعات وإشعارات التحويل ({allInstallments.length})</h4>
+        <h4 className="text-xs font-black text-[#1C3022]">كافة الدفعات وإشعارات التحويل ({allInstallments.length})</h4>
 
         {allInstallments.length === 0 ? (
-          <div className="bg-[#122119] rounded-3xl p-8 text-center border border-[#2A3A2F] text-xs text-[#F8F5F0]/50 font-bold">
+          <div className="bg-white rounded-3xl p-8 text-center border border-[#E8E2D8] text-xs text-slate-400 font-bold">
             لا توجد دفعات مسجلة في النظام
           </div>
         ) : (
@@ -1597,7 +1563,7 @@ export function SupervisorPaymentsView({
                 key={item.installment.id || idx}
                 className={`p-4 rounded-2xl border transition-all space-y-3 ${
                   item.installment.status === 'paid'
-                    ? 'bg-[#122119] border-[#2A3A2F]'
+                    ? 'bg-white border-[#E8E2D8]'
                     : overdueInfo.isOverdue7Days
                     ? 'bg-red-50/70 border-red-300 ring-1 ring-red-100'
                     : 'bg-amber-50/50 border-amber-200'
@@ -1605,13 +1571,13 @@ export function SupervisorPaymentsView({
               >
                 <div className="flex justify-between items-start">
                   <div>
-                    <div className="flex items-center gap-1.5 text-[10px] font-bold text-[#D0A97E]">
+                    <div className="flex items-center gap-1.5 text-[10px] font-bold text-[#C5B198]">
                       <span>مشروع: {item.project.title}</span>
                       <span>•</span>
                       <span>العميل: {item.client?.name || 'عميل'}</span>
                     </div>
-                    <h5 className="text-xs font-black text-[#F8F5F0] mt-1">{item.installment.title}</h5>
-                    <span className="text-[10px] text-[#F8F5F0]/60 font-bold block mt-0.5">
+                    <h5 className="text-xs font-black text-[#1C3022] mt-1">{item.installment.title}</h5>
+                    <span className="text-[10px] text-slate-500 font-bold block mt-0.5">
                       الاستحقاق: {item.installment.dueDate}
                     </span>
                     {item.installment.transactionRef && (
@@ -1621,7 +1587,7 @@ export function SupervisorPaymentsView({
                     )}
                   </div>
                   <div className="text-left">
-                    <span className="text-xs font-black text-[#F8F5F0] block">{item.installment.amount}</span>
+                    <span className="text-xs font-black text-[#1C3022] block">{item.installment.amount}</span>
                     <span className={`text-[10px] font-black px-2.5 py-0.5 rounded-full inline-block mt-1 ${
                       item.installment.status === 'paid'
                         ? 'bg-emerald-100 text-emerald-800'
@@ -1643,34 +1609,34 @@ export function SupervisorPaymentsView({
                 </div>
 
                 {hasBankTransferNotice && (
-                  <div className="p-3 bg-[#122119] rounded-2xl border border-blue-200 space-y-1.5 text-xs">
+                  <div className="p-3 bg-white rounded-2xl border border-blue-200 space-y-1.5 text-xs">
                     <div className="flex items-center justify-between border-b border-blue-100 pb-1 text-blue-950 font-black">
                       <span className="flex items-center gap-1">
                         <Building2 className="w-3.5 h-3.5 text-blue-700" />
                         <span>بيانات التحويل البنكي:</span>
                       </span>
                       {item.installment.transferDate && (
-                        <span className="text-[10px] text-[#F8F5F0]/50 font-bold">تاريخ التحويل: {item.installment.transferDate}</span>
+                        <span className="text-[10px] text-slate-400 font-bold">تاريخ التحويل: {item.installment.transferDate}</span>
                       )}
                     </div>
                     <div className="grid grid-cols-2 gap-2 text-[11px]">
                       <div>
-                        <span className="text-[#F8F5F0]/50 block font-bold text-[10px]">اسم المحول:</span>
-                        <span className="font-black text-[#F8F5F0]">{item.installment.transferSenderName || item.client?.name || 'غير محدد'}</span>
+                        <span className="text-slate-400 block font-bold text-[10px]">اسم المحول:</span>
+                        <span className="font-black text-[#1C3022]">{item.installment.transferSenderName || item.client?.name || 'غير محدد'}</span>
                       </div>
                       <div>
-                        <span className="text-[#F8F5F0]/50 block font-bold text-[10px]">البنك المحول منه:</span>
-                        <span className="font-black text-[#F8F5F0]">{item.installment.transferBankName || 'تحويل بنكي'}</span>
+                        <span className="text-slate-400 block font-bold text-[10px]">البنك المحول منه:</span>
+                        <span className="font-black text-[#1C3022]">{item.installment.transferBankName || 'تحويل بنكي'}</span>
                       </div>
                       {item.installment.transferRef && (
                         <div>
-                          <span className="text-[#F8F5F0]/50 block font-bold text-[10px]">الرقم المرجعي:</span>
-                          <span className="font-mono font-bold text-[#F8F5F0]">{item.installment.transferRef}</span>
+                          <span className="text-slate-400 block font-bold text-[10px]">الرقم المرجعي:</span>
+                          <span className="font-mono font-bold text-[#1C3022]">{item.installment.transferRef}</span>
                         </div>
                       )}
                       {item.installment.transferReceiptUrl && (
                         <div>
-                          <span className="text-[#F8F5F0]/50 block font-bold text-[10px]">صورة الإشعار:</span>
+                          <span className="text-slate-400 block font-bold text-[10px]">صورة الإشعار:</span>
                           <button
                             type="button"
                             onClick={() => setPreviewReceiptUrl(item.installment.transferReceiptUrl || null)}
@@ -1686,7 +1652,7 @@ export function SupervisorPaymentsView({
                 )}
 
                 <div className="pt-2 border-t border-slate-200/60 flex flex-wrap items-center justify-between gap-2">
-                  <span className="text-[10px] text-[#F8F5F0]/60 font-bold">
+                  <span className="text-[10px] text-slate-500 font-bold">
                     {item.installment.paymentDate ? `تاريخ السداد: ${item.installment.paymentDate}` : 'لم يتم السداد بعد'}
                   </span>
 
@@ -1737,13 +1703,7 @@ export function SupervisorPaymentsView({
                       </button>
                     )}
 
-                    <button
-                      type="button"
-                      onClick={() => onManageProject(item.project)}
-                      className="text-xs font-black text-[#F8F5F0] bg-[#0B1510] border border-[#2A3A2F] px-2.5 py-1.5 rounded-xl hover:bg-[#122119]"
-                    >
-                      إدارة
-                    </button>
+                    
                   </div>
                 </div>
               </div>
@@ -1754,10 +1714,10 @@ export function SupervisorPaymentsView({
 
       {previewReceiptUrl && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm" dir="rtl">
-          <div className="bg-[#122119] rounded-3xl max-w-lg w-full p-5 space-y-4 shadow-2xl">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-5 space-y-4 shadow-2xl">
             <div className="flex justify-between items-center pb-2 border-b border-slate-100">
-              <h4 className="text-xs font-black text-[#F8F5F0]">صورة إشعار التحويل البنكي المرفق</h4>
-              <button onClick={() => setPreviewReceiptUrl(null)} className="p-1 text-[#F8F5F0]/50 hover:text-[#F8F5F0]/70">
+              <h4 className="text-xs font-black text-[#1C3022]">صورة إشعار التحويل البنكي المرفق</h4>
+              <button onClick={() => setPreviewReceiptUrl(null)} className="p-1 text-slate-400 hover:text-slate-600">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -1766,7 +1726,7 @@ export function SupervisorPaymentsView({
             </div>
             <button
               onClick={() => setPreviewReceiptUrl(null)}
-              className="w-full bg-[#1C3022] text-[#F8F5F0] py-3 rounded-xl text-xs font-black"
+              className="w-full bg-[#1C3022] text-white py-3 rounded-xl text-xs font-black"
             >
               إغلاق المعاينة
             </button>

@@ -87,7 +87,7 @@ export function AdminProjectManagerModal({
 
   // Manual Single Installment
   const [newInstallmentTitle, setNewInstallmentTitle] = useState('');
-  const [newInstallmentAmount, setNewInstallmentAmount] = useState('');
+  const [newInstallmentPercentage, setNewInstallmentPercentage] = useState('');
   const [newInstallmentDueDate, setNewInstallmentDueDate] = useState('');
 
   // Image Upload Category
@@ -351,7 +351,7 @@ export function AdminProjectManagerModal({
         animate={{ y: 0, opacity: 1 }}
         exit={{ y: '100%', opacity: 0 }}
         transition={{ type: 'spring', damping: 28, stiffness: 300 }}
-        className="bg-[#122119] w-full max-w-xl rounded-t-[2.5rem] sm:rounded-[2.5rem] p-5 sm:p-6 shadow-2xl border-t sm:border border-[#2A3A2F] max-h-[94vh] flex flex-col text-[#192A1D]"
+        className="bg-white w-full max-w-xl rounded-t-[2.5rem] sm:rounded-[2.5rem] p-5 sm:p-6 shadow-2xl border-t sm:border border-[#E8E2D8] max-h-[94vh] flex flex-col text-[#192A1D]"
       >
         {/* Handlebar for mobile */}
         <div className="w-12 h-1.5 bg-[#E8E2D8] rounded-full mx-auto mb-3 sm:hidden shrink-0"></div>
@@ -359,7 +359,7 @@ export function AdminProjectManagerModal({
         {/* Modal Header */}
         <div className="flex items-center justify-between pb-3 border-b border-[#F0EBE1] shrink-0">
           <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-2xl bg-[#1C3022] text-[#D0A97E] flex items-center justify-center font-black">
+            <div className="w-10 h-10 rounded-2xl bg-[#1C3022] text-[#C5B198] flex items-center justify-center font-black">
               <Sliders className="w-5 h-5" />
             </div>
             <div>
@@ -368,31 +368,31 @@ export function AdminProjectManagerModal({
                   لوحة تحكم وتخصيص المشروع
                 </span>
                 {clientName && (
-                  <span className="text-[10px] font-bold text-[#F8F5F0]/60">
+                  <span className="text-[10px] font-bold text-slate-500">
                     العميل: {clientName}
                   </span>
                 )}
               </div>
-              <h3 className="text-base font-black text-[#F8F5F0] truncate max-w-[240px] sm:max-w-xs">{title}</h3>
+              <h3 className="text-base font-black text-[#1C3022] truncate max-w-[240px] sm:max-w-xs">{title}</h3>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="w-9 h-9 rounded-xl bg-[#0B1510] border border-[#2A3A2F] flex items-center justify-center text-[#F8F5F0]/60 hover:text-[#F8F5F0] transition-all"
+            className="w-9 h-9 rounded-xl bg-[#FAF7F2] border border-[#E8E2D8] flex items-center justify-center text-slate-500 hover:text-[#1C3022] transition-all"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Navigation Tabs */}
-        <div className="flex gap-1 p-1 bg-[#0B1510] rounded-2xl border border-[#2A3A2F] my-3 overflow-x-auto no-scrollbar shrink-0">
+        <div className="flex gap-1 p-1 bg-[#FAF7F2] rounded-2xl border border-[#E8E2D8] my-3 overflow-x-auto no-scrollbar shrink-0">
           {[
             { id: 'progress', label: 'نسبة الإنجاز', icon: Percent },
             { id: 'phases', label: 'المراحل الإنشائية', icon: HardHat },
             { id: 'installments', label: 'الدفعات المالية', icon: Wallet },
             { id: 'documents', label: 'العقود والوثائق', icon: FileText },
             { id: 'images', label: 'صور الموقع', icon: ImageIcon },
-            { id: 'requests', label: 'طلبات العميل', icon: MessageSquare },
+            
             { id: 'info', label: 'بيانات المشروع', icon: Building2 },
           ].map(tab => {
             const isActive = activeTab === tab.id;
@@ -403,11 +403,11 @@ export function AdminProjectManagerModal({
                 onClick={() => setActiveTab(tab.id as TabType)}
                 className={`flex items-center gap-1 px-2.5 py-2 rounded-xl text-xs font-black whitespace-nowrap transition-all flex-1 justify-center ${
                   isActive
-                    ? 'bg-[#1C3022] text-[#F8F5F0] shadow-sm'
-                    : 'text-[#F8F5F0]/60 hover:text-[#F8F5F0] hover:bg-[#122119]/50'
+                    ? 'bg-[#1C3022] text-white shadow-sm'
+                    : 'text-slate-500 hover:text-[#1C3022] hover:bg-white/50'
                 }`}
               >
-                <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-[#D0A97E]' : 'text-[#F8F5F0]/40'}`} />
+                <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-[#C5B198]' : 'text-slate-400'}`} />
                 <span>{tab.label}</span>
               </button>
             );
@@ -420,36 +420,37 @@ export function AdminProjectManagerModal({
           {/* 1. OVERALL PROGRESS & STATUS TAB */}
           {activeTab === 'progress' && (
             <div className="space-y-4">
-              <div className="bg-[#1C3022] text-[#F8F5F0] p-5 rounded-3xl border border-[#284430] space-y-4">
+              <div className="bg-[#1C3022] text-white p-5 rounded-3xl border border-[#284430] space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <span className="text-[11px] font-black text-[#D0A97E]">نسبة إنجاز المشروع الإجمالية</span>
+                    <span className="text-[11px] font-black text-[#C5B198]">نسبة إنجاز المشروع الإجمالية</span>
                     <h4 className="text-2xl font-black">{progress}%</h4>
                   </div>
-                  <div className="px-3 py-1 bg-[#C5B198]/20 border border-[#C5B198]/30 rounded-xl text-[#D0A97E] text-xs font-black">
+                  <div className="px-3 py-1 bg-[#C5B198]/20 border border-[#C5B198]/30 rounded-xl text-[#C5B198] text-xs font-black">
                     {status}
                   </div>
                 </div>
 
-                <div>
-                  <div className="flex justify-between text-[11px] text-[#EFE7DC]/80 font-bold mb-1.5">
-                    <span>اسحب لتعديل النسبة مباشرة:</span>
-                    <span>{progress}% من 100%</span>
+                                <div>
+                  <div className="flex justify-between text-[11px] text-slate-500 font-bold mb-2">
+                    <span>تحديث النسبة الإجمالية:</span>
+                    <span className="text-[#1C3022]">{progress}%</span>
                   </div>
-                  <input
-                    type="range"
-                    min="0"
-                    max="100"
-                    value={progress}
-                    onChange={(e) => setProgress(parseInt(e.target.value))}
-                    className="w-full h-2.5 bg-[#284430] rounded-lg appearance-none cursor-pointer accent-[#C5B198]"
-                  />
-                  <div className="flex justify-between text-[10px] text-[#F8F5F0]/40 font-mono mt-1">
-                    <span>0%</span>
-                    <span>25%</span>
-                    <span>50%</span>
-                    <span>75%</span>
-                    <span>100%</span>
+                  <div className="grid grid-cols-5 gap-2">
+                    {[0, 25, 50, 75, 100].map(val => (
+                      <button
+                        key={val}
+                        type="button"
+                        onClick={() => setProgress(val)}
+                        className={`py-2 rounded-xl text-xs font-black transition-all ${
+                          progress === val
+                            ? 'bg-[#1C3022] text-white shadow-sm'
+                            : 'bg-white text-slate-500 border border-[#E8E2D8] hover:bg-[#FAF7F2]'
+                        }`}
+                      >
+                        {val}%
+                      </button>
+                    ))}
                   </div>
                 </div>
 
@@ -461,7 +462,7 @@ export function AdminProjectManagerModal({
                       onClick={() => setProgress(val)}
                       className={`flex-1 py-1.5 rounded-lg text-xs font-black transition-all ${
                         progress === val
-                          ? 'bg-[#C5B198] text-[#F8F5F0]'
+                          ? 'bg-[#C5B198] text-[#1C3022]'
                           : 'bg-[#284430] text-[#EFE7DC] hover:bg-[#34573e]'
                       }`}
                     >
@@ -472,8 +473,8 @@ export function AdminProjectManagerModal({
               </div>
 
               {/* Status Selector */}
-              <div className="bg-[#0B1510] p-4 rounded-2xl border border-[#2A3A2F] space-y-2">
-                <label className="block text-xs font-black text-[#F8F5F0]">حالة المشروع الحالية</label>
+              <div className="bg-[#FAF7F2] p-4 rounded-2xl border border-[#E8E2D8] space-y-2">
+                <label className="block text-xs font-black text-[#1C3022]">حالة المشروع الحالية</label>
                 <div className="grid grid-cols-2 gap-2">
                   {(['قيد الانتظار', 'بانتظار العقد', 'قيد التنفيذ', 'مكتمل', 'ملغي'] as ProjectStatus[]).map(st => (
                     <button
@@ -482,8 +483,8 @@ export function AdminProjectManagerModal({
                       onClick={() => setStatus(st)}
                       className={`p-2.5 rounded-xl text-xs font-black border transition-all text-center ${
                         status === st
-                          ? 'bg-[#1C3022] text-[#F8F5F0] border-[#1C3022] shadow-sm'
-                          : 'bg-[#122119] text-[#D0A97E] border-[#2A3A2F] hover:bg-[#122119]'
+                          ? 'bg-[#1C3022] text-white border-[#1C3022] shadow-sm'
+                          : 'bg-white text-[#C5B198] border-[#E8E2D8] hover:bg-white'
                       }`}
                     >
                       {st}
@@ -499,8 +500,8 @@ export function AdminProjectManagerModal({
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <h4 className="text-xs font-black text-[#F8F5F0]">مراحل البناء والتشييد ({phases.length})</h4>
-                  <p className="text-[10px] text-[#F8F5F0]/60">أضف المراحل الإنشائية يدوياً وحدد نسبة إنجاز كل مرحلة</p>
+                  <h4 className="text-xs font-black text-[#1C3022]">مراحل البناء والتشييد ({phases.length})</h4>
+                  <p className="text-[10px] text-slate-500">أضف المراحل الإنشائية يدوياً وحدد نسبة إنجاز كل مرحلة</p>
                 </div>
                 {phases.length > 0 && (
                   <button
@@ -525,20 +526,20 @@ export function AdminProjectManagerModal({
                   placeholder="عنوان المرحلة الجديدة..."
                   value={newPhaseTitle}
                   onChange={e => setNewPhaseTitle(e.target.value)}
-                  className="flex-1 bg-[#0B1510] border border-[#2A3A2F] rounded-xl px-3 py-2 text-xs font-bold text-[#F8F5F0] outline-none"
+                  className="flex-1 bg-[#FAF7F2] border border-[#E8E2D8] rounded-xl px-3 py-2 text-xs font-bold text-[#1C3022] outline-none"
                 />
                 <button
                   type="submit"
-                  className="bg-[#1C3022] text-[#F8F5F0] px-3.5 py-2 rounded-xl text-xs font-black flex items-center gap-1 hover:bg-[#122116]"
+                  className="bg-[#1C3022] text-white px-3.5 py-2 rounded-xl text-xs font-black flex items-center gap-1 hover:bg-[#122116]"
                 >
-                  <Plus className="w-3.5 h-3.5 text-[#D0A97E]" />
+                  <Plus className="w-3.5 h-3.5 text-[#C5B198]" />
                   <span>إضافة مرحلة</span>
                 </button>
               </form>
 
               {/* Phases List */}
               {phases.length === 0 ? (
-                <div className="p-6 text-center text-xs text-[#F8F5F0]/40 bg-[#0B1510] rounded-2xl border border-dashed border-[#2A3A2F] space-y-1">
+                <div className="p-6 text-center text-xs text-slate-400 bg-[#FAF7F2] rounded-2xl border border-dashed border-[#E8E2D8] space-y-1">
                   <HardHat className="w-8 h-8 mx-auto text-slate-300 mb-1" />
                   <p className="font-bold">لا توجد مراحل مضافة حالياً</p>
                   <p className="text-[10px]">استخدم الحقل أعلاه لإضافة مراحل البناء المخصصة لمشروعك يدوياً</p>
@@ -548,25 +549,25 @@ export function AdminProjectManagerModal({
                   {phases.map((phase, idx) => (
                     <div
                       key={phase.id || idx}
-                      className="p-3.5 bg-[#0B1510] rounded-2xl border border-[#2A3A2F] space-y-2.5"
+                      className="p-3.5 bg-[#FAF7F2] rounded-2xl border border-[#E8E2D8] space-y-2.5"
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <span className="w-5 h-5 rounded-full bg-[#1C3022] text-[#D0A97E] text-[10px] font-black flex items-center justify-center">
+                          <span className="w-5 h-5 rounded-full bg-[#1C3022] text-[#C5B198] text-[10px] font-black flex items-center justify-center">
                             {idx + 1}
                           </span>
                           <input
                             type="text"
                             value={phase.title}
                             onChange={e => handleUpdatePhase(idx, { title: e.target.value })}
-                            className="bg-transparent text-xs font-black text-[#F8F5F0] outline-none border-b border-transparent focus:border-[#C5B198]"
+                            className="bg-transparent text-xs font-black text-[#1C3022] outline-none border-b border-transparent focus:border-[#C5B198]"
                           />
                         </div>
                         <div className="flex items-center gap-2">
                           <select
                             value={phase.status}
                             onChange={e => handleUpdatePhase(idx, { status: e.target.value as any })}
-                            className="bg-[#122119] border border-[#2A3A2F] rounded-lg px-2 py-1 text-[10px] font-black text-[#F8F5F0] outline-none"
+                            className="bg-white border border-[#E8E2D8] rounded-lg px-2 py-1 text-[10px] font-black text-[#1C3022] outline-none"
                           >
                             <option value="قيد الانتظار">قيد الانتظار</option>
                             <option value="جاري العمل">جاري العمل</option>
@@ -583,20 +584,28 @@ export function AdminProjectManagerModal({
                         </div>
                       </div>
 
-                      {/* Phase Progress Slider */}
+                      {/* Phase Progress Buttons */}
                       <div>
-                        <div className="flex justify-between text-[10px] font-bold text-[#F8F5F0]/60 mb-1">
+                        <div className="flex justify-between text-[10px] font-bold text-slate-500 mb-2">
                           <span>نسبة إنجاز المرحلة:</span>
-                          <span className="text-[#F8F5F0] font-black">{phase.progress}%</span>
+                          <span className="text-[#1C3022] font-black">{phase.progress}%</span>
                         </div>
-                        <input
-                          type="range"
-                          min="0"
-                          max="100"
-                          value={phase.progress}
-                          onChange={e => handleUpdatePhase(idx, { progress: parseInt(e.target.value) })}
-                          className="w-full h-2 bg-[#E8E2D8] rounded-lg appearance-none cursor-pointer accent-[#1C3022]"
-                        />
+                        <div className="grid grid-cols-5 gap-1.5">
+                          {[0, 25, 50, 75, 100].map(val => (
+                            <button
+                              key={val}
+                              type="button"
+                              onClick={() => handleUpdatePhase(idx, { progress: val })}
+                              className={`py-1.5 rounded-lg text-[10px] font-black transition-all ${
+                                phase.progress === val
+                                  ? 'bg-[#1C3022] text-white'
+                                  : 'bg-white text-slate-500 border border-[#E8E2D8] hover:bg-[#FAF7F2]'
+                              }`}
+                            >
+                              {val}%
+                            </button>
+                          ))}
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -609,9 +618,9 @@ export function AdminProjectManagerModal({
           {activeTab === 'installments' && (
             <div className="space-y-4">
               {/* Payment Summary Box */}
-              <div className="bg-[#1C3022] text-[#F8F5F0] p-4 rounded-2xl border border-[#284430] flex items-center justify-between">
+              <div className="bg-[#1C3022] text-white p-4 rounded-2xl border border-[#284430] flex items-center justify-between">
                 <div>
-                  <span className="text-[10px] font-black text-[#D0A97E] block">نسبة سداد الدفعات</span>
+                  <span className="text-[10px] font-black text-[#C5B198] block">نسبة سداد الدفعات</span>
                   <div className="flex items-baseline gap-1.5 mt-0.5">
                     <span className="text-xl font-black">{paymentPercentage}%</span>
                     <span className="text-[10px] text-[#EFE7DC]/80 font-bold">({paidCount} من {installments.length} دفعات)</span>
@@ -619,7 +628,7 @@ export function AdminProjectManagerModal({
                 </div>
                 <div className="text-left">
                   <span className="text-[10px] text-slate-300 font-bold block">المسدد / الإجمالي:</span>
-                  <span className="text-xs font-black text-[#D0A97E]">
+                  <span className="text-xs font-black text-[#C5B198]">
                     {paidAmountNumber.toLocaleString('ar-SA')} / {totalAmountNumber.toLocaleString('ar-SA')} ر.س
                   </span>
                 </div>
@@ -630,7 +639,7 @@ export function AdminProjectManagerModal({
                 <button
                   type="button"
                   onClick={() => setShowPercentageBuilder(!showPercentageBuilder)}
-                  className="bg-[#C5B198] text-[#F8F5F0] px-3 py-1.5 rounded-xl text-xs font-black flex items-center gap-1.5 hover:bg-[#b8a287] shadow-sm transition-all"
+                  className="bg-[#C5B198] text-[#1C3022] px-3 py-1.5 rounded-xl text-xs font-black flex items-center gap-1.5 hover:bg-[#b8a287] shadow-sm transition-all"
                 >
                   <Percent className="w-3.5 h-3.5" />
                   <span>توليد الدفعات بالنسبة المئوية (%)</span>
@@ -654,16 +663,16 @@ export function AdminProjectManagerModal({
 
               {/* Percentage Builder Section */}
               {showPercentageBuilder && (
-                <div className="p-4 bg-[#0B1510] rounded-2xl border-2 border-[#C5B198] space-y-3">
+                <div className="p-4 bg-[#FAF7F2] rounded-2xl border-2 border-[#C5B198] space-y-3">
                   <div className="flex items-center justify-between">
-                    <h5 className="text-xs font-black text-[#F8F5F0] flex items-center gap-1">
-                      <Percent className="w-4 h-4 text-[#D0A97E]" />
+                    <h5 className="text-xs font-black text-[#1C3022] flex items-center gap-1">
+                      <Percent className="w-4 h-4 text-[#C5B198]" />
                       <span>تحديد عدد الدفعات والنسبة المئوية (%)</span>
                     </h5>
                     <button
                       type="button"
                       onClick={() => setShowPercentageBuilder(false)}
-                      className="text-[#F8F5F0]/40 p-1"
+                      className="text-slate-400 p-1"
                     >
                       <X className="w-3.5 h-3.5" />
                     </button>
@@ -671,17 +680,17 @@ export function AdminProjectManagerModal({
 
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <span className="text-[10px] font-bold text-[#F8F5F0]/60 block mb-1">إجمالي قيمة المشروع (ر.س):</span>
+                      <span className="text-[10px] font-bold text-slate-500 block mb-1">إجمالي قيمة المشروع (ر.س):</span>
                       <input
                         type="text"
                         value={totalProjectValue}
                         onChange={e => setTotalProjectValue(e.target.value)}
-                        className="w-full bg-[#122119] border border-[#2A3A2F] rounded-xl px-2.5 py-1.5 text-xs font-bold text-[#F8F5F0] outline-none"
+                        className="w-full bg-white border border-[#E8E2D8] rounded-xl px-2.5 py-1.5 text-xs font-bold text-[#1C3022] outline-none"
                         dir="ltr"
                       />
                     </div>
                     <div>
-                      <span className="text-[10px] font-bold text-[#F8F5F0]/60 block mb-1">عدد الدفعات:</span>
+                      <span className="text-[10px] font-bold text-slate-500 block mb-1">عدد الدفعات:</span>
                       <div className="flex items-center gap-1">
                         {[2, 3, 4, 5, 6].map(num => (
                           <button
@@ -690,8 +699,8 @@ export function AdminProjectManagerModal({
                             onClick={() => handleUpdatePercentageCount(num)}
                             className={`flex-1 py-1 rounded-lg text-xs font-black transition-all ${
                               percentageCount === num
-                                ? 'bg-[#1C3022] text-[#F8F5F0]'
-                                : 'bg-[#122119] border border-[#2A3A2F] text-[#D0A97E]'
+                                ? 'bg-[#1C3022] text-white'
+                                : 'bg-white border border-[#E8E2D8] text-[#C5B198]'
                             }`}
                           >
                             {num}
@@ -706,8 +715,8 @@ export function AdminProjectManagerModal({
                     <span className="text-[10px] font-bold text-slate-600 block">نسبة كل دفعة بالمئة (%):</span>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                       {Array.from({ length: percentageCount }).map((_, idx) => (
-                        <div key={idx} className="bg-[#122119] p-2 rounded-xl border border-[#2A3A2F] text-center">
-                          <span className="text-[10px] font-black text-[#F8F5F0] block mb-1">الدفعة {idx + 1}</span>
+                        <div key={idx} className="bg-white p-2 rounded-xl border border-[#E8E2D8] text-center">
+                          <span className="text-[10px] font-black text-[#1C3022] block mb-1">الدفعة {idx + 1}</span>
                           <div className="flex items-center justify-center gap-1">
                             <input
                               type="number"
@@ -720,9 +729,9 @@ export function AdminProjectManagerModal({
                                 updated[idx] = val;
                                 setPercentageValues(updated);
                               }}
-                              className="w-14 bg-[#0B1510] border border-[#2A3A2F] rounded-lg text-center font-black text-xs py-1"
+                              className="w-14 bg-[#FAF7F2] border border-[#E8E2D8] rounded-lg text-center font-black text-xs py-1"
                             />
-                            <span className="text-xs font-black text-[#F8F5F0]/60">%</span>
+                            <span className="text-xs font-black text-slate-500">%</span>
                           </div>
                         </div>
                       ))}
@@ -732,7 +741,7 @@ export function AdminProjectManagerModal({
                   <button
                     type="button"
                     onClick={handleGeneratePercentageInstallments}
-                    className="w-full bg-[#1C3022] text-[#F8F5F0] py-2 rounded-xl text-xs font-black hover:bg-[#122116] transition-all"
+                    className="w-full bg-[#1C3022] text-white py-2 rounded-xl text-xs font-black hover:bg-[#122116] transition-all"
                   >
                     تطبيق وتوليد جدول الدفعات
                   </button>
@@ -740,9 +749,9 @@ export function AdminProjectManagerModal({
               )}
 
               {/* Add New Installment Form */}
-              <form onSubmit={handleAddInstallment} className="bg-[#0B1510] p-3.5 rounded-2xl border border-[#2A3A2F] space-y-2.5">
-                <h5 className="text-xs font-black text-[#F8F5F0] flex items-center gap-1">
-                  <Plus className="w-3.5 h-3.5 text-[#D0A97E]" />
+              <form onSubmit={handleAddInstallment} className="bg-[#FAF7F2] p-3.5 rounded-2xl border border-[#E8E2D8] space-y-2.5">
+                <h5 className="text-xs font-black text-[#1C3022] flex items-center gap-1">
+                  <Plus className="w-3.5 h-3.5 text-[#C5B198]" />
                   <span>إضافة دفعة مالية يدوياً</span>
                 </h5>
                 <div className="grid grid-cols-2 gap-2">
@@ -751,26 +760,29 @@ export function AdminProjectManagerModal({
                     placeholder="مسمى الدفعة..."
                     value={newInstallmentTitle}
                     onChange={e => setNewInstallmentTitle(e.target.value)}
-                    className="col-span-2 bg-[#122119] border border-[#2A3A2F] rounded-xl px-3 py-2 text-xs font-bold text-[#F8F5F0] outline-none"
+                    className="col-span-2 bg-white border border-[#E8E2D8] rounded-xl px-3 py-2 text-xs font-bold text-[#1C3022] outline-none"
                   />
-                  <input
-                    type="text"
-                    placeholder="المبلغ (ر.س)..."
-                    value={newInstallmentAmount}
-                    onChange={e => setNewInstallmentAmount(e.target.value)}
-                    className="bg-[#122119] border border-[#2A3A2F] rounded-xl px-3 py-2 text-xs font-bold text-[#F8F5F0] outline-none"
-                    dir="ltr"
-                  />
+                  <div className="relative">
+                    <input
+                      type="text"
+                      placeholder="النسبة من المشروع..."
+                      value={newInstallmentPercentage}
+                      onChange={e => setNewInstallmentPercentage(e.target.value)}
+                      className="w-full bg-white border border-[#E8E2D8] rounded-xl px-3 py-2 pl-8 text-xs font-bold text-[#1C3022] outline-none"
+                      dir="ltr"
+                    />
+                    <span className="absolute left-3 top-2.5 text-xs font-bold text-slate-400">%</span>
+                  </div>
                   <input
                     type="date"
                     value={newInstallmentDueDate}
                     onChange={e => setNewInstallmentDueDate(e.target.value)}
-                    className="bg-[#122119] border border-[#2A3A2F] rounded-xl px-3 py-2 text-xs font-bold text-[#F8F5F0] outline-none"
+                    className="bg-white border border-[#E8E2D8] rounded-xl px-3 py-2 text-xs font-bold text-[#1C3022] outline-none"
                   />
                 </div>
                 <button
                   type="submit"
-                  className="w-full bg-[#1C3022] text-[#F8F5F0] py-2 rounded-xl text-xs font-black hover:bg-[#122116]"
+                  className="w-full bg-[#1C3022] text-white py-2 rounded-xl text-xs font-black hover:bg-[#122116]"
                 >
                   إضافة الدفعة لجدول المشروع
                 </button>
@@ -788,13 +800,13 @@ export function AdminProjectManagerModal({
                           ? 'bg-emerald-50/70 border-emerald-200'
                           : overdue.isOverdue7Days
                           ? 'bg-red-50/70 border-red-300 ring-1 ring-red-100'
-                          : 'bg-[#122119] border-[#2A3A2F]'
+                          : 'bg-white border-[#E8E2D8]'
                       }`}
                     >
                       <div className="flex justify-between items-start">
                         <div>
                           <div className="flex items-center gap-1.5">
-                            <h5 className="text-xs font-black text-[#F8F5F0]">{inst.title}</h5>
+                            <h5 className="text-xs font-black text-[#1C3022]">{inst.title}</h5>
                             {overdue.isOverdue7Days && (
                               <span className="text-[9px] bg-red-100 text-red-800 px-1.5 py-0.5 rounded font-black flex items-center gap-0.5">
                                 <AlertTriangle className="w-2.5 h-2.5 text-red-600" />
@@ -802,7 +814,7 @@ export function AdminProjectManagerModal({
                               </span>
                             )}
                           </div>
-                          <span className="text-[10px] text-[#F8F5F0]/60 font-bold block mt-0.5">
+                          <span className="text-[10px] text-slate-500 font-bold block mt-0.5">
                             تاريخ الاستحقاق: {inst.dueDate}
                           </span>
                           {inst.transactionRef && (
@@ -812,7 +824,7 @@ export function AdminProjectManagerModal({
                           )}
                         </div>
                         <div className="text-left">
-                          <span className="text-xs font-black text-[#F8F5F0] block">{inst.amount}</span>
+                          <span className="text-xs font-black text-[#1C3022] block">{inst.amount}</span>
                           <span className={`text-[10px] font-black px-2 py-0.5 rounded-full inline-block mt-1 ${
                             inst.status === 'paid'
                               ? 'bg-emerald-200 text-emerald-900'
@@ -868,34 +880,34 @@ export function AdminProjectManagerModal({
           {activeTab === 'documents' && (
             <div className="space-y-4">
               <div>
-                <h4 className="text-xs font-black text-[#F8F5F0]">العقود والسندات والوثائق الرسمية ({documents.length})</h4>
-                <p className="text-[10px] text-[#F8F5F0]/60">أرفق العقود والسندات والمخططات المعتمدة ليطلع عليها العميل ويحملها</p>
+                <h4 className="text-xs font-black text-[#1C3022]">العقود والسندات والوثائق الرسمية ({documents.length})</h4>
+                <p className="text-[10px] text-slate-500">أرفق العقود والسندات والمخططات المعتمدة ليطلع عليها العميل ويحملها</p>
               </div>
 
               {/* Upload Document Form */}
-              <form onSubmit={handleAddDocument} className="p-4 bg-[#0B1510] rounded-2xl border border-[#2A3A2F] space-y-3">
-                <h5 className="text-xs font-black text-[#F8F5F0] flex items-center gap-1.5">
-                  <FileUp className="w-4 h-4 text-[#D0A97E]" />
+              <form onSubmit={handleAddDocument} className="p-4 bg-[#FAF7F2] rounded-2xl border border-[#E8E2D8] space-y-3">
+                <h5 className="text-xs font-black text-[#1C3022] flex items-center gap-1.5">
+                  <FileUp className="w-4 h-4 text-[#C5B198]" />
                   <span>إرفاق مستند أو عقد جديد من الجهاز</span>
                 </h5>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <div>
-                    <span className="text-[10px] font-bold text-[#F8F5F0]/60 block mb-1">اسم ووصف المستند *</span>
+                    <span className="text-[10px] font-bold text-slate-500 block mb-1">اسم ووصف المستند *</span>
                     <input
                       type="text"
                       placeholder="مثال: عقد البناء الموحد..."
                       value={newDocName}
                       onChange={e => setNewDocName(e.target.value)}
-                      className="w-full bg-[#122119] border border-[#2A3A2F] rounded-xl px-3 py-2 text-xs font-bold text-[#F8F5F0] outline-none"
+                      className="w-full bg-white border border-[#E8E2D8] rounded-xl px-3 py-2 text-xs font-bold text-[#1C3022] outline-none"
                     />
                   </div>
                   <div>
-                    <span className="text-[10px] font-bold text-[#F8F5F0]/60 block mb-1">تصنيف المستند</span>
+                    <span className="text-[10px] font-bold text-slate-500 block mb-1">تصنيف المستند</span>
                     <select
                       value={newDocCategory}
                       onChange={e => setNewDocCategory(e.target.value as any)}
-                      className="w-full bg-[#122119] border border-[#2A3A2F] rounded-xl px-3 py-2 text-xs font-bold text-[#F8F5F0] outline-none"
+                      className="w-full bg-white border border-[#E8E2D8] rounded-xl px-3 py-2 text-xs font-bold text-[#1C3022] outline-none"
                     >
                       <option value="عقد معتمد">عقد معتمد</option>
                       <option value="سند قبض">سند قبض</option>
@@ -908,7 +920,7 @@ export function AdminProjectManagerModal({
                 </div>
 
                 {/* File picker */}
-                <div className="border-2 border-dashed border-[#C5B198] bg-[#122119] rounded-2xl p-3 text-center relative cursor-pointer hover:bg-slate-50 transition-all">
+                <div className="border-2 border-dashed border-[#C5B198] bg-white rounded-2xl p-3 text-center relative cursor-pointer hover:bg-slate-50 transition-all">
                   <input
                     type="file"
                     accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
@@ -916,8 +928,8 @@ export function AdminProjectManagerModal({
                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                   />
                   <div className="flex flex-col items-center justify-center gap-1 pointer-events-none">
-                    <Upload className="w-5 h-5 text-[#D0A97E]" />
-                    <p className="text-xs font-black text-[#F8F5F0]">انقر لاختيار الملف من جهازك (PDF / Word / صورة)</p>
+                    <Upload className="w-5 h-5 text-[#C5B198]" />
+                    <p className="text-xs font-black text-[#1C3022]">انقر لاختيار الملف من جهازك (PDF / Word / صورة)</p>
                   </div>
                 </div>
 
@@ -941,7 +953,7 @@ export function AdminProjectManagerModal({
                 <button
                   type="submit"
                   disabled={!newDocFileUrl || !newDocName.trim()}
-                  className="w-full bg-[#1C3022] text-[#F8F5F0] py-2.5 rounded-xl text-xs font-black hover:bg-[#122116] disabled:opacity-50 transition-all"
+                  className="w-full bg-[#1C3022] text-white py-2.5 rounded-xl text-xs font-black hover:bg-[#122116] disabled:opacity-50 transition-all"
                 >
                   حفظ وإرفاق المستند للمشروع
                 </button>
@@ -949,7 +961,7 @@ export function AdminProjectManagerModal({
 
               {/* Documents List */}
               {documents.length === 0 ? (
-                <div className="p-6 text-center text-xs text-[#F8F5F0]/40 bg-[#0B1510] rounded-2xl border border-dashed border-[#2A3A2F]">
+                <div className="p-6 text-center text-xs text-slate-400 bg-[#FAF7F2] rounded-2xl border border-dashed border-[#E8E2D8]">
                   لا توجد مستندات أو عقود مرفقة حالياً
                 </div>
               ) : (
@@ -957,16 +969,16 @@ export function AdminProjectManagerModal({
                   {documents.map(doc => (
                     <div
                       key={doc.id}
-                      className="p-3.5 bg-[#0B1510] rounded-2xl border border-[#2A3A2F] flex items-center justify-between gap-2"
+                      className="p-3.5 bg-[#FAF7F2] rounded-2xl border border-[#E8E2D8] flex items-center justify-between gap-2"
                     >
                       <div className="flex items-center gap-2.5 min-w-0">
-                        <div className="w-9 h-9 rounded-xl bg-[#122119] border border-[#2A3A2F] flex items-center justify-center text-[#F8F5F0] shrink-0">
-                          <FileText className="w-4 h-4 text-[#D0A97E]" />
+                        <div className="w-9 h-9 rounded-xl bg-white border border-[#E8E2D8] flex items-center justify-center text-[#1C3022] shrink-0">
+                          <FileText className="w-4 h-4 text-[#C5B198]" />
                         </div>
                         <div className="min-w-0">
-                          <span className="text-[9px] font-black text-[#D0A97E] block">{doc.category}</span>
-                          <h5 className="text-xs font-black text-[#F8F5F0] truncate">{doc.name}</h5>
-                          <span className="text-[10px] text-[#F8F5F0]/40 block mt-0.5">
+                          <span className="text-[9px] font-black text-[#C5B198] block">{doc.category}</span>
+                          <h5 className="text-xs font-black text-[#1C3022] truncate">{doc.name}</h5>
+                          <span className="text-[10px] text-slate-400 block mt-0.5">
                             {doc.uploadedAt} {doc.fileSize ? `| ${doc.fileSize}` : ''}
                           </span>
                         </div>
@@ -976,10 +988,10 @@ export function AdminProjectManagerModal({
                         <button
                           type="button"
                           onClick={() => downloadFile(doc.fileUrl, doc.fileName || `${doc.name}.pdf`)}
-                          className="bg-[#122119] hover:bg-slate-100 text-[#F8F5F0] border border-[#2A3A2F] px-2.5 py-1.5 rounded-xl text-[11px] font-black flex items-center gap-1 shadow-xs"
+                          className="bg-white hover:bg-slate-100 text-[#1C3022] border border-[#E8E2D8] px-2.5 py-1.5 rounded-xl text-[11px] font-black flex items-center gap-1 shadow-xs"
                           title="تحميل المستند"
                         >
-                          <Download className="w-3.5 h-3.5 text-[#D0A97E]" />
+                          <Download className="w-3.5 h-3.5 text-[#C5B198]" />
                           <span>تحميل</span>
                         </button>
                         <button
@@ -1002,7 +1014,7 @@ export function AdminProjectManagerModal({
           {activeTab === 'images' && (
             <div className="space-y-4">
               {/* Category Selector */}
-              <div className="flex gap-1.5 p-1 bg-[#0B1510] rounded-xl border border-[#2A3A2F]">
+              <div className="flex gap-1.5 p-1 bg-[#FAF7F2] rounded-xl border border-[#E8E2D8]">
                 {[
                   { id: 'before', label: 'قبل البدء' },
                   { id: 'progress50', label: 'مرحلة 50%' },
@@ -1015,8 +1027,8 @@ export function AdminProjectManagerModal({
                     onClick={() => setImageCategory(cat.id as any)}
                     className={`flex-1 py-1.5 rounded-lg text-xs font-black transition-all ${
                       imageCategory === cat.id
-                        ? 'bg-[#1C3022] text-[#F8F5F0]'
-                        : 'text-[#F8F5F0]/60 hover:text-[#F8F5F0]'
+                        ? 'bg-[#1C3022] text-white'
+                        : 'text-slate-500 hover:text-[#1C3022]'
                     }`}
                   >
                     {cat.label}
@@ -1025,7 +1037,7 @@ export function AdminProjectManagerModal({
               </div>
 
               {/* Upload Image from Device */}
-              <div className="border-2 border-dashed border-[#C5B198] bg-[#0B1510] hover:bg-[#0B1510]/80 rounded-2xl p-4 text-center relative cursor-pointer transition-all">
+              <div className="border-2 border-dashed border-[#C5B198] bg-[#FAF7F2] hover:bg-[#FAF7F2]/80 rounded-2xl p-4 text-center relative cursor-pointer transition-all">
                 <input
                   type="file"
                   accept="image/*"
@@ -1034,16 +1046,16 @@ export function AdminProjectManagerModal({
                   className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                 />
                 <div className="flex flex-col items-center justify-center gap-1.5 pointer-events-none">
-                  <div className="w-10 h-10 rounded-2xl bg-[#122119] text-[#F8F5F0] flex items-center justify-center">
-                    <Upload className="w-5 h-5 text-[#D0A97E]" />
+                  <div className="w-10 h-10 rounded-2xl bg-white text-[#1C3022] flex items-center justify-center">
+                    <Upload className="w-5 h-5 text-[#C5B198]" />
                   </div>
                   <div>
-                    <p className="text-xs font-black text-[#F8F5F0]">انقر لاختيار صور من جهازك لقسم ({
+                    <p className="text-xs font-black text-[#1C3022]">انقر لاختيار صور من جهازك لقسم ({
                       imageCategory === 'before' ? 'قبل البدء' :
                       imageCategory === 'progress50' ? 'مرحلة 50%' :
                       imageCategory === 'after' ? 'بعد الإنجاز' : 'المخططات'
                     })</p>
-                    <p className="text-[10px] text-[#F8F5F0]/40">يمكنك اختيار أكثر من صورة معاً</p>
+                    <p className="text-[10px] text-slate-400">يمكنك اختيار أكثر من صورة معاً</p>
                   </div>
                 </div>
               </div>
@@ -1052,7 +1064,7 @@ export function AdminProjectManagerModal({
               <div className="grid grid-cols-2 gap-2.5">
                 {images[imageCategory]?.length > 0 ? (
                   images[imageCategory].map((url, idx) => (
-                    <div key={idx} className="h-32 rounded-2xl overflow-hidden border border-[#2A3A2F] relative group bg-slate-100">
+                    <div key={idx} className="h-32 rounded-2xl overflow-hidden border border-[#E8E2D8] relative group bg-slate-100">
                       <img src={url} alt="موقع المشروع" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                       <button
                         type="button"
@@ -1065,7 +1077,7 @@ export function AdminProjectManagerModal({
                     </div>
                   ))
                 ) : (
-                  <div className="col-span-2 py-8 text-center text-xs text-[#F8F5F0]/40 font-bold bg-[#0B1510] rounded-2xl border border-dashed border-[#2A3A2F]">
+                  <div className="col-span-2 py-8 text-center text-xs text-slate-400 font-bold bg-[#FAF7F2] rounded-2xl border border-dashed border-[#E8E2D8]">
                     لا توجد صور مضافة لهذا القسم بعد
                   </div>
                 )}
@@ -1076,20 +1088,20 @@ export function AdminProjectManagerModal({
           {/* 6. ENGINEER REQUESTS & REPLIES TAB */}
           {activeTab === 'requests' && (
             <div className="space-y-3">
-              <h4 className="text-xs font-black text-[#F8F5F0]">طلبات المعاينة والاستفسارات من العميل ({engineerRequests.length})</h4>
+              <h4 className="text-xs font-black text-[#1C3022]">طلبات المعاينة والاستفسارات من العميل ({engineerRequests.length})</h4>
 
               {engineerRequests.length === 0 ? (
-                <div className="p-6 text-center text-xs text-[#F8F5F0]/40 bg-[#0B1510] rounded-2xl border border-[#2A3A2F]">
+                <div className="p-6 text-center text-xs text-slate-400 bg-[#FAF7F2] rounded-2xl border border-[#E8E2D8]">
                   لا توجد طلبات واردة من العميل لهذا المشروع
                 </div>
               ) : (
                 engineerRequests.map(req => (
-                  <div key={req.id} className="p-3.5 bg-[#0B1510] rounded-2xl border border-[#2A3A2F] space-y-2">
+                  <div key={req.id} className="p-3.5 bg-[#FAF7F2] rounded-2xl border border-[#E8E2D8] space-y-2">
                     <div className="flex justify-between items-start">
                       <div>
-                        <span className="text-[10px] font-black text-[#D0A97E]">{req.type}</span>
-                        <p className="text-xs font-bold text-[#F8F5F0] mt-0.5">{req.details}</p>
-                        <span className="text-[10px] text-[#F8F5F0]/40 font-bold block mt-1">بتاريخ: {req.date}</span>
+                        <span className="text-[10px] font-black text-[#C5B198]">{req.type}</span>
+                        <p className="text-xs font-bold text-[#1C3022] mt-0.5">{req.details}</p>
+                        <span className="text-[10px] text-slate-400 font-bold block mt-1">بتاريخ: {req.date}</span>
                       </div>
                       <span className={`text-[10px] font-black px-2 py-0.5 rounded-lg ${
                         req.status === 'تمت الموافقة والرد' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
@@ -1099,7 +1111,7 @@ export function AdminProjectManagerModal({
                     </div>
 
                     {req.engineerReply && (
-                      <div className="p-2.5 bg-[#122119] rounded-xl border border-emerald-200 text-[11px] text-[#D0A97E]">
+                      <div className="p-2.5 bg-white rounded-xl border border-emerald-200 text-[11px] text-[#C5B198]">
                         <span className="font-black text-emerald-800 block text-[10px]">رد المهندس المشرف:</span>
                         {req.engineerReply}
                       </div>
@@ -1112,7 +1124,7 @@ export function AdminProjectManagerModal({
                           placeholder="اكتب ردك المعتمد..."
                           value={replyText}
                           onChange={e => setReplyText(e.target.value)}
-                          className="w-full bg-[#122119] border border-[#2A3A2F] rounded-xl p-2 text-xs font-bold text-[#F8F5F0] outline-none"
+                          className="w-full bg-white border border-[#E8E2D8] rounded-xl p-2 text-xs font-bold text-[#1C3022] outline-none"
                         />
                         <div className="flex gap-2">
                           <button
@@ -1124,15 +1136,15 @@ export function AdminProjectManagerModal({
                               setReplyText('');
                               onRequestToast('تم تسجيل الرد بنجاح');
                             }}
-                            className="bg-[#1C3022] text-[#F8F5F0] px-3 py-1.5 rounded-xl text-[11px] font-black flex items-center gap-1"
+                            className="bg-[#1C3022] text-white px-3 py-1.5 rounded-xl text-[11px] font-black flex items-center gap-1"
                           >
-                            <Send className="w-3 h-3 text-[#D0A97E]" />
+                            <Send className="w-3 h-3 text-[#C5B198]" />
                             <span>إرسال الرد</span>
                           </button>
                           <button
                             type="button"
                             onClick={() => setActiveReplyId(null)}
-                            className="bg-slate-200 text-[#D0A97E] px-3 py-1.5 rounded-xl text-[11px] font-bold"
+                            className="bg-slate-200 text-[#C5B198] px-3 py-1.5 rounded-xl text-[11px] font-bold"
                           >
                             إلغاء
                           </button>
@@ -1142,7 +1154,7 @@ export function AdminProjectManagerModal({
                       <button
                         type="button"
                         onClick={() => { setActiveReplyId(req.id); setReplyText(req.engineerReply || ''); }}
-                        className="text-[11px] font-black text-[#D0A97E] hover:underline block pt-1"
+                        className="text-[11px] font-black text-[#C5B198] hover:underline block pt-1"
                       >
                         {req.engineerReply ? 'تعديل الرد' : '+ كتابة رد المهندس المشرف'}
                       </button>
@@ -1157,21 +1169,21 @@ export function AdminProjectManagerModal({
           {activeTab === 'info' && (
             <div className="space-y-3">
               <div>
-                <label className="block text-[11px] font-black text-[#D0A97E] mb-1">اسم المشروع</label>
+                <label className="block text-[11px] font-black text-[#C5B198] mb-1">اسم المشروع</label>
                 <input
                   type="text"
                   value={title}
                   onChange={e => setTitle(e.target.value)}
-                  className="w-full bg-[#0B1510] border border-[#2A3A2F] rounded-xl p-2.5 text-xs font-bold text-[#F8F5F0] outline-none"
+                  className="w-full bg-[#FAF7F2] border border-[#E8E2D8] rounded-xl p-2.5 text-xs font-bold text-[#1C3022] outline-none"
                 />
               </div>
               <div>
-                <label className="block text-[11px] font-black text-[#D0A97E] mb-1">الموقع والمدينة</label>
+                <label className="block text-[11px] font-black text-[#C5B198] mb-1">الموقع والمدينة</label>
                 <input
                   type="text"
                   value={location}
                   onChange={e => setLocation(e.target.value)}
-                  className="w-full bg-[#0B1510] border border-[#2A3A2F] rounded-xl p-2.5 text-xs font-bold text-[#F8F5F0] outline-none"
+                  className="w-full bg-[#FAF7F2] border border-[#E8E2D8] rounded-xl p-2.5 text-xs font-bold text-[#1C3022] outline-none"
                 />
               </div>
 
@@ -1202,16 +1214,16 @@ export function AdminProjectManagerModal({
             type="button"
             disabled={isSaving}
             onClick={handleSaveAll}
-            className="flex-1 bg-[#1C3022] text-[#F8F5F0] py-3 px-4 rounded-2xl text-xs font-black flex items-center justify-center gap-2 hover:bg-[#122116] shadow-md transition-all active:scale-[0.98] disabled:opacity-50"
+            className="flex-1 bg-[#1C3022] text-white py-3 px-4 rounded-2xl text-xs font-black flex items-center justify-center gap-2 hover:bg-[#122116] shadow-md transition-all active:scale-[0.98] disabled:opacity-50"
           >
             {isSaving ? (
               <>
-                <Loader2 className="w-4 h-4 animate-spin text-[#D0A97E]" />
+                <Loader2 className="w-4 h-4 animate-spin text-[#C5B198]" />
                 <span>جاري الحفظ في السحابة...</span>
               </>
             ) : (
               <>
-                <Save className="w-4 h-4 text-[#D0A97E]" />
+                <Save className="w-4 h-4 text-[#C5B198]" />
                 <span>حفظ التعديلات واعتمادها فوراً</span>
               </>
             )}
@@ -1219,7 +1231,7 @@ export function AdminProjectManagerModal({
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-3 bg-[#0B1510] text-[#D0A97E] border border-[#2A3A2F] rounded-2xl text-xs font-black hover:bg-[#122119] transition-all"
+            className="px-4 py-3 bg-[#FAF7F2] text-[#C5B198] border border-[#E8E2D8] rounded-2xl text-xs font-black hover:bg-white transition-all"
           >
             إغلاق
           </button>

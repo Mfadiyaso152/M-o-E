@@ -238,7 +238,7 @@ export function CreateProjectModal({
         animate={{ scale: 1, opacity: 1, y: 0 }}
         exit={{ scale: 0.96, opacity: 0, y: 15 }}
         transition={{ duration: 0.25, ease: 'easeOut' }}
-        className="bg-white w-full max-w-lg rounded-3xl p-5 sm:p-6 shadow-2xl border border-[#E8E2D8] text-[#192A1D] space-y-4 max-h-[88vh] overflow-y-auto overscroll-contain touch-auto"
+        className="bg-white w-full max-w-lg rounded-[2rem] p-6 shadow-2xl border border-[#E8E2D8] text-[#1C3022] space-y-5 max-h-[88vh] overflow-y-auto overscroll-contain touch-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex justify-between items-center pb-3 border-b border-[#F0EBE1]">
@@ -328,12 +328,12 @@ export function CreateProjectModal({
                 placeholder="أضف مرحلة إنشائية (يدوياً)..."
                 value={newPhaseTitle}
                 onChange={e => setNewPhaseTitle(e.target.value)}
-                className="flex-1 bg-white border border-[#E8E2D8] rounded-xl px-3 py-1.5 text-xs font-bold text-[#1C3022] outline-none"
+                className="flex-1 bg-white border border-[#E8E2D8] rounded-xl px-3 py-2 text-xs font-bold text-[#1C3022] outline-none focus:border-[#D0A97E]"
               />
               <button
                 type="button"
                 onClick={handleAddPhase}
-                className="bg-[#1C3022] text-[#F8F5F0] px-3 py-1.5 rounded-xl text-xs font-black flex items-center gap-1"
+                className="bg-[#D0A97E] text-[#1C3022] px-4 py-2 rounded-xl text-xs font-black flex items-center gap-1 transition-colors hover:bg-[#C29B70]"
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span>إضافة</span>
@@ -343,7 +343,7 @@ export function CreateProjectModal({
             {phases.length > 0 && (
               <div className="space-y-1.5 pt-1">
                 {phases.map((p, idx) => (
-                  <div key={p.id || idx} className="bg-white p-2 rounded-xl border border-[#E8E2D8] flex items-center justify-between text-xs">
+                  <div key={p.id || idx} className="bg-white p-3 rounded-xl border border-[#E8E2D8] flex items-center justify-between text-xs">
                     <span className="font-bold text-[#1C3022]">{idx + 1}. {p.title}</span>
                     <button
                       type="button"
@@ -359,10 +359,10 @@ export function CreateProjectModal({
           </div>
 
           {/* 5. Installments: Percentage or Manual */}
-          <div className="bg-[#FAF7F2] p-3.5 rounded-2xl border border-[#E8E2D8] space-y-3">
+          <div className="bg-[#FAF7F2] p-4 rounded-[2rem] border border-[#E8E2D8] space-y-4">
             <div className="flex justify-between items-center">
-              <span className="text-xs font-black text-[#1C3022] flex items-center gap-1">
-                <Wallet className="w-3.5 h-3.5 text-[#A99379]" />
+              <span className="text-xs font-black text-[#1C3022] flex items-center gap-2">
+                <Wallet className="w-4 h-4 text-[#C5B198]" />
                 <span>جدول الدفعات المالية</span>
               </span>
               <div className="flex gap-1 bg-white p-1 rounded-xl border border-[#E8E2D8]">
@@ -371,8 +371,8 @@ export function CreateProjectModal({
                   onClick={() => setInstallmentMode('percentage')}
                   className={`px-2 py-1 rounded-lg text-[10px] font-black transition-all ${
                     installmentMode === 'percentage'
-                      ? 'bg-[#1C3022] text-[#F8F5F0]'
-                      : 'text-slate-500'
+                      ? 'bg-[#D0A97E] text-[#1C3022]'
+                      : 'text-slate-400'
                   }`}
                 >
                   نسب مئوية (%)
@@ -382,8 +382,8 @@ export function CreateProjectModal({
                   onClick={() => setInstallmentMode('manual')}
                   className={`px-2 py-1 rounded-lg text-[10px] font-black transition-all ${
                     installmentMode === 'manual'
-                      ? 'bg-[#1C3022] text-[#F8F5F0]'
-                      : 'text-slate-500'
+                      ? 'bg-[#D0A97E] text-[#1C3022]'
+                      : 'text-slate-400'
                   }`}
                 >
                   إدخال يدوي
@@ -394,7 +394,7 @@ export function CreateProjectModal({
             {installmentMode === 'percentage' ? (
               <div className="space-y-2.5">
                 <div>
-                  <span className="text-[10px] font-bold text-slate-500 block mb-1">حدد عدد الدفعات:</span>
+                  <span className="text-[11px] font-bold text-[#C5B198] block mb-2">حدد عدد الدفعات:</span>
                   <div className="flex gap-1">
                     {[2, 3, 4, 5, 6].map(num => (
                       <button
@@ -403,8 +403,8 @@ export function CreateProjectModal({
                         onClick={() => handleUpdatePercentageCount(num)}
                         className={`flex-1 py-1 rounded-lg text-xs font-black transition-all ${
                           installmentCount === num
-                            ? 'bg-[#1C3022] text-[#F8F5F0]'
-                            : 'bg-white border border-[#E8E2D8] text-slate-700'
+                            ? 'bg-[#D0A97E] text-[#1C3022]'
+                            : 'bg-white border border-[#E8E2D8] text-[#1C3022]'
                         }`}
                       >
                         {num}
@@ -415,8 +415,8 @@ export function CreateProjectModal({
 
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   {Array.from({ length: installmentCount }).map((_, idx) => (
-                    <div key={idx} className="bg-white p-2 rounded-xl border border-[#E8E2D8] text-center">
-                      <span className="text-[10px] font-black text-[#1C3022] block mb-1">الدفعة {idx + 1}</span>
+                    <div key={idx} className="bg-white p-3 rounded-xl border border-[#E8E2D8] text-center">
+                      <span className="text-[11px] font-black text-[#1C3022] block mb-2">الدفعة {idx + 1}</span>
                       <div className="flex items-center justify-center gap-1">
                         <input
                           type="number"
@@ -429,9 +429,9 @@ export function CreateProjectModal({
                             updated[idx] = val;
                             setPercentages(updated);
                           }}
-                          className="w-12 bg-[#FAF7F2] border border-[#E8E2D8] rounded-lg text-center font-black text-xs py-1"
+                          className="w-12 bg-[#FAF7F2] border border-[#E8E2D8] rounded-lg text-center font-black text-[#1C3022] text-xs py-1 focus:border-[#D0A97E]"
                         />
-                        <span className="text-xs font-bold text-slate-400">%</span>
+                        <span className="text-xs font-bold text-[#C5B198]">%</span>
                       </div>
                     </div>
                   ))}
@@ -440,7 +440,7 @@ export function CreateProjectModal({
             ) : (
               <div className="space-y-2">
                 {manualInstallments.map((inst, idx) => (
-                  <div key={inst.id || idx} className="bg-white p-2.5 rounded-xl border border-[#E8E2D8] space-y-2">
+                  <div key={inst.id || idx} className="bg-white p-3 rounded-xl border border-[#E8E2D8] space-y-2">
                     <div className="flex gap-2">
                       <input
                         type="text"
@@ -451,7 +451,7 @@ export function CreateProjectModal({
                           updated[idx].title = e.target.value;
                           setManualInstallments(updated);
                         }}
-                        className="flex-1 bg-[#FAF7F2] border border-[#E8E2D8] rounded-lg px-2.5 py-1 text-xs font-bold text-[#1C3022] outline-none"
+                        className="flex-1 bg-[#FAF7F2] border border-[#E8E2D8] rounded-lg px-3 py-2 text-xs font-bold text-[#1C3022] outline-none focus:border-[#D0A97E]"
                       />
                       <input
                         type="text"
@@ -462,7 +462,7 @@ export function CreateProjectModal({
                           updated[idx].amount = e.target.value;
                           setManualInstallments(updated);
                         }}
-                        className="w-24 bg-[#FAF7F2] border border-[#E8E2D8] rounded-lg px-2.5 py-1 text-xs font-bold text-[#1C3022] outline-none"
+                        className="w-24 bg-[#FAF7F2] border border-[#E8E2D8] rounded-lg px-3 py-2 text-xs font-bold text-[#1C3022] outline-none focus:border-[#D0A97E]"
                         dir="ltr"
                       />
                       <button
@@ -478,7 +478,7 @@ export function CreateProjectModal({
                 <button
                   type="button"
                   onClick={handleAddManualInstallmentRow}
-                  className="w-full bg-white border border-[#E8E2D8] py-1.5 rounded-xl text-xs font-black text-[#1C3022] hover:bg-slate-50"
+                  className="w-full bg-transparent border border-[#E8E2D8] py-3 rounded-xl text-xs font-black text-[#C5B198] hover:bg-[#2A3A2F]"
                 >
                   + إضافة دفعة يدوية
                 </button>
@@ -489,11 +489,11 @@ export function CreateProjectModal({
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full bg-[#1C3022] text-[#F8F5F0] py-3 rounded-2xl text-xs font-black flex items-center justify-center gap-2 hover:bg-[#122116] shadow-md transition-all disabled:opacity-50"
+            className="w-full bg-[#D0A97E] text-[#1C3022] py-4 rounded-[2rem] text-sm font-black flex items-center justify-center gap-2 hover:bg-[#C29B70] shadow-md transition-all disabled:opacity-50 mt-6"
           >
             {isSubmitting ? (
               <>
-                <Loader2 className="w-4 h-4 animate-spin text-[#C5B198]" />
+                <Loader2 className="w-4 h-4 animate-spin text-[#1C3022]" />
                 <span>جاري إنشاء المشروع...</span>
               </>
             ) : (

@@ -167,6 +167,10 @@ export interface Project {
   quoteRequestId?: string;
   isCertified?: boolean;
   cancellationRequest?: ProjectCancellationRequest;
+  isDeleted?: boolean;
+  deletedReason?: string;
+  deletedAt?: string;
+  deletedBy?: string;
   feedback?: {
     rating: number;
     comment: string;

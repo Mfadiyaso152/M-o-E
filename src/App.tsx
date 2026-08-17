@@ -374,7 +374,7 @@ export default function App() {
           <div className="w-24 h-24 flex items-center justify-center mb-5 animate-pulse rounded-3xl overflow-hidden shadow-2xl">
             <Logo size="lg" showText={false} />
           </div>
-          <h2 className="text-xl font-black text-[#F8F5F0] mb-2 tracking-wide">نماذج التميز للمقاولات</h2>
+          <h2 className="text-xl font-black text-[#1C3022] mb-2 tracking-wide">نماذج التميز للمقاولات</h2>
           <div className="flex items-center gap-2.5 text-[#C5B198] text-xs font-bold bg-[#284430]/80 px-4 py-2 rounded-xl border border-[#3b6147]/60 mb-6">
             <Loader2 className="w-4 h-4 animate-spin text-[#C5B198]" />
             <span>جاري التحقق من الجلسة والاتصال السحابي الآمن...</span>
@@ -399,7 +399,7 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0B1510] flex flex-col text-[#F8F5F0] w-full max-w-4xl mx-auto shadow-2xl relative overflow-x-hidden font-sans" dir="rtl">
+    <div className="min-h-screen bg-[#FAF7F2] flex flex-col text-[#1C3022] w-full max-w-4xl mx-auto shadow-2xl relative overflow-x-hidden font-sans" dir="rtl">
       {/* Toast Notification */}
       <AnimatePresence>
         {showSuccessToast && (
@@ -407,7 +407,7 @@ export default function App() {
             initial={{ opacity: 0, y: -40 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -40 }}
-            className="fixed top-4 left-4 right-4 max-w-sm mx-auto z-50 bg-[#1C3022] text-[#F8F5F0] px-4 py-3.5 rounded-2xl shadow-xl border border-[#C5B198]/40 flex items-center gap-3 text-sm font-bold"
+            className="fixed top-4 left-4 right-4 max-w-sm mx-auto z-50 bg-[#1C3022] text-white px-4 py-3.5 rounded-2xl shadow-xl border border-[#C5B198]/40 flex items-center gap-3 text-sm font-bold"
           >
             <div className="w-8 h-8 rounded-full bg-[#C5B198] text-[#1C3022] flex items-center justify-center shrink-0">
               <Check className="w-5 h-5 stroke-[3]" />
@@ -418,7 +418,7 @@ export default function App() {
       </AnimatePresence>
 
       {/* Brand Header */}
-      <header className="bg-[#1C3022] text-[#F8F5F0] px-5 sm:px-6 pt-4 pb-3.5 sticky top-0 z-40 border-b border-[#284430] shadow-md transition-all duration-300">
+      <header className="bg-[#1C3022] text-white px-5 sm:px-6 pt-4 pb-3.5 sticky top-0 z-40 border-b border-[#284430] shadow-md transition-all duration-300">
         <div className="flex items-center justify-between">
           {/* Institution Corner Logo & Brand Name */}
           <div className="flex items-center gap-3">
@@ -436,7 +436,7 @@ export default function App() {
             </motion.div>
             <div>
               <div className="flex items-center gap-1.5">
-                <h1 className="text-base font-black tracking-wide text-[#F8F5F0]">نماذج التميز</h1>
+                <h1 className="text-base font-black tracking-wide text-white">نماذج التميز</h1>
                 <span className="bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[9px] font-black px-1.5 py-0.5 rounded-md tracking-wider">
                   BETA
                 </span>
@@ -685,7 +685,7 @@ export default function App() {
 
       {/* Bottom Navigation */}
       {!isSupportAgent && (
-        <nav className="fixed bottom-0 left-0 right-0 max-w-4xl mx-auto bg-[#0B1510]/95 backdrop-blur-lg border-t border-[#2A3A2F] h-20 flex items-center justify-around px-2 z-40">
+        <nav className="fixed bottom-0 left-0 right-0 max-w-4xl mx-auto bg-[#FAF7F2]/95 backdrop-blur-lg border-t border-[#E8E2D8] h-20 flex items-center justify-around px-2 z-40">
         {[
           { id: 'home', label: isSupervisor ? 'العملاء' : 'الرئيسية', icon: isSupervisor ? Users : HardHat },
           { id: 'projects', label: isSupervisor ? 'المشاريع' : 'مشاريعي', icon: HardHat },
@@ -699,7 +699,7 @@ export default function App() {
               key={item.id}
               onClick={() => { setActiveTab(item.id as any); setSelectedProject(null); }}
               className={`flex flex-col items-center justify-center py-2 px-3 rounded-2xl transition-all relative ${
-                isActive ? 'text-[#D0A97E]' : 'text-[#5E7A6B] hover:text-[#8EAB9B]'
+                isActive ? 'text-[#C5B198]' : 'text-[#5E7A6B] hover:text-[#8EAB9B]'
               }`}
             >
               <Icon className={`w-6 h-6 mb-1 transition-transform ${isActive ? 'scale-110' : ''}`} />
@@ -865,7 +865,7 @@ export default function App() {
 
               <button 
                 type="submit" 
-                className="w-full bg-[#1C3022] text-[#F8F5F0] py-3.5 rounded-xl font-black text-xs hover:bg-[#122116] transition-all shadow-md active:scale-[0.98]"
+                className="w-full bg-[#1C3022] text-white py-3.5 rounded-xl font-black text-xs hover:bg-[#122116] transition-all shadow-md active:scale-[0.98]"
               >
                 إرسال الطلب للمكتب الفني
               </button>
@@ -960,18 +960,11 @@ function AuthFlow({
           <div className="mx-auto flex items-center justify-center mb-4 transition-transform">
             <Logo size="xl" showText={false} />
           </div>
-          <h1 className="text-2xl font-black text-[#F8F5F0] tracking-wide mb-1">نماذج التميز</h1>
+          <h1 className="text-2xl font-black text-[#1C3022] tracking-wide mb-1">نماذج التميز</h1>
           <p className="text-[11px] text-[#C5B198] font-bold">للمقاولات العامة والتطوير الإنشائي</p>
         </div>
 
-        {/* Middle Section */}
-        <div className="flex-1 flex flex-col items-center justify-center relative z-10 space-y-3 mb-8">
-          <h3 className="text-sm text-[#F8F5F0] font-medium opacity-90">مرحباً بك في</h3>
-          <h2 className="text-3xl font-black text-[#F8F5F0] tracking-wide">نماذج التميز</h2>
-          <p className="text-center text-xs text-[#EFE7DC]/70 max-w-xs leading-relaxed mt-2 font-medium">
-            حلول هندسية مبتكرة لتنفيذ مشاريعك<br />بأعلى معايير الجودة والاحترافية
-          </p>
-        </div>
+
 
         {/* Bottom Section */}
         <div className="relative z-10 w-full max-w-sm mx-auto pb-6 space-y-8">
@@ -1020,13 +1013,13 @@ function AuthFlow({
               <button
                 type="button"
                 onClick={() => setShowTermsModal(true)}
-                className="text-[#D0A97E] font-bold hover:text-[#EFE7DC] mt-1 transition-colors"
+                className="text-[#C5B198] font-bold hover:text-[#EFE7DC] mt-1 transition-colors"
               >
                 شروط الخدمة وسياسة الخصوصية
               </button>
             </div>
             
-            <div className="flex items-center justify-center gap-2 text-[11px] text-[#D0A97E]/80 font-bold">
+            <div className="flex items-center justify-center gap-2 text-[11px] text-[#C5B198]/80 font-bold">
               <ShieldCheck className="w-4 h-4 shrink-0" />
               <span>توثيق آمن عبر Firebase</span>
             </div>
@@ -1037,7 +1030,7 @@ function AuthFlow({
       {/* ========================================================================= */}
       {/* 2. IPAD / TABLET VIEW ONLY (hidden on mobile and large desktop: md:flex lg:hidden) */}
       {/* ========================================================================= */}
-      <div className="hidden md:flex lg:hidden min-h-screen w-full bg-[#1C3022] text-[#F8F5F0] flex-col justify-between p-8 relative overflow-hidden font-sans" dir="rtl">
+      <div className="hidden md:flex lg:hidden min-h-screen w-full bg-[#1C3022] text-white flex-col justify-between p-8 relative overflow-hidden font-sans" dir="rtl">
         {/* iPad Ambient glow rings */}
         <div className="absolute top-0 right-1/4 w-[28rem] h-[28rem] bg-[#C5B198]/15 rounded-full blur-3xl pointer-events-none"></div>
         <div className="absolute bottom-0 left-1/4 w-[28rem] h-[28rem] bg-[#284430] rounded-full blur-3xl pointer-events-none"></div>
@@ -1049,7 +1042,7 @@ function AuthFlow({
               <Logo size="md" showText={false} />
             </div>
             <div>
-              <h1 className="text-xl font-black tracking-wide text-[#F8F5F0]">نماذج التميز</h1>
+              <h1 className="text-xl font-black tracking-wide text-[#1C3022]">نماذج التميز</h1>
               <p className="text-xs text-[#C5B198] font-bold">بوابة المشاريع الإنشائية المعتمدة</p>
             </div>
           </div>
@@ -1117,10 +1110,10 @@ function AuthFlow({
               <button
                 onClick={handleGoogleSignIn}
                 disabled={isLoading}
-                className="w-full bg-[#1C3022] hover:bg-[#122116] text-[#F8F5F0] py-4 px-6 rounded-2xl font-black text-sm transition-all shadow-lg hover:shadow-xl active:scale-[0.98] flex items-center justify-center gap-3 disabled:opacity-60 disabled:cursor-not-allowed group"
+                className="w-full bg-[#1C3022] hover:bg-[#122116] text-white py-4 px-6 rounded-2xl font-black text-sm transition-all shadow-lg hover:shadow-xl active:scale-[0.98] flex items-center justify-center gap-3 disabled:opacity-60 disabled:cursor-not-allowed group"
               >
                 {isLoading ? (
-                  <div className="flex items-center gap-2.5 text-[#F8F5F0]">
+                  <div className="flex items-center gap-2.5 text-[#1C3022]">
                     <Loader2 className="w-5 h-5 animate-spin text-[#C5B198]" />
                     <span>جاري تسجيل الدخول الآمن...</span>
                   </div>
@@ -1146,7 +1139,7 @@ function AuthFlow({
                         />
                       </svg>
                     </div>
-                    <span className="text-[#F8F5F0]">
+                    <span className="text-[#1C3022]">
                       المتابعة السريعة بحساب Google
                     </span>
                   </>
@@ -1175,7 +1168,7 @@ function AuthFlow({
         </main>
 
         {/* iPad Bottom Footer */}
-        <footer className="text-center text-xs text-[#F8F5F0]/60 pt-4 border-t border-[#284430]/80 relative z-10">
+        <footer className="text-center text-xs text-slate-500 pt-4 border-t border-[#284430]/80 relative z-10">
           جميع الحقوق محفوظة © {new Date().getFullYear()} مؤسسة نماذج التميز للمقاولات العامة
         </footer>
       </div>
@@ -1183,7 +1176,7 @@ function AuthFlow({
       {/* ========================================================================= */}
       {/* 3. PC / LARGE DESKTOP VIEW (visible on lg+ screens: hidden lg:flex) */}
       {/* ========================================================================= */}
-      <div className="hidden lg:flex min-h-screen w-full bg-[#1C3022] text-[#F8F5F0] flex-col justify-between relative overflow-hidden font-sans" dir="rtl">
+      <div className="hidden lg:flex min-h-screen w-full bg-[#1C3022] text-white flex-col justify-between relative overflow-hidden font-sans" dir="rtl">
         {/* Architectural ambient background glowing shapes */}
         <div className="absolute -top-36 -right-36 w-[32rem] h-[32rem] bg-[#C5B198]/15 rounded-full blur-3xl pointer-events-none"></div>
         <div className="absolute top-1/2 -left-48 w-[38rem] h-[38rem] bg-[#284430] rounded-full blur-3xl pointer-events-none"></div>
@@ -1196,7 +1189,7 @@ function AuthFlow({
               <Logo size="sm" showText={false} />
             </div>
             <div>
-              <h1 className="text-base sm:text-lg font-black tracking-wide text-[#F8F5F0]">
+              <h1 className="text-base sm:text-lg font-black tracking-wide text-[#1C3022]">
                 مؤسسة نماذج التميز
               </h1>
               <p className="text-[11px] text-[#C5B198] font-bold">
@@ -1221,7 +1214,7 @@ function AuthFlow({
 
               {/* Main Headline */}
               <div className="space-y-3">
-                <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-[#F8F5F0] leading-tight sm:leading-snug">
+                <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-[#1C3022] leading-tight sm:leading-snug">
                   تابع مشروعك الإنشائي لحظة بلحظة وبكل شفافية
                 </h2>
                 <p className="text-sm sm:text-base text-[#EFE7DC]/80 leading-relaxed font-medium max-w-2xl">
@@ -1237,7 +1230,7 @@ function AuthFlow({
                   <div className="w-9 h-9 rounded-xl bg-[#C5B198]/20 text-[#C5B198] flex items-center justify-center">
                     <HardHat className="w-5 h-5" />
                   </div>
-                  <h3 className="text-sm font-black text-[#F8F5F0]">متابعة حية للإنجاز</h3>
+                  <h3 className="text-sm font-black text-[#1C3022]">متابعة حية للإنجاز</h3>
                   <p className="text-xs text-[#EFE7DC]/70 leading-relaxed">
                     نسب إنجاز دقيقة، تقارير المهندس الميداني وصور الموقع المحدثة أسبوعياً لكل مرحلة.
                   </p>
@@ -1248,7 +1241,7 @@ function AuthFlow({
                   <div className="w-9 h-9 rounded-xl bg-[#C5B198]/20 text-[#C5B198] flex items-center justify-center">
                     <CreditCard className="w-5 h-5" />
                   </div>
-                  <h3 className="text-sm font-black text-[#F8F5F0]">سداد إلكتروني معتمد</h3>
+                  <h3 className="text-sm font-black text-[#1C3022]">سداد إلكتروني معتمد</h3>
                   <p className="text-xs text-[#EFE7DC]/70 leading-relaxed">
                     تسديد الدفعات التعاقدية بسهولة مع إصدار سندات قبض رسمية فورية معتمدة.
                   </p>
@@ -1259,7 +1252,7 @@ function AuthFlow({
                   <div className="w-9 h-9 rounded-xl bg-[#C5B198]/20 text-[#C5B198] flex items-center justify-center">
                     <FileCheck className="w-5 h-5" />
                   </div>
-                  <h3 className="text-sm font-black text-[#F8F5F0]">العقود والتوقيع الرقمي</h3>
+                  <h3 className="text-sm font-black text-[#1C3022]">العقود والتوقيع الرقمي</h3>
                   <p className="text-xs text-[#EFE7DC]/70 leading-relaxed">
                     توثيق وتوقيع عقود المقاولات واعتماد المخططات الهندسية وسندات الدفعات بأمان.
                   </p>
@@ -1270,7 +1263,7 @@ function AuthFlow({
                   <div className="w-9 h-9 rounded-xl bg-[#C5B198]/20 text-[#C5B198] flex items-center justify-center">
                     <Building2 className="w-5 h-5" />
                   </div>
-                  <h3 className="text-sm font-black text-[#F8F5F0]">مزامنة فورية وتواصل مباشر</h3>
+                  <h3 className="text-sm font-black text-[#1C3022]">مزامنة فورية وتواصل مباشر</h3>
                   <p className="text-xs text-[#EFE7DC]/70 leading-relaxed">
                     ربط لحظي بين العميل والمكتب الفني والمشرف العام لضمان أعلى مستويات الجودة.
                   </p>
@@ -1327,10 +1320,10 @@ function AuthFlow({
                   <button
                     onClick={handleGoogleSignIn}
                     disabled={isLoading}
-                    className="w-full bg-[#1C3022] hover:bg-[#122116] text-[#F8F5F0] py-4 px-4 rounded-2xl font-black text-sm transition-all shadow-lg hover:shadow-xl active:scale-[0.98] flex items-center justify-center gap-3 disabled:opacity-60 disabled:cursor-not-allowed group"
+                    className="w-full bg-[#1C3022] hover:bg-[#122116] text-white py-4 px-4 rounded-2xl font-black text-sm transition-all shadow-lg hover:shadow-xl active:scale-[0.98] flex items-center justify-center gap-3 disabled:opacity-60 disabled:cursor-not-allowed group"
                   >
                     {isLoading ? (
-                      <div className="flex items-center gap-2.5 text-[#F8F5F0]">
+                      <div className="flex items-center gap-2.5 text-[#1C3022]">
                         <Loader2 className="w-5 h-5 animate-spin text-[#C5B198]" />
                         <span>جاري تسجيل الدخول الآمن...</span>
                       </div>
@@ -1357,7 +1350,7 @@ function AuthFlow({
                             />
                           </svg>
                         </div>
-                        <span className="text-[#F8F5F0]">
+                        <span className="text-[#1C3022]">
                           المتابعة السريعة بحساب Google
                         </span>
                       </>
@@ -1405,7 +1398,7 @@ function AuthFlow({
         </main>
 
         {/* Full-Width Footer for PC & iPad */}
-        <footer className="w-full border-t border-[#284430]/80 bg-[#152419] px-6 sm:px-10 lg:px-16 py-4 flex items-center justify-center text-center text-xs text-[#F8F5F0]/60 relative z-20">
+        <footer className="w-full border-t border-[#284430]/80 bg-[#152419] px-6 sm:px-10 lg:px-16 py-4 flex items-center justify-center text-center text-xs text-slate-500 relative z-20">
           <div>
             جميع الحقوق محفوظة © {new Date().getFullYear()} مؤسسة نماذج التميز للمقاولات العامة والتطوير الإنشائي
           </div>
@@ -1418,24 +1411,24 @@ function AuthFlow({
           <motion.div 
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className="bg-[#122119] max-w-md w-full rounded-[2.5rem] p-8 shadow-2xl border border-[#2A3A2F] text-[#F8F5F0] space-y-6"
+            className="bg-white max-w-md w-full rounded-[2.5rem] p-8 shadow-2xl border border-[#E8E2D8] text-[#1C3022] space-y-6"
           >
-            <div className="flex justify-between items-center pb-4 border-b border-[#2A3A2F]">
+            <div className="flex justify-between items-center pb-4 border-b border-[#E8E2D8]">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-[#0B1510] border border-[#2A3A2F] flex items-center justify-center text-[#D0A97E]">
+                <div className="w-10 h-10 rounded-full bg-[#FAF7F2] border border-[#E8E2D8] flex items-center justify-center text-[#C5B198]">
                   <FileText className="w-5 h-5" />
                 </div>
-                <h3 className="text-base font-black text-[#F8F5F0]">الشروط والأحكام</h3>
+                <h3 className="text-base font-black text-[#1C3022]">الشروط والأحكام</h3>
               </div>
-              <button onClick={() => setShowTermsModal(false)} className="p-2 bg-[#0B1510] text-[#F8F5F0]/50 hover:text-[#F8F5F0] hover:bg-[#1A2E23] rounded-full border border-[#2A3A2F] transition-colors">
+              <button onClick={() => setShowTermsModal(false)} className="p-2 bg-[#FAF7F2] text-slate-400 hover:text-[#1C3022] hover:bg-[#EFE7DC] rounded-full border border-[#E8E2D8] transition-colors">
                 <X className="w-4 h-4" />
               </button>
             </div>
-            <div className="text-xs text-[#F8F5F0]/70 space-y-4 max-h-72 overflow-y-auto leading-relaxed pr-1 font-bold">
-              <p>1. <strong className="text-[#D0A97E]">الربط السحابي:</strong> يعد تسجيل الدخول عبر حساب Google موافقة رسمية على ربط مشاريعك الهندسية وملفاتك وعروض الأسعار بالبريد الإلكتروني المعتمد.</p>
-              <p>2. <strong className="text-[#D0A97E]">سندات الدفعات:</strong> جميع الدفعات المسددة عبر التطبيق (Apple Pay / بطاقات مدى / فيزا) يتم توثيقها بسندات إلكترونية رسمية معتمدة ومحفوظة في حسابك.</p>
-              <p>3. <strong className="text-[#D0A97E]">سرية المخططات:</strong> تلتزم مؤسسة نماذج التميز بأعلى معايير الأمان لحماية بيانات العملاء ومخططات البناء والتقارير الهندسية وفق الأنظمة واللوائح المعمول بها في المملكة العربية السعودية.</p>
-              <p>4. <strong className="text-[#D0A97E]">التوقيع الرقمي:</strong> يُعتد بالتوقيع الرقمي المعتمد داخل التطبيق للعقود ومحاضر الاستلام الإنشائية.</p>
+            <div className="text-xs text-slate-600 space-y-4 max-h-72 overflow-y-auto leading-relaxed pr-1 font-bold">
+              <p>1. <strong className="text-[#C5B198]">الربط السحابي:</strong> يعد تسجيل الدخول عبر حساب Google موافقة رسمية على ربط مشاريعك الهندسية وملفاتك وعروض الأسعار بالبريد الإلكتروني المعتمد.</p>
+              <p>2. <strong className="text-[#C5B198]">سندات الدفعات:</strong> جميع الدفعات المسددة عبر التطبيق (Apple Pay / بطاقات مدى / فيزا) يتم توثيقها بسندات إلكترونية رسمية معتمدة ومحفوظة في حسابك.</p>
+              <p>3. <strong className="text-[#C5B198]">سرية المخططات:</strong> تلتزم مؤسسة نماذج التميز بأعلى معايير الأمان لحماية بيانات العملاء ومخططات البناء والتقارير الهندسية وفق الأنظمة واللوائح المعمول بها في المملكة العربية السعودية.</p>
+              <p>4. <strong className="text-[#C5B198]">التوقيع الرقمي:</strong> يُعتد بالتوقيع الرقمي المعتمد داخل التطبيق للعقود ومحاضر الاستلام الإنشائية.</p>
             </div>
             <button
               onClick={() => setShowTermsModal(false)}
@@ -1482,13 +1475,13 @@ function HomeView({
       {/* Welcome Banner */}
       <div className="flex items-center justify-between">
         <div>
-          <span className="text-[11px] font-black text-[#D0A97E] tracking-wider">مرحباً بك</span>
-          <h2 className="text-xl font-black text-[#F8F5F0]">{user.name}</h2>
-          <p className="text-[#F8F5F0]/60 text-xs font-bold flex items-center gap-1 mt-0.5">
-            <Mail className="w-3 h-3 text-[#D0A97E]" /> {user.email || user.phone}
+          <span className="text-[11px] font-black text-[#C5B198] tracking-wider">مرحباً بك</span>
+          <h2 className="text-xl font-black text-[#1C3022]">{user.name}</h2>
+          <p className="text-slate-500 text-xs font-bold flex items-center gap-1 mt-0.5">
+            <Mail className="w-3 h-3 text-[#C5B198]" /> {user.email || user.phone}
           </p>
         </div>
-        <div className="w-14 h-14 rounded-full bg-[#122119] border border-[#2A3A2F] flex items-center justify-center text-[#D0A97E] shadow-inner overflow-hidden">
+        <div className="w-14 h-14 rounded-full bg-white border border-[#E8E2D8] flex items-center justify-center text-[#C5B198] shadow-inner overflow-hidden">
           {user.photoURL ? (
             <img src={user.photoURL} alt={user.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
           ) : (
@@ -1663,13 +1656,13 @@ function HomeView({
       )}
 
       {/* Hero Quote Card */}
-      <div className="bg-[#1C3022] rounded-[2rem] p-6 text-[#F8F5F0] relative overflow-hidden shadow-xl border border-[#284430]">
+      <div className="bg-[#1C3022] rounded-[2rem] p-6 text-white relative overflow-hidden shadow-xl border border-[#284430]">
         <div className="relative z-10">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#C5B198]/20 border border-[#C5B198]/30 text-[#C5B198] text-[10px] font-black mb-3">
             <Sparkles className="w-3 h-3" />
             <span>خدمة هندسية متكاملة</span>
           </div>
-          <h3 className="text-lg font-black mb-1.5 text-[#F8F5F0]">هل لديك مشروع بناء أو تطوير؟</h3>
+          <h3 className="text-lg font-black mb-1.5 text-white">هل لديك مشروع بناء أو تطوير؟</h3>
           <p className="text-[#EFE7DC]/80 text-xs mb-5 leading-relaxed font-medium">
             احصل على دراسة هندسية وعرض سعر دقيق ومعتمد من مهندسي نماذج التميز.
           </p>
@@ -1754,17 +1747,17 @@ function ProjectsListView({
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-black text-[#F8F5F0]">ملفات ومشاريع حسابك</h3>
-          <p className="text-xs text-[#F8F5F0]/60 mt-1">متابعة العقود، نسب الإنجاز والمستندات</p>
+          <h3 className="text-lg font-black text-[#1C3022]">ملفات ومشاريع حسابك</h3>
+          <p className="text-xs text-slate-500 mt-1">متابعة العقود، نسب الإنجاز والمستندات</p>
         </div>
-        <span className="px-3 py-1 bg-[#122119] border border-[#2A3A2F] text-[#D0A97E] rounded-full text-xs font-black">
+        <span className="px-3 py-1 bg-white border border-[#E8E2D8] text-[#C5B198] rounded-full text-xs font-black">
           {projects.length} مشاريع
         </span>
       </div>
 
       {projects.length === 0 ? (
-        <div className="bg-[#122119] rounded-[2rem] p-10 text-center border border-[#2A3A2F] flex flex-col items-center justify-center min-h-[50vh] space-y-6">
-          <div className="mx-auto text-[#D0A97E] opacity-80 mb-2">
+        <div className="bg-white rounded-[2rem] p-10 text-center border border-[#E8E2D8] flex flex-col items-center justify-center min-h-[50vh] space-y-6">
+          <div className="mx-auto text-[#C5B198] opacity-80 mb-2">
             <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M4 22h14" />
               <path d="M12 22V8" />
@@ -1778,8 +1771,8 @@ function ProjectsListView({
             </svg>
           </div>
           <div className="space-y-3">
-            <h4 className="font-black text-lg text-[#F8F5F0]">لا توجد مشاريع حالياً</h4>
-            <p className="text-sm text-[#F8F5F0]/60 max-w-[200px] mx-auto leading-relaxed font-bold">
+            <h4 className="font-black text-lg text-[#1C3022]">لا توجد مشاريع حالياً</h4>
+            <p className="text-sm text-slate-500 max-w-[200px] mx-auto leading-relaxed font-bold">
               يمكنك طلب عرض سعر جديد لبدء مشروعك القادم
             </p>
           </div>
@@ -1793,7 +1786,30 @@ function ProjectsListView({
         </div>
       ) : (
         <div className="space-y-4">
-          {projects.map(p => (
+          {projects.map(p => {
+            if (p.isDeleted) {
+              return (
+                <div key={p.id} className="bg-red-50 border border-red-200 rounded-3xl p-5 shadow-sm space-y-3">
+                  <div className="flex items-center gap-2 text-red-600">
+                    <AlertTriangle className="w-5 h-5" />
+                    <h4 className="font-black text-sm">مشروع ملغي: {p.title}</h4>
+                  </div>
+                  <p className="text-xs text-red-800 font-bold leading-relaxed">
+                    تم حذف وإلغاء هذا المشروع من قبل المشرف.
+                  </p>
+                  <div className="bg-white/60 rounded-xl p-3 border border-red-100">
+                    <span className="text-[10px] text-red-400 font-black block mb-1">سبب الحذف والإلغاء:</span>
+                    <p className="text-xs text-red-900 font-medium leading-relaxed">{p.deletedReason || 'لا يوجد سبب محدد'}</p>
+                  </div>
+                  {p.deletedAt && (
+                    <span className="text-[9px] text-red-400 font-black block pt-1">
+                      تاريخ الحذف: {new Date(p.deletedAt).toLocaleDateString('ar-SA')}
+                    </span>
+                  )}
+                </div>
+              );
+            }
+            return (
             <div 
               key={p.id} 
               className="bg-white rounded-3xl border border-[#E8E2D8] overflow-hidden shadow-sm hover:shadow-md transition-all group"
@@ -1811,7 +1827,7 @@ function ProjectsListView({
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
                 
-                <div className="absolute top-3 right-3 bg-[#1C3022]/90 backdrop-blur-md text-[#F8F5F0] px-3.5 py-1 rounded-full text-[11px] font-black border border-[#C5B198]/30">
+                <div className="absolute top-3 right-3 bg-[#1C3022]/90 backdrop-blur-md text-white px-3.5 py-1 rounded-full text-[11px] font-black border border-[#C5B198]/30">
                   {p.status}
                 </div>
 
@@ -1839,25 +1855,17 @@ function ProjectsListView({
                 <div className="pt-2 flex gap-2 border-t border-[#F0EBE1]">
                   <button
                     type="button"
-                    onClick={() => onCustomize(p)}
-                    className="flex-1 bg-[#1C3022] text-[#F8F5F0] py-2.5 px-3 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 hover:bg-[#122116] transition-all shadow-sm active:scale-[0.98]"
-                  >
-                    <Sliders className="w-3.5 h-3.5 text-[#C5B198]" />
-                    <span>تخصيص وإدارة المشروع</span>
-                  </button>
-
-                  <button
-                    type="button"
                     onClick={() => onSelect(p)}
-                    className="px-3.5 py-2.5 bg-[#FAF7F2] text-[#1C3022] rounded-xl text-xs font-black flex items-center justify-center gap-1 border border-[#E8E2D8] hover:bg-[#EFE7DC] transition-all"
+                    className="flex-1 bg-[#1C3022] text-white py-3 px-3 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 hover:bg-[#122116] transition-all shadow-sm active:scale-[0.98]"
                   >
-                    <span>التفاصيل</span>
-                    <ChevronLeft className="w-3.5 h-3.5 text-[#A99379]" />
+                    <Eye className="w-4 h-4 text-[#C5B198]" />
+                    <span>الاطلاع على المشروع</span>
                   </button>
                 </div>
               </div>
             </div>
-          ))}
+          );
+          })}
         </div>
       )}
     </div>
@@ -1912,10 +1920,10 @@ function PaymentsView({
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-black text-[#F8F5F0]">الدفعات والمستحقات</h3>
-          <p className="text-xs text-[#F8F5F0]/60 mt-1">سداد إلكتروني معتمد ومستندات قبض</p>
+          <h3 className="text-lg font-black text-[#1C3022]">الدفعات والمستحقات</h3>
+          <p className="text-xs text-slate-500 mt-1">سداد إلكتروني معتمد ومستندات قبض</p>
         </div>
-        <div className="w-10 h-10 rounded-xl bg-[#122119] border border-[#2A3A2F] flex items-center justify-center text-[#D0A97E] shadow-inner">
+        <div className="w-10 h-10 rounded-xl bg-white border border-[#E8E2D8] flex items-center justify-center text-[#C5B198] shadow-inner">
           <Wallet className="w-5 h-5" />
         </div>
       </div>
@@ -1936,20 +1944,20 @@ function PaymentsView({
       )}
 
       {allInstallments.length === 0 ? (
-        <div className="bg-[#122119] rounded-[2rem] p-10 text-center border border-[#2A3A2F] space-y-4">
-          <div className="w-16 h-16 bg-[#0B1510] border border-[#2A3A2F] rounded-full flex items-center justify-center mx-auto text-[#D0A97E]">
+        <div className="bg-white rounded-[2rem] p-10 text-center border border-[#E8E2D8] space-y-4">
+          <div className="w-16 h-16 bg-[#FAF7F2] border border-[#E8E2D8] rounded-full flex items-center justify-center mx-auto text-[#C5B198]">
             <CreditCard className="w-8 h-8" />
           </div>
           <div>
-            <h4 className="font-black text-sm text-[#F8F5F0]">لا توجد دفعات مالية حالياً</h4>
-            <p className="text-xs text-[#F8F5F0]/60 mt-1.5 font-bold leading-relaxed max-w-[220px] mx-auto">سيتم إدراج جدول الدفعات فور توثيق عقد المشروع واعتماد خطة التنفيذ.</p>
+            <h4 className="font-black text-sm text-[#1C3022]">لا توجد دفعات مالية حالياً</h4>
+            <p className="text-xs text-slate-500 mt-1.5 font-bold leading-relaxed max-w-[220px] mx-auto">سيتم إدراج جدول الدفعات فور توثيق عقد المشروع واعتماد خطة التنفيذ.</p>
           </div>
         </div>
       ) : (
         projects.map(p => (
           <div key={p.id} className="space-y-4">
-            <div className="flex items-center gap-2 text-xs font-black text-[#D0A97E] bg-[#122119] px-4 py-2.5 rounded-xl border border-[#2A3A2F]">
-              <Building2 className="w-4 h-4 text-[#D0A97E]" />
+            <div className="flex items-center gap-2 text-xs font-black text-[#C5B198] bg-white px-4 py-2.5 rounded-xl border border-[#E8E2D8]">
+              <Building2 className="w-4 h-4 text-[#C5B198]" />
               <span>مشروع: {p.title}</span>
             </div>
 
@@ -2049,7 +2057,7 @@ function PaymentsView({
                             className={`px-4 py-2 rounded-xl text-xs font-black flex items-center gap-1.5 transition-all active:scale-[0.98] ${
                               isOverdue7 
                                 ? 'bg-red-900/60 hover:bg-red-900/80 border border-red-500/40 text-red-100 shadow-sm' 
-                                : 'bg-[#D0A97E] hover:bg-[#C29B70] text-[#1C3022]'
+                                : 'bg-[#1C3022] hover:bg-[#122116] text-white'
                             }`}
                           >
                             <Smartphone className="w-4 h-4" />
@@ -2098,34 +2106,28 @@ function ProjectDetailView({
       <div className="flex items-center justify-between">
         <button 
           onClick={onBack}
-          className="flex items-center gap-2 px-4 py-2 rounded-[1rem] bg-[#122119] border border-[#2A3A2F] text-xs font-black text-[#F8F5F0] hover:bg-[#1A2E23] transition-colors"
+          className="flex items-center gap-2 px-4 py-2 rounded-[1rem] bg-white border border-[#E8E2D8] text-xs font-black text-[#1C3022] hover:bg-[#EFE7DC] transition-colors"
         >
-          <ChevronRight className="w-4 h-4 text-[#D0A97E]" />
+          <ChevronRight className="w-4 h-4 text-[#C5B198]" />
           <span>رجوع للمشاريع</span>
         </button>
-        <button
-          onClick={onOpenCustomization}
-          className="px-4 py-2 bg-[#D0A97E] text-[#1C3022] rounded-[1rem] text-xs font-black flex items-center gap-2 hover:bg-[#C29B70] transition-colors"
-        >
-          <Sliders className="w-4 h-4" />
-          <span>تخصيص المشروع</span>
-        </button>
+        
       </div>
 
       {/* Project Title and Overview */}
-      <div className="bg-[#122119] rounded-[2rem] p-6 border border-[#2A3A2F] shadow-sm space-y-5">
+      <div className="bg-white rounded-[2rem] p-6 border border-[#E8E2D8] shadow-sm space-y-5">
         <div>
-          <h2 className="text-xl font-black text-[#F8F5F0]">{project.title}</h2>
-          <p className="text-xs text-[#F8F5F0]/60 font-bold flex items-center gap-1.5 mt-2">
-            <MapPin className="w-3.5 h-3.5 text-[#D0A97E]" /> {project.location}
+          <h2 className="text-xl font-black text-[#1C3022]">{project.title}</h2>
+          <p className="text-xs text-slate-500 font-bold flex items-center gap-1.5 mt-2">
+            <MapPin className="w-3.5 h-3.5 text-[#C5B198]" /> {project.location}
           </p>
         </div>
 
         {/* Progress Display */}
-        <div className="bg-[#0B1510] p-5 rounded-[1.5rem] border border-[#2A3A2F] flex items-center justify-between">
+        <div className="bg-[#FAF7F2] p-5 rounded-[1.5rem] border border-[#E8E2D8] flex items-center justify-between">
           <div>
-            <span className="text-[11px] font-black text-[#D0A97E] block mb-1">نسبة الإنجاز الفعلية</span>
-            <span className="text-3xl font-black text-[#F8F5F0]">{project.progress}%</span>
+            <span className="text-[11px] font-black text-[#C5B198] block mb-1">نسبة الإنجاز الفعلية</span>
+            <span className="text-3xl font-black text-[#1C3022]">{project.progress}%</span>
           </div>
           <div className="w-16 h-16 relative flex items-center justify-center">
             <svg className="w-full h-full transform -rotate-90">
@@ -2137,26 +2139,26 @@ function ProjectDetailView({
                 stroke="currentColor" 
                 strokeWidth="6" 
                 fill="transparent" 
-                className="text-[#D0A97E] drop-shadow-[0_0_8px_rgba(208,169,126,0.4)]" 
+                className="text-[#C5B198] drop-shadow-[0_0_8px_rgba(208,169,126,0.4)]" 
                 strokeDasharray={163.3} 
                 strokeDashoffset={163.3 - (163.3 * project.progress) / 100} 
                 strokeLinecap="round"
               />
             </svg>
-            <HardHat className="w-6 h-6 text-[#D0A97E] absolute" />
+            <HardHat className="w-6 h-6 text-[#C5B198] absolute" />
           </div>
         </div>
       </div>
 
       {/* Project Stages Gallery */}
-      <div className="bg-[#122119] rounded-[2rem] p-6 border border-[#2A3A2F] shadow-sm space-y-5">
+      <div className="bg-white rounded-[2rem] p-6 border border-[#E8E2D8] shadow-sm space-y-5">
         <div className="flex items-center justify-between">
-          <h3 className="font-black text-sm text-[#F8F5F0]">صور ومخططات المشروع</h3>
-          <span className="text-[11px] text-[#D0A97E] font-bold">تحديثات ميدانية</span>
+          <h3 className="font-black text-sm text-[#1C3022]">صور ومخططات المشروع</h3>
+          <span className="text-[11px] text-[#C5B198] font-bold">تحديثات ميدانية</span>
         </div>
 
         {/* Stage Selector Pills */}
-        <div className="flex gap-2 bg-[#0B1510] p-2 rounded-[1.5rem] border border-[#2A3A2F] overflow-x-auto no-scrollbar">
+        <div className="flex gap-2 bg-[#FAF7F2] p-2 rounded-[1.5rem] border border-[#E8E2D8] overflow-x-auto no-scrollbar">
           {(['before', 'progress50', 'after', 'plans'] as const).map(stage => (
             <button
               key={stage}
@@ -2164,7 +2166,7 @@ function ProjectDetailView({
               className={`flex-1 py-2.5 px-3 rounded-xl text-[11px] font-black whitespace-nowrap transition-all ${
                 activeStage === stage 
                   ? 'bg-[#D0A97E] text-[#1C3022] shadow-sm' 
-                  : 'text-[#F8F5F0]/50 hover:text-[#D0A97E] hover:bg-[#1A2E23]'
+                  : 'text-slate-400 hover:text-[#C5B198] hover:bg-[#EFE7DC]'
               }`}
             >
               {stageLabels[stage]}
@@ -2176,7 +2178,7 @@ function ProjectDetailView({
         <div className="grid grid-cols-2 gap-3">
           {project.images[activeStage]?.length > 0 ? (
             project.images[activeStage].map((imgUrl, idx) => (
-              <div key={idx} className="h-36 rounded-[1.25rem] overflow-hidden border border-[#2A3A2F] relative group bg-[#0B1510]">
+              <div key={idx} className="h-36 rounded-[1.25rem] overflow-hidden border border-[#E8E2D8] relative group bg-[#FAF7F2]">
                 <img 
                   src={imgUrl} 
                   alt={`${project.title} - ${stageLabels[activeStage]}`} 
@@ -2186,7 +2188,7 @@ function ProjectDetailView({
               </div>
             ))
           ) : (
-            <div className="col-span-2 py-10 text-center text-xs text-[#F8F5F0]/40 font-bold bg-[#0B1510] rounded-[1.5rem] border border-[#2A3A2F] border-dashed">
+            <div className="col-span-2 py-10 text-center text-xs text-slate-400 font-bold bg-[#FAF7F2] rounded-[1.5rem] border border-[#E8E2D8] border-dashed">
               لا توجد صور مضافة لهذه المرحلة بعد
             </div>
           )}
@@ -2278,12 +2280,12 @@ function ProfileView({
       </div>
 
       {/* Account Info Details */}
-      <div className="bg-[#122119] rounded-[2rem] p-6 border border-[#2A3A2F] shadow-sm space-y-4">
-        <div className="flex items-center justify-between pb-3 border-b border-[#2A3A2F]">
-          <h3 className="text-sm font-black text-[#F8F5F0]">بيانات الحساب</h3>
+      <div className="bg-white rounded-[2rem] p-6 border border-[#E8E2D8] shadow-sm space-y-4">
+        <div className="flex items-center justify-between pb-3 border-b border-[#E8E2D8]">
+          <h3 className="text-sm font-black text-[#1C3022]">بيانات الحساب</h3>
           <button
             onClick={() => setIsEditing(!isEditing)}
-            className="text-xs font-black text-[#D0A97E] hover:underline flex items-center gap-1"
+            className="text-xs font-black text-[#C5B198] hover:underline flex items-center gap-1"
           >
             {isEditing ? 'إلغاء' : 'تعديل البيانات 1'}
           </button>
@@ -2292,33 +2294,33 @@ function ProfileView({
         {isEditing ? (
           <form onSubmit={handleSave} className="space-y-4">
             <div>
-              <label className="block text-[11px] font-black text-[#D0A97E] mb-1.5">الاسم الكامل</label>
+              <label className="block text-[11px] font-black text-[#C5B198] mb-1.5">الاسم الكامل</label>
               <input
                 type="text"
                 value={name}
                 onChange={e => setName(e.target.value)}
                 required
-                className="w-full bg-[#0B1510] border border-[#2A3A2F] rounded-xl p-3 text-xs font-bold text-[#F8F5F0] outline-none focus:border-[#D0A97E]"
+                className="w-full bg-[#FAF7F2] border border-[#E8E2D8] rounded-xl p-3 text-xs font-bold text-[#1C3022] outline-none focus:border-[#D0A97E]"
               />
             </div>
             <div>
-              <label className="block text-[11px] font-black text-[#D0A97E] mb-1.5">البريد الإلكتروني</label>
+              <label className="block text-[11px] font-black text-[#C5B198] mb-1.5">البريد الإلكتروني</label>
               <input
                 type="email"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 placeholder="example@mail.com"
-                className="w-full bg-[#0B1510] border border-[#2A3A2F] rounded-xl p-3 text-xs font-bold text-[#F8F5F0] outline-none focus:border-[#D0A97E]"
+                className="w-full bg-[#FAF7F2] border border-[#E8E2D8] rounded-xl p-3 text-xs font-bold text-[#1C3022] outline-none focus:border-[#D0A97E]"
               />
             </div>
             <div>
-              <label className="block text-[11px] font-black text-[#D0A97E] mb-1.5">رقم التواصل (اختياري)</label>
+              <label className="block text-[11px] font-black text-[#C5B198] mb-1.5">رقم التواصل (اختياري)</label>
               <input
                 type="tel"
                 value={phone}
                 onChange={e => setPhone(e.target.value)}
                 placeholder="05XXXXXXXX"
-                className="w-full bg-[#0B1510] border border-[#2A3A2F] rounded-xl p-3 text-xs font-bold text-[#F8F5F0] outline-none focus:border-[#D0A97E]"
+                className="w-full bg-[#FAF7F2] border border-[#E8E2D8] rounded-xl p-3 text-xs font-bold text-[#1C3022] outline-none focus:border-[#D0A97E]"
                 dir="ltr"
               />
             </div>
@@ -2333,21 +2335,21 @@ function ProfileView({
           </form>
         ) : (
           <div className="space-y-4 text-sm font-bold">
-            <div className="flex justify-between py-2 border-b border-[#2A3A2F]">
-              <span className="text-[#D0A97E]">الاسم الكامل</span>
-              <span className="text-[#F8F5F0]">{user.name}</span>
+            <div className="flex justify-between py-2 border-b border-[#E8E2D8]">
+              <span className="text-[#C5B198]">الاسم الكامل</span>
+              <span className="text-[#1C3022]">{user.name}</span>
             </div>
-            <div className="flex justify-between py-2 border-b border-[#2A3A2F]">
-              <span className="text-[#D0A97E]">البريد الإلكتروني</span>
-              <span className="text-[#F8F5F0]">{user.email || 'غير مسجل'}</span>
+            <div className="flex justify-between py-2 border-b border-[#E8E2D8]">
+              <span className="text-[#C5B198]">البريد الإلكتروني</span>
+              <span className="text-[#1C3022]">{user.email || 'غير مسجل'}</span>
             </div>
-            <div className="flex justify-between py-2 border-b border-[#2A3A2F]">
-              <span className="text-[#D0A97E]">رقم الجوال</span>
-              <span className="text-[#F8F5F0]" dir="ltr">{user.phone || 'غير مسجل'}</span>
+            <div className="flex justify-between py-2 border-b border-[#E8E2D8]">
+              <span className="text-[#C5B198]">رقم الجوال</span>
+              <span className="text-[#1C3022]" dir="ltr">{user.phone || 'غير مسجل'}</span>
             </div>
             <div className="flex justify-between py-2">
-              <span className="text-[#D0A97E]">نوع الحساب</span>
-              <span className="text-[#F8F5F0]">{isSupervisor ? 'مشرف عام النظام' : 'عميل'}</span>
+              <span className="text-[#C5B198]">نوع الحساب</span>
+              <span className="text-[#1C3022]">{isSupervisor ? 'مشرف عام النظام' : 'عميل'}</span>
             </div>
           </div>
         )}
@@ -2358,14 +2360,14 @@ function ProfileView({
         <button
           type="button"
           onClick={onOpenSupportModal}
-          className="w-full bg-[#1C3022] hover:bg-[#122116] text-[#F8F5F0] py-3 px-4 rounded-2xl font-black text-xs flex items-center justify-between shadow-sm transition-all active:scale-[0.98] border border-[#C5B198]/30 group"
+          className="w-full bg-[#1C3022] hover:bg-[#122116] text-white py-3 px-4 rounded-2xl font-black text-xs flex items-center justify-between shadow-sm transition-all active:scale-[0.98] border border-[#C5B198]/30 group"
         >
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-xl bg-[#C5B198] text-[#1C3022] flex items-center justify-center font-black shadow-sm group-hover:scale-105 transition-transform">
               <Headphones className="w-4 h-4" />
             </div>
             <div className="text-right">
-              <span className="font-black text-xs text-[#F8F5F0] block">خدمة العملاء (محادثة فورية)</span>
+              <span className="font-black text-xs text-[#1C3022] block">خدمة العملاء (محادثة فورية)</span>
               <span className="text-[10px] text-[#C5B198] font-bold block">mfb.15.srt@gmail.com</span>
             </div>
           </div>
@@ -2380,13 +2382,13 @@ function ProfileView({
         <button
           type="button"
           onClick={() => setShowClientsModal(true)}
-          className="w-full bg-[#1C3022] hover:bg-[#122116] text-[#F8F5F0] py-2.5 px-4 rounded-2xl font-black text-xs flex items-center justify-between shadow-sm transition-all active:scale-[0.98] border border-[#C5B198]/30 group"
+          className="w-full bg-[#1C3022] hover:bg-[#122116] text-white py-2.5 px-4 rounded-2xl font-black text-xs flex items-center justify-between shadow-sm transition-all active:scale-[0.98] border border-[#C5B198]/30 group"
         >
           <div className="flex items-center gap-2.5">
             <div className="w-7 h-7 rounded-xl bg-[#C5B198] text-[#1C3022] flex items-center justify-center font-black shadow-sm group-hover:scale-105 transition-transform">
               <Users className="w-3.5 h-3.5" />
             </div>
-            <span className="font-black text-xs text-[#F8F5F0]">العملاء</span>
+            <span className="font-black text-xs text-[#1C3022]">العملاء</span>
           </div>
           <div className="w-6 h-6 rounded-lg bg-white/10 flex items-center justify-center text-[#C5B198] group-hover:translate-x-[-2px] transition-transform">
             <ChevronLeft className="w-3.5 h-3.5" />

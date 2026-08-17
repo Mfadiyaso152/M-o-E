@@ -57,11 +57,11 @@ export function CompletePhoneModal({ user, onSavePhone }: Props) {
         initial={{ scale: 0.94, opacity: 0, y: 15 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
         transition={{ duration: 0.25, ease: 'easeOut' }}
-        className="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl border border-[#E8E2D8] text-[#F8F5F0] space-y-4 touch-auto"
+        className="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl border border-[#E8E2D8] text-[#1C3022] space-y-4 touch-auto"
         onClick={e => e.stopPropagation()}
       >
         <div className="text-center space-y-2">
-          <div className="w-12 h-12 bg-[#1C3022] text-[#1C3022] rounded-2xl flex items-center justify-center mx-auto shadow-md">
+          <div className="w-12 h-12 bg-[#1C3022] text-white rounded-2xl flex items-center justify-center mx-auto shadow-md">
             <Phone className="w-6 h-6" />
           </div>
           <h3 className="text-base font-black text-[#1C3022]">إكمال بيانات التواصل</h3>
@@ -107,7 +107,7 @@ export function CompletePhoneModal({ user, onSavePhone }: Props) {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full bg-[#1C3022] text-[#F8F5F0] py-3.5 rounded-2xl text-xs font-black flex items-center justify-center gap-2 hover:bg-[#122116] shadow-md transition-all active:scale-[0.98] disabled:opacity-50"
+            className="w-full bg-[#1C3022] text-white py-3.5 rounded-2xl text-xs font-black flex items-center justify-center gap-2 hover:bg-[#122116] shadow-md transition-all active:scale-[0.98] disabled:opacity-50"
           >
             {isSubmitting ? (
               <>
