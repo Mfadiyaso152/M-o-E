@@ -509,6 +509,8 @@ export default function App() {
                     }
                   }}
                   onPayInstallment={(p, i) => setShowPaymentModal({ project: p, installment: i })}
+                  onUpdateProject={handleUpdateProject}
+                  onRequestToast={triggerToast}
                 />
               </div>
             ) : (
@@ -616,7 +618,7 @@ export default function App() {
                     />
                   ) : (
                     <ProjectsListView 
-                      projects={projects} 
+                      projects={projects.filter(p => p.clientId === user?.id)} 
                       onSelect={setSelectedProject}
                       onCustomize={setCustomizingProject}
                       onRequestQuote={() => setShowQuoteForm(true)}
@@ -1745,6 +1747,18 @@ function ProjectsListView({
   onCustomize: (p: Project) => void;
   onRequestQuote: () => void;
 }) {
+  const [filterTab, setFilterTab] = useState<'all' | 'new' | 'completed'>('all');
+
+  const filteredProjects = projects.filter(p => {
+    if (filterTab === 'new') {
+      return p.status !== 'مكتمل' && p.status !== 'ملغي';
+    }
+    if (filterTab === 'completed') {
+      return p.status === 'مكتمل';
+    }
+    return true;
+  });
+
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between">
@@ -1757,8 +1771,36 @@ function ProjectsListView({
         </span>
       </div>
 
-      {projects.length === 0 ? (
-        <div className="bg-white rounded-[2rem] p-10 text-center border border-[#E8E2D8] flex flex-col items-center justify-center min-h-[50vh] space-y-6">
+      {/* Simple Filter Bar: All, New/In Progress, Completed */}
+      <div className="flex gap-2 bg-white p-1.5 rounded-2xl border border-[#E8E2D8] shadow-sm">
+        <button
+          onClick={() => setFilterTab('all')}
+          className={`flex-1 py-2 px-3 rounded-xl text-xs font-black transition-all ${
+            filterTab === 'all' ? 'bg-[#1C3022] text-white' : 'text-slate-600 hover:bg-[#FAF7F2]'
+          }`}
+        >
+          الكل ({projects.length})
+        </button>
+        <button
+          onClick={() => setFilterTab('new')}
+          className={`flex-1 py-2 px-3 rounded-xl text-xs font-black transition-all ${
+            filterTab === 'new' ? 'bg-[#1C3022] text-white' : 'text-slate-600 hover:bg-[#FAF7F2]'
+          }`}
+        >
+          جديدة / قيد التنفيذ
+        </button>
+        <button
+          onClick={() => setFilterTab('completed')}
+          className={`flex-1 py-2 px-3 rounded-xl text-xs font-black transition-all ${
+            filterTab === 'completed' ? 'bg-[#1C3022] text-white' : 'text-slate-600 hover:bg-[#FAF7F2]'
+          }`}
+        >
+          مكتملة
+        </button>
+      </div>
+
+      {filteredProjects.length === 0 ? (
+        <div className="bg-white rounded-[2rem] p-10 text-center border border-[#E8E2D8] flex flex-col items-center justify-center min-h-[40vh] space-y-6">
           <div className="mx-auto text-[#C5B198] opacity-80 mb-2">
             <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M4 22h14" />
@@ -1773,7 +1815,7 @@ function ProjectsListView({
             </svg>
           </div>
           <div className="space-y-3">
-            <h4 className="font-black text-lg text-[#1C3022]">لا توجد مشاريع حالياً</h4>
+            <h4 className="font-black text-lg text-[#1C3022]">لا توجد مشاريع في هذا التصنيف</h4>
             <p className="text-sm text-slate-500 max-w-[200px] mx-auto leading-relaxed font-bold">
               يمكنك طلب عرض سعر جديد لبدء مشروعك القادم
             </p>
@@ -1788,7 +1830,7 @@ function ProjectsListView({
         </div>
       ) : (
         <div className="space-y-4">
-          {projects.map(p => {
+          {filteredProjects.map(p => {
             if (p.isDeleted) {
               return (
                 <div key={p.id} className="bg-red-50 border border-red-200 rounded-3xl p-5 shadow-sm space-y-3">
@@ -2086,14 +2128,67 @@ function ProjectDetailView({
   project, 
   onBack,
   onOpenCustomization,
-  onPayInstallment
+  onPayInstallment,
+  onUpdateProject,
+  onRequestToast
 }: { 
   project: Project; 
   onBack: () => void;
   onOpenCustomization: () => void;
   onPayInstallment: (p: Project, i: Installment) => void;
+  onUpdateProject?: (p: Project) => void;
+  onRequestToast?: (msg: string) => void;
 }) {
   const [activeStage, setActiveStage] = useState<'before' | 'progress50' | 'after' | 'plans'>('progress50');
+  const [contractNotes, setContractNotes] = useState('');
+  const [isSubmittingContract, setIsSubmittingContract] = useState(false);
+
+  const contract = project.contracts?.[0];
+
+  const handleContractDecision = async (decision: 'accept' | 'reject') => {
+    if (!onUpdateProject || !contract) return;
+    if (decision === 'reject' && !contractNotes.trim()) {
+      if (onRequestToast) onRequestToast('يرجى كتابة سبب أو ملاحظات الرفض لتتمكن من إرسالها للمشرف');
+      return;
+    }
+
+    setIsSubmittingContract(true);
+    try {
+      const updatedContracts = project.contracts.map((c, idx) => {
+        if (idx === 0) {
+          return {
+            ...c,
+            status: decision === 'accept' ? ('ساري وموثق' as const) : ('مرفوض' as const),
+            clientSignedDate: new Date().toLocaleDateString('ar-SA'),
+            clientSignerName: contractNotes.trim() ? `${c.clientSignerName || ''} (ملاحظات: ${contractNotes.trim()})` : c.clientSignerName
+          };
+        }
+        return c;
+      });
+
+      const updatedProject: Project = {
+        ...project,
+        contracts: updatedContracts,
+        status: decision === 'accept' ? 'مكتمل' : project.status,
+        isCertified: decision === 'accept' ? true : project.isCertified
+      };
+
+      await onUpdateProject(updatedProject);
+      if (onRequestToast) {
+        onRequestToast(
+          decision === 'accept'
+            ? 'تم قبول العقد وتوثيق المشروع واعتباره مكتملاً بنجاح!'
+            : 'تم تسجيل رفض العقد وإرسال الملاحظات للمشرف ليتمكن من إرسال عقد جديد.'
+        );
+      }
+      setContractNotes('');
+    } catch (err) {
+      console.error(err);
+      if (onRequestToast) onRequestToast('حدث خطأ أثناء اعتماد العقد');
+    } finally {
+      setIsSubmittingContract(false);
+    }
+  };
 
   const stageLabels = {
     before: 'قبل البدء',
@@ -2151,6 +2246,88 @@ function ProjectDetailView({
           </div>
         </div>
       </div>
+
+      {/* Project Contract Review & Approval Card */}
+      {contract && (
+        <div className="bg-white rounded-[2rem] p-6 border border-[#E8E2D8] shadow-sm space-y-4">
+          <div className="flex items-center justify-between pb-3 border-b border-[#F0EBE1]">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-xl bg-[#EFE7DC] flex items-center justify-center text-[#1C3022]">
+                <FileText className="w-4 h-4" />
+              </div>
+              <div>
+                <h3 className="font-black text-sm text-[#1C3022]">عقد المشروع ومراجعة الشروط</h3>
+                <span className="text-[10px] text-slate-400">رقم العقد: {contract.contractNumber}</span>
+              </div>
+            </div>
+            <span className={`text-[10px] font-black px-2.5 py-1 rounded-xl border ${
+              contract.status === 'ساري وموثق' ? 'bg-emerald-50 text-emerald-800 border-emerald-200' :
+              contract.status === 'مرفوض' ? 'bg-red-50 text-red-800 border-red-200' :
+              'bg-amber-50 text-amber-800 border-amber-200'
+            }`}>
+              {contract.status}
+            </span>
+          </div>
+
+          <div className="space-y-2 text-xs text-slate-700 font-medium bg-[#FAF7F2] p-4 rounded-2xl border border-[#E8E2D8]">
+            <div className="flex justify-between font-bold">
+              <span>قيمة العقد الإجمالية:</span>
+              <span className="text-[#1C3022] font-black">{contract.totalValue}</span>
+            </div>
+            <div className="space-y-1 pt-2">
+              <span className="text-[11px] font-black text-[#1C3022] block">البنود والشروط الأساسية:</span>
+              <ul className="list-disc list-inside space-y-1 text-slate-600 text-[11px]">
+                {contract.termsSummary?.map((term, i) => (
+                  <li key={i}>{term}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+
+          {contract.status !== 'ساري وموثق' && (
+            <div className="space-y-3 pt-2">
+              <div>
+                <label className="block text-[11px] font-black text-[#1C3022] mb-1">ملاحظات العميل على العقد (اختياري عند القبول، إلزامي عند الرفض):</label>
+                <textarea
+                  rows={2}
+                  value={contractNotes}
+                  onChange={e => setContractNotes(e.target.value)}
+                  placeholder="اكتب أي ملاحظات أو تعديلات مطلوبة على العقد..."
+                  className="w-full bg-[#FAF7F2] border border-[#E8E2D8] rounded-xl p-3 text-xs font-medium outline-none focus:ring-2 focus:ring-[#C5B198] resize-none"
+                />
+              </div>
+
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  disabled={isSubmittingContract}
+                  onClick={() => handleContractDecision('accept')}
+                  className="flex-1 bg-emerald-700 hover:bg-emerald-800 text-white py-2.5 rounded-xl text-xs font-black transition-all shadow-sm flex items-center justify-center gap-1.5"
+                >
+                  <CheckCircle2 className="w-4 h-4" />
+                  <span>قبول العقد واعتماد المشروع</span>
+                </button>
+                <button
+                  type="button"
+                  disabled={isSubmittingContract || !contractNotes.trim()}
+                  onClick={() => handleContractDecision('reject')}
+                  className="flex-1 bg-red-700 hover:bg-red-800 text-white py-2.5 rounded-xl text-xs font-black transition-all shadow-sm disabled:opacity-50 flex items-center justify-center gap-1.5"
+                >
+                  <XCircle className="w-4 h-4" />
+                  <span>رفض العقد (طلب تعديل/عقد جديد)</span>
+                </button>
+              </div>
+            </div>
+          )}
+
+          {contract.status === 'ساري وموثق' && (
+            <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-2xl flex items-center gap-2 text-emerald-900 text-xs font-bold">
+              <ShieldCheck className="w-4 h-4 text-emerald-700 shrink-0" />
+              <span>تم اعتماد هذا العقد بنجاح وأصبح المشروع مكتملاً وموثقاً.</span>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Project Stages Gallery */}
       <div className="bg-white rounded-[2rem] p-6 border border-[#E8E2D8] shadow-sm space-y-5">
